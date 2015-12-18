@@ -1,4 +1,4 @@
-# XrmDefinitelyTyped
+# XrmContext
 
 
-Read more at: http://delegateas.github.io/Delegate.XrmDefinitelyTyped/
+Read more at: http://delegateas.github.io/Delegate.XrmContext/
