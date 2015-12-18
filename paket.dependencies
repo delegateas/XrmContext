@@ -1,0 +1,10 @@
+source https://nuget.org/api/v2
+
+nuget FSharp.Formatting
+nuget NUnit
+nuget NUnit.Runners
+nuget FAKE
+nuget SourceLink.Fake
+nuget Microsoft.CrmSdk.CoreAssemblies = 5.0.18
+
+github fsharp/FAKE modules/Octokit/Octokit.fsx

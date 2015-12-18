@@ -1,0 +1,163 @@
+﻿namespace DG.XrmContext
+
+open System
+open System.Linq
+open System.CodeDom
+open System.Diagnostics
+open System.Collections.Generic
+open System.Runtime.Serialization
+
+open Microsoft.Xrm.Sdk
+open Microsoft.Xrm.Sdk.Metadata
+open Microsoft.Xrm.Sdk.Client
+
+  
+open Utility
+open IntermediateRepresentation
+
+module internal CodeDomHelper =
+  
+  let baseReservedProperties =
+    typeof<Entity>.GetProperties() |> Array.map (fun x -> x.Name) |> Set.ofArray
+    |> Set.add "EntityLogicalName"
+    |> Set.add "EntityTypeCode"
+
+  let rec _getValidName props baseName i =
+    let name = (sprintf "%s_%d" baseName i)
+    if Set.contains name props then
+      _getValidName props baseName (i+1)
+    else 
+      name
+
+  let getValidName props name =
+    if Set.contains name props then
+      _getValidName props name 1
+    else 
+      name
+    
+  let simpleTypeNames = 
+    [ (typeof<bool>.Name, "bool") 
+      (typeof<int>.Name, "int") 
+      (typeof<int64>.Name, "long") 
+      (typeof<decimal>.Name, "decimal") 
+      (typeof<double>.Name, "double")
+    ] |> Map.ofList
+
+
+  let Class name = CodeTypeDeclaration(name)
+  let Variable name ty = 
+    CodeMemberProperty() 
+    |> fun m -> 
+      m.Name <- name
+      m.Type <- ty    
+      m.Attributes <- MemberAttributes.Public ||| MemberAttributes.Final
+      m
+  
+  let VarRef = CodeVariableReferenceExpression
+  let FieldRef (ty:string) name = CodeFieldReferenceExpression(CodeTypeReferenceExpression(ty), name)
+  let Return = CodeMethodReturnStatement
+  let BaseProp propName = CodePropertyReferenceExpression(CodeBaseReferenceExpression(), propName)
+
+  let This () = CodeThisReferenceExpression()
+  let MethodInvoke func (ty:CodeTypeReference option) parameters = 
+    match ty with
+    | None    -> 
+      CodeMethodInvokeExpression(CodeMethodReferenceExpression(null, func), parameters)
+    | Some ty ->
+      CodeMethodInvokeExpression(CodeMethodReferenceExpression(null, func, ty), parameters)
+
+
+  let StringLiteral str = CodePrimitiveExpression(str)
+  
+  let Field name (value: 'T) =
+    let field = CodeMemberField(typeof<'T>, name)
+    field.InitExpression <- CodePrimitiveExpression(value)
+    field
+
+  let Constant name (value:'T) = 
+    let field = Field name value
+    field.Attributes <- MemberAttributes.Public ||| MemberAttributes.Const;
+    field
+
+
+  let CommentSummary (content:string list) =
+    content
+    |> List.map (sprintf "<para>%s</para>")
+    |> fun desc -> "<summary>" :: desc @ ["</summary>"]
+    |> List.map (fun str -> CodeCommentStatement(str, true))
+    |> Array.ofList
+    |> CodeCommentStatementCollection
+
+
+  let AttributeName (ty:Type) = 
+    match ty.Name.EndsWith("Attribute") with
+    | true -> ty.Name.Remove(ty.Name.Length - 9)
+    | false -> ty.Name
+
+   
+
+  let getAttributeTypeRef (ty:Type) =
+    match ty.Name with
+    | "String" -> CodeTypeReference ty
+    | _ ->
+      match simpleTypeNames.TryFind ty.Name with
+      | Some x -> x
+      | None   -> ty.Name
+      |> fun name ->
+        match ty.IsValueType with
+        | true  -> CodeTypeReference (name + "?")
+        | false -> CodeTypeReference name
+
+
+  (** Various helper functions *)
+  let ExtendedEntity ty1 ty2 = CodeTypeReference("ExtendedEntity", ty1, ty2)
+
+  let EntityConstructors () =
+    let con1 = CodeConstructor()
+    con1.Attributes <- MemberAttributes.Public
+    con1.BaseConstructorArgs.Add(CodeVariableReferenceExpression("EntityLogicalName")) |> ignore
+    
+    let con2 = CodeConstructor()
+    con2.Attributes <- MemberAttributes.Public
+    con2.Parameters.Add(CodeParameterDeclarationExpression("Guid", "Id")) |> ignore
+    con2.BaseConstructorArgs.Add(CodeVariableReferenceExpression("EntityLogicalName")) |> ignore
+    con2.BaseConstructorArgs.Add(CodeVariableReferenceExpression("Id")) |> ignore
+    
+    [|con1 :> CodeTypeMember; con2 :> CodeTypeMember|]
+
+
+
+  let EntityCustomAttribute logicalName = 
+    CodeAttributeDeclaration(AttributeName typeof<EntityLogicalNameAttribute>, 
+      CodeAttributeArgument(StringLiteral(logicalName)))
+
+  let EntityAttributeCustomAttribute logicalName = 
+    CodeAttributeDeclaration(AttributeName typeof<AttributeLogicalNameAttribute>, 
+      CodeAttributeArgument(StringLiteral(logicalName)))
+
+  let RelationshipCustomAttribute schemaName entityRole = 
+    let attr = 
+      CodeAttributeDeclaration(AttributeName typeof<RelationshipSchemaNameAttribute>, 
+        CodeAttributeArgument(StringLiteral(schemaName)))
+    match entityRole with
+    | Some role -> 
+      attr.Arguments.Add(CodeAttributeArgument(role)) |> ignore 
+      attr
+    | None -> attr
+   
+
+  let DebuggerDisplayAttribute () = 
+    CodeAttributeDeclaration(AttributeName typeof<DebuggerDisplayAttribute>, 
+      CodeAttributeArgument(StringLiteral("{DebuggerDisplay,nq}")))
+
+  let DebuggerDisplayMember nameAttr =
+    let prop = CodeMemberProperty()
+    prop.Type <- CodeTypeReference typeof<string>
+    prop.Name <- "DebuggerDisplay"
+    prop.Attributes <- MemberAttributes.Private
+    prop.HasGet <- true
+    prop.HasSet <- false
+
+    prop.GetStatements.Add(
+      Return(MethodInvoke "GetDebuggerDisplay" None [|StringLiteral nameAttr|])) |> ignore
+    prop
