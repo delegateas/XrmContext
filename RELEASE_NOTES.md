@@ -1,5 +1,9 @@
 # Release Notes
 
+### 1.1.1 - December 29 2015
+* Improved retrieval of CRM metadata
+* Fixed incorrect argument description
+
 ### 1.1.0 - December 18 2015
 * Reduced version requirements to support backward-compatibility:
   * Reduced requirement of the dependency `Microsoft.CrmSdk.CoreAssemblies` to 5.0.18 or greater

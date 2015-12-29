@@ -88,7 +88,7 @@
     <Compile Include="Domain.fs" />
     <EmbeddedResource Include="Resources\XrmExtensions.cs" />
     <Compile Include="Crm/CrmAuth.fs" />
-    <Compile Include="Crm/CrmDataHelper.fs" />
+    <Compile Include="Crm/CrmBaseHelper.fs" />
     <Compile Include="Crm/CrmNameHelper.fs" />
     <Compile Include="Utility.fs" />
     <Compile Include="IntermediateRepresentation.fs" />

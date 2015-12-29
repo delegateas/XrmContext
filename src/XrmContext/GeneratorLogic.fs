@@ -61,52 +61,34 @@ module internal GeneratorLogic =
     printfn "Done!"
 
 
-  /// Connect to CRM with the given authentication
-  let connectToCrm xrmAuth =
+  // Proxy helper that makes it easy to get a new proxy instance
+  let proxyHelper xrmAuth () =
     let ap = xrmAuth.ap |? AuthenticationProviderType.OnlineFederation
     let domain = xrmAuth.domain |? ""
+    CrmAuth.authenticate
+      xrmAuth.url ap xrmAuth.username 
+      xrmAuth.password domain
+    ||> CrmAuth.proxyInstance
 
+
+  /// Connect to CRM with the given authentication
+  let connectToCrm xrmAuth =
     printf "Connecting to CRM..."
-    let manager,authToken =
-      CrmAuth.authenticate 
-        xrmAuth.url ap xrmAuth.username 
-        xrmAuth.password domain
-    let proxy = CrmAuth.proxyInstance manager authToken
+    let proxy = proxyHelper xrmAuth ()
     printfn "Done!"
-
     proxy
 
     
 
   /// Retrieve all the necessary CRM data
-  let retrieveCrmData entities proxy =
+  let retrieveCrmData entities mainProxy proxyGetter =
     printf "Fetching entity metadata from CRM..."
 
     let rawEntityMetadata = 
       match entities with
-      | None -> CrmDataHelper.getAllEntityMetadata proxy
+      | None -> CrmBaseHelper.getAllEntityMetadata mainProxy
       | Some logicalNames -> 
-        let set = logicalNames |> Set.ofArray
-
-        let mainEntities =
-          logicalNames
-          |> Array.map (CrmDataHelper.retrieveEntityAndDependentMetadata proxy set)
-          |> List.concat
-        
-        let needActivityParty =
-          not (set.Contains "activityparty") &&
-          mainEntities 
-          |> List.exists (fun m -> 
-            m.Attributes 
-            |> Array.exists (fun a -> 
-              a.AttributeType.GetValueOrDefault() = AttributeTypeCode.PartyList))
-
-        if needActivityParty then 
-          (CrmDataHelper.retrieveActivityPartyAndDependentMetadata proxy set) @ mainEntities
-        else mainEntities
-        |> Array.ofList
-        |> Array.distinctBy (fun m -> m.LogicalName)
-    
+        CrmBaseHelper.getSpecificEntitiesAndDependentMetadata proxyGetter logicalNames
 
     printfn "Done!"
     { RawState.metadata = rawEntityMetadata }
@@ -123,7 +105,7 @@ module internal GeneratorLogic =
 
     let entityMetadata =
       rawState.metadata 
-      |> Array.map (interpretEntity entityMap deprecatedPrefix)
+      |> Array.Parallel.map (interpretEntity entityMap deprecatedPrefix)
     printfn "Done!"
 
     { InterpretedState.entities = entityMetadata
@@ -140,7 +122,7 @@ module internal GeneratorLogic =
       match solutions with
       | Some sols -> 
         sols 
-        |> Array.map (CrmDataHelper.retrieveSolutionEntities proxy)
+        |> Array.map (CrmBaseHelper.retrieveSolutionEntities proxy)
         |> Seq.concat
         |> Set.ofSeq
       | None -> Set.empty
@@ -150,15 +132,16 @@ module internal GeneratorLogic =
       | Some ents -> Set.union solutionEntities (Set.ofArray ents)
       | None -> solutionEntities
 
+    printfn "Done!"
     match allEntities.Count with
-    | 0 -> None
+    | 0 -> 
+      printfn "Creating context for all entities"
+      None
     | _ -> 
       let entities = allEntities |> Set.toArray 
-      printfn "Done!"
       printfn "Creating context for the following entities: %s" (String.Join(",", entities))
       entities
       |> Some
-
       
 
   /// Generates the code represented in the CodeDom object

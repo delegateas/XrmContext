@@ -39,12 +39,13 @@ type XrmContext private () =
       // Connect to CRM and interpret the data
       let proxy = connectToCrm xrmAuth
       
+      let proxyGetter = proxyHelper xrmAuth
       let entities = 
         getFullEntityList settings.entities settings.solutions proxy
       
       let data = 
-        proxy
-        |> retrieveCrmData entities
+        (proxy, proxyGetter)
+        ||> retrieveCrmData entities
         |> interpretCrmData out ns settings.context settings.deprecatedPrefix
 
       // Generate the code

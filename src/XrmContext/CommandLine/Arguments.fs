@@ -15,7 +15,7 @@ type Args private () =
     { command="out";        required=false; description="Output directory for the generated files" }
     { command="solutions";  required=false; description="Comma-separated list of solutions names. Generates code for the entities found in these solutions." }
     { command="entities";   required=false; 
-      description=  "Comma-separated list of logical names of the entities it should generate code for. This is additive with the entities gotten via the \"solutions\" argument." }
+      description="Comma-separated list of logical names of the entities it should generate code for. This is additive with the entities gotten via the \"solutions\" argument." }
     { command="namespace";  required=false; description="The namespace for the generated code. The default is the global namespace." }
     { command="servicecontextname";
                             required=false; description="The name of the generated organization service context class. If no value is supplied, no service context is created." }

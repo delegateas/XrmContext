@@ -45,4 +45,4 @@ Getting Started
 ---------------
 
 First see how to [generate the context](tool-usage.html), and afterwards check
-out what you can [use the generated code for](functionality.html)
+out what you can [use the generated code for](functionality.html).
