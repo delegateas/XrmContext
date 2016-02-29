@@ -1,5 +1,11 @@
 # Release Notes
 
+### 1.1.2 - February 24 2016
+* Added "***/genconfig***" argument which generates a dummy configuration file to use
+* Added "***/useconfig***" argument, see [usage for more information](tool-usage.html#Configuration-file)
+* Added version print when using the executable
+* Changed exit-code for the executable to be 1 instead of 0, when it encounters an exception
+
 ### 1.1.1 - December 29 2015
 * Improved retrieval of CRM metadata
 * Fixed incorrect argument description

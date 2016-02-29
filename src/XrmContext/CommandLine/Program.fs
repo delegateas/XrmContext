@@ -50,7 +50,9 @@ let main argv =
   0
   #else
   try 
+    showDescription()
     if argv.Length > 0 && Args.helpArgs.Contains argv.[0] then showUsage()
+    else if argv.Length > 0 && Args.genConfigArgs.Contains argv.[0] then Args.genConfig()
     else executeGetContext argv
     0
   with ex ->

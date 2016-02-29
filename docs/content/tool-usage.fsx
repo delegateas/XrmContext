@@ -37,6 +37,15 @@ but with a few additions. Here is the full list of arguments:
 | servicecontextname  | The name of the generated organization service context class. If no value is supplied, no service context is created.
 | deprecatedprefix    | Marks all attributes with the given prefix in their display name as deprecated.
 
+You can also view this list of arguments using the "***/help***" argument.
+
+### Configuration file
+
+If no arguments are given to the executable, it will check if there is an configuration file in the same folder with arguments it can use instead.
+
+If you want to generate a dummy configuration file to use for arguments, you can use the "***/genconfig***" argument.<br />
+If you want to use a mix of the arguments from the configuration file and arguments passed to the executable, 
+you can specify the "***/useconfig***" argument in the command-line.
 
   [crmsvcutil]: https://msdn.microsoft.com/en-us/library/gg327844.aspx
 
