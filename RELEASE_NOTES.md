@@ -9,7 +9,7 @@
 * Added methods (`.AltKey_<keyname>`) that helps set the alternate keys correctly on an entity object before upserting it
 * Added `.Retrieve<T>`, `.Upsert`, `.Assign` and `.SetState` extension methods on `IOrganizationService` to simplify the use of these requests
 * Added `.PerformAsBulk` extension method on `IOrganizationService` that performs requests as bulk
-* To support multiple versions of `CrmSdk.CoreAssemblies` in the target library, a new "***/version***" argument has been added
+* To support multiple versions of `CrmSdk.CoreAssemblies` in the target library, a new "***/sdkversion***" argument has been added
 
 ### 1.1.2 - February 24 2016
 * Added "***/genconfig***" argument which generates a dummy configuration file to use
