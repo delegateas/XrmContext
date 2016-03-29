@@ -3,6 +3,7 @@
 open System
 open System.IO
 open System.Reflection
+open System.Text.RegularExpressions
 
 open Microsoft.Xrm.Sdk
 open Microsoft.Xrm.Sdk.Metadata
@@ -32,7 +33,6 @@ module internal GeneratorLogic =
 
 
   (** Resource helpers *)
-
   let getResourceLines resName =
     let assembly = Assembly.GetExecutingAssembly()
     use res = assembly.GetManifestResourceStream(resName)
@@ -41,6 +41,40 @@ module internal GeneratorLogic =
     seq {
       while not sr.EndOfStream do yield sr.ReadLine ()
     } |> List.ofSeq
+
+  // Check if line ends a versioned code block
+  let versionCheckEndLine line =
+    let m = Regex("^\s*//ENDVERSIONCHECK").Match(line)
+    m.Success
+
+  // Check if line indicates the start of a versioned code block or should be otherwise skipped
+  let (|Supported|NotSupported|SkipLine|NormalLine|) (sdkVersion, line) =
+    let m = Regex("^\s*//VERSIONCHECK\s+(\d)(?:\.(\d))?(?:\.(\d))?(?:\.(\d))?").Match(line)
+    if not m.Success then 
+      match versionCheckEndLine line with
+      | true  -> SkipLine
+      | false -> NormalLine
+    else
+      let getGroup (idx:int) = parseInt m.Groups.[idx].Value |? 0
+      match checkVersion (getGroup 1, getGroup 2, getGroup 3, getGroup 4) sdkVersion with
+      | true  -> Supported
+      | false -> NotSupported
+
+  // Remove unsupported lines based on the given version
+  let removeUnsupportedLines sdkVersion (lines:string seq) =
+    lines
+    |> Seq.fold (fun (resLines,doRemove) line ->
+      if doRemove then
+        (resLines, versionCheckEndLine line |> not)
+      else
+        match sdkVersion, line with
+        | Supported
+        | SkipLine     -> (resLines, false)
+        | NotSupported -> (resLines, true)
+        | NormalLine   -> (line::resLines, false)
+    ) ([], false)
+    |> fst 
+    |> Seq.rev
 
 
   (** Generation functionality *)
@@ -78,6 +112,15 @@ module internal GeneratorLogic =
     printfn "Done!"
     proxy
 
+  /// Retrieve version from CRM
+  let retrieveCrmVersion mainProxy =
+    printf "Retrieving CRM version..."
+
+    let version = 
+      CrmBaseHelper.retrieveVersion mainProxy
+
+    printfn "Done!"
+    version
     
 
   /// Retrieve all the necessary CRM data
@@ -96,7 +139,7 @@ module internal GeneratorLogic =
 
 
   /// Interprets the raw CRM data into an intermediate state used for further generation
-  let interpretCrmData out ns context deprecatedPrefix (rawState:RawState) =
+  let interpretCrmData out ns deprecatedPrefix context sdkVersion (rawState:RawState) =
     printf "Interpreting data..."
     let entityMap = 
       rawState.metadata
@@ -105,7 +148,7 @@ module internal GeneratorLogic =
 
     let entityMetadata =
       rawState.metadata 
-      |> Array.Parallel.map (interpretEntity entityMap deprecatedPrefix)
+      |> Array.Parallel.map (interpretEntity entityMap deprecatedPrefix sdkVersion)
     printfn "Done!"
 
     { InterpretedState.entities = entityMetadata
@@ -157,6 +200,8 @@ module internal GeneratorLogic =
     provider.GenerateCodeFromCompileUnit(cu, writer, options)
     printfn "Done!"
 
-  let createResourceFiles out =
+  // Create resource files
+  let createResourceFiles sdkVersion out =
     getResourceLines "XrmExtensions.cs"
+    |> removeUnsupportedLines sdkVersion
     |> fun lines -> File.WriteAllLines(Path.Combine(out, "XrmExtensions.cs"), lines)

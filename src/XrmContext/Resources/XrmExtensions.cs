@@ -6,6 +6,8 @@ using System.Linq.Expressions;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Client;
 using Microsoft.Crm.Sdk.Messages;
+using Microsoft.Xrm.Sdk.Query;
+using Microsoft.Xrm.Sdk.Messages;
 
 namespace DG.XrmContext {
 
@@ -87,35 +89,72 @@ namespace DG.XrmContext {
             SetAttributeValue(primaryIdAttribute, guid);
         }
 
+        //VERSIONCHECK 7.1.0.0
+        protected static T Retrieve_AltKey<T>(IOrganizationService service, KeyAttributeCollection keys, params Expression<Func<T, object>>[] attributes) where T : Entity {
+            var req = new RetrieveRequest();
+            req.Target = new EntityReference(Activator.CreateInstance<T>().LogicalName, keys);
+            req.ColumnSet = XrmExtensions.GetColumnSet(attributes);
+            try {
+                return (service.Execute(req) as RetrieveResponse)?.Entity?.ToEntity<T>();
+            } catch (System.ServiceModel.FaultException) {
+                return null;
+            }
+        }
+        //ENDVERSIONCHECK
+
+        public static T Retrieve<T>(IOrganizationService service, Guid id, params Expression<Func<T, object>>[] attributes) where T : Entity {
+            return service.Retrieve(id, attributes);
+        }
+
         public SetStateResponse SetState(IOrganizationService service, State state) {
             return SetState(service, state, (Status)(object)-1);
         }
 
         public SetStateResponse SetState(IOrganizationService service, State state, Status status) {
-            var resp = (SetStateResponse)service.Execute(GetSetStateRequest(state, status));
-            return resp;
+            return service.Execute(MakeSetStateRequest(state, status)) as SetStateResponse;
         }
 
-        public SetStateRequest GetSetStateRequest(State state, Status status) {
+        public AssignResponse AssignTo(IOrganizationService service, EntityReference owner) {
+            return service.Execute(MakeAssignRequest(owner)) as AssignResponse;
+        }
+
+        public SetStateRequest MakeSetStateRequest(State state, Status status) {
             var req = new SetStateRequest();
             req.EntityMoniker = ToEntityReference();
             req.State = new OptionSetValue((int)(object)state);
             req.Status = new OptionSetValue((int)(object)status);
             return req;
         }
+
+        public AssignRequest MakeAssignRequest(EntityReference owner) {
+            return new AssignRequest() { Assignee = owner, Target = ToEntityReference() };
+        }
+
+        public CreateRequest MakeCreateRequest() {
+            return new CreateRequest() { Target = this };
+        }
+
+        public UpdateRequest MakeUpdateRequest() {
+            return new UpdateRequest() { Target = this };
+        }
+
+        public DeleteRequest MakeDeleteRequest() {
+            return new DeleteRequest() { Target = ToEntityReference() };
+        }
+
+        //VERSIONCHECK 7.1.0.0
+        public UpsertRequest MakeUpsertRequest() {
+            return new UpsertRequest() { Target = this };
+        }
+        //ENDVERSIONCHECK
     }
 
     public abstract partial class ExtendedOrganizationServiceContext : OrganizationServiceContext {
 
-        private IOrganizationService service;
-
-        public ExtendedOrganizationServiceContext(IOrganizationService service) :
-            base(service) {
-            this.service = service;
-        }
+        public ExtendedOrganizationServiceContext(IOrganizationService service) : base(service) { }
 
         public U Load<T, U>(T entity, Expression<Func<T, U>> loaderFunc) where T : Entity {
-            LoadProperty(entity, GetMemberName(loaderFunc));
+            LoadProperty(entity, XrmExtensions.GetMemberName(loaderFunc));
             return loaderFunc.Compile().Invoke(entity);
         }
 
@@ -123,19 +162,66 @@ namespace DG.XrmContext {
             return Load(entity, loaderFunc) ?? new List<U>();
         }
 
-        public SetStateResponse SetState<T, U>(ExtendedEntity<T, U> entity, T state)
+    }
+
+    public static class XrmExtensions {
+
+        public static T Retrieve<T>(this IOrganizationService service, Guid id, params Expression<Func<T, object>>[] attributes) where T : Entity {
+            return service.Retrieve(Activator.CreateInstance<T>().LogicalName, id, GetColumnSet(attributes)).ToEntity<T>();
+        }
+
+        //VERSIONCHECK 7.1.0.0
+        public static UpsertResponse Upsert(this IOrganizationService service, Entity entity) {
+            var req = new UpsertRequest() { Target = entity };
+            var resp = service.Execute(req) as UpsertResponse;
+            entity.Id = resp.Target?.Id ?? entity.Id;
+            return resp;
+        }
+        //ENDVERSIONCHECK
+
+        public static AssignResponse Assign(this IOrganizationService service, EntityReference target, EntityReference owner) {
+            var req = new AssignRequest() { Target = target, Assignee = owner };
+            return service.Execute(req) as AssignResponse;
+        }
+
+        public static SetStateResponse SetState<T, U>(this IOrganizationService service, ExtendedEntity<T, U> entity, T state)
                 where T : struct, IComparable, IConvertible, IFormattable
                 where U : struct, IComparable, IConvertible, IFormattable {
             return entity.SetState(service, state);
         }
 
-        public SetStateResponse SetState<T, U>(ExtendedEntity<T, U> entity, T state, U status)
+        public static SetStateResponse SetState<T, U>(this IOrganizationService service, ExtendedEntity<T, U> entity, T state, U status)
                 where T : struct, IComparable, IConvertible, IFormattable
                 where U : struct, IComparable, IConvertible, IFormattable {
             return entity.SetState(service, state, status);
         }
 
-        private static string GetMemberName<T, U>(Expression<Func<T, U>> lambda) {
+        public static List<ExecuteMultipleResponseItem> PerformAsBulk<T>(this IOrganizationService service, IEnumerable<T> requests, bool continueOnError = true, int chunkSize = 1000) where T : OrganizationRequest {
+            var arr = requests.ToArray();
+            var splitReqs = from i in Enumerable.Range(0, arr.Length)
+                            group arr[i] by i / chunkSize;
+
+            var resps = new List<ExecuteMultipleResponseItem>();
+            foreach (var rs in splitReqs) {
+                var req = new ExecuteMultipleRequest();
+                req.Requests = new OrganizationRequestCollection();
+                req.Requests.AddRange(requests);
+                req.Settings = new ExecuteMultipleSettings();
+                req.Settings.ContinueOnError = continueOnError;
+                req.Settings.ReturnResponses = true;
+                var resp = service.Execute(req) as ExecuteMultipleResponse;
+                resps.AddRange(resp.Responses);
+            }
+            return resps;
+        }
+
+        public static ColumnSet GetColumnSet<T>(params Expression<Func<T, object>>[] attributes) {
+            if (attributes == null) return new ColumnSet();
+            if (attributes.Length == 0) return new ColumnSet(true);
+            return new ColumnSet(attributes.Select(a => GetMemberName(a).ToLower()).ToArray());
+        }
+
+        public static string GetMemberName<T, U>(Expression<Func<T, U>> lambda) {
             MemberExpression body = lambda.Body as MemberExpression;
             if (body == null) {
                 UnaryExpression ubody = (UnaryExpression)lambda.Body;

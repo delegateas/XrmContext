@@ -36,6 +36,7 @@ but with a few additions. Here is the full list of arguments:
 | namespace           | The namespace for the generated code. The default is the global namespace.
 | servicecontextname  | The name of the generated organization service context class. If no value is supplied, no service context is created.
 | deprecatedprefix    | Marks all attributes with the given prefix in their display name as deprecated.
+| sdkversion          | The version of `CrmSdk.CoreAssemblies` used by your library. Automatically finds the matching version from CRM if nothing is specified.
 
 You can also view this list of arguments using the "***/help***" argument.
 

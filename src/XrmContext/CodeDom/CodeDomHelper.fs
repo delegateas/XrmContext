@@ -52,20 +52,34 @@ module internal CodeDomHelper =
       m.Type <- ty    
       m.Attributes <- MemberAttributes.Public ||| MemberAttributes.Final
       m
+
+  let VoidType () = typeof<Void> |> CodeTypeReference
+  let Function name ty = 
+    CodeMemberMethod() 
+    |> fun m -> 
+      m.Name <- name
+      m.ReturnType <- ty
+      m.Attributes <- MemberAttributes.Public ||| MemberAttributes.Final
+      m
   
   let VarRef = CodeVariableReferenceExpression
   let FieldRef (ty:string) name = CodeFieldReferenceExpression(CodeTypeReferenceExpression(ty), name)
+  let TypeRef (ty:string) = CodeTypeReference(ty)
   let Return = CodeMethodReturnStatement
   let BaseProp propName = CodePropertyReferenceExpression(CodeBaseReferenceExpression(), propName)
+  let VarNewDec (ty:string) name = 
+    CodeVariableDeclarationStatement(ty, name, CodeObjectCreateExpression(ty))
 
   let This () = CodeThisReferenceExpression()
-  let MethodInvoke func (ty:CodeTypeReference option) parameters = 
+  let CodeExprMethodInvoke codeExpr func (ty:CodeTypeReference option) parameters = 
     match ty with
     | None    -> 
-      CodeMethodInvokeExpression(CodeMethodReferenceExpression(null, func), parameters)
+      CodeMethodInvokeExpression(CodeMethodReferenceExpression(codeExpr, func), parameters)
     | Some ty ->
-      CodeMethodInvokeExpression(CodeMethodReferenceExpression(null, func, ty), parameters)
+      CodeMethodInvokeExpression(CodeMethodReferenceExpression(codeExpr, func, ty), parameters)
 
+  let MemberMethodInvoke = VarRef >> CodeExprMethodInvoke
+  let MethodInvoke = CodeExprMethodInvoke null
 
   let StringLiteral str = CodePrimitiveExpression(str)
   
@@ -94,22 +108,34 @@ module internal CodeDomHelper =
     | true -> ty.Name.Remove(ty.Name.Length - 9)
     | false -> ty.Name
 
-   
-
-  let getAttributeTypeRef (ty:Type) =
+  let getBaseAttributeTypeRef addNullable (ty:Type) =
     match ty.Name with
     | "String" -> CodeTypeReference ty
     | _ ->
-      match simpleTypeNames.TryFind ty.Name with
-      | Some x -> x
-      | None   -> ty.Name
-      |> fun name ->
-        match ty.IsValueType with
-        | true  -> CodeTypeReference (name + "?")
-        | false -> CodeTypeReference name
+      match simpleTypeNames.TryFind ty.Name, ty.IsValueType && addNullable with
+      | None, false      -> CodeTypeReference ty.Name
+      | None, true       -> CodeTypeReference (ty.Name + "?")
+      | Some name, true  -> CodeTypeReference (name + "?")
+      | Some name, false -> CodeTypeReference ty
 
+  let getSafeAttributeTypeRef ty =
+    getBaseAttributeTypeRef true ty
 
-  (** Various helper functions *)
+  let getStrictAttributeTypeRef ty =
+    getBaseAttributeTypeRef false ty
+
+  let getAltKeyVarType = function
+    | Default ty -> getStrictAttributeTypeRef ty
+    | x -> failwithf "Invalid type for alternate key: %A" x
+
+  let expandProps func list baseProps =
+    list |> Array.ofList |> Array.fold 
+      (fun (usedProps, attrs) e ->
+        let newProps, attr = func usedProps e
+        newProps, attr :: attrs) 
+      (baseProps, [])
+
+  (** Various helping builder functions *)
   let ExtendedEntity ty1 ty2 = CodeTypeReference("ExtendedEntity", ty1, ty2)
 
   let EntityConstructors () =

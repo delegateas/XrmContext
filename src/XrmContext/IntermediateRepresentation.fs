@@ -42,10 +42,17 @@ module internal IntermediateRepresentation =
     useEntityRole: bool
   }
 
+  type XrmAlternateKey = {
+    schemaName: string
+    displayName: string
+    keyAttributes: (string * string * XrmAttributeType)[]
+  }
+
   type XrmEntity = {
     typecode: int
     schemaName: string
     logicalName: string
+    description: string list option
     primaryNameAttribute: string
     primaryIdAttribute: string
     stateAttribute: XrmOptionSet option
@@ -53,7 +60,8 @@ module internal IntermediateRepresentation =
     attr_vars: XrmAttribute list 
     rel_vars: XrmRelationship list
     opt_sets: XrmOptionSet list
-    }
+    alt_keys: XrmAlternateKey list
+  }
 
 
 

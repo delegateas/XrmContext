@@ -11,6 +11,8 @@ type XrmAuthentication = {
   ap: AuthenticationProviderType option
 }
 
+type XrmVersion = int * int * int * int
+
 type XrmContextSettings = {
   out: string option
   ns: string option
@@ -18,4 +20,5 @@ type XrmContextSettings = {
   entities: string[] option
   solutions: string[] option
   deprecatedPrefix: string option
+  sdkVersion: XrmVersion option
 }

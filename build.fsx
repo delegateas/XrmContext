@@ -45,7 +45,7 @@ let authors = [ "Delegate A/S"; "Martin Kasban Tange" ]
 let tags = "microsoft crm xrm dynamics xrmcontext crmsvcutil c# csharp optionset enum sdk fsharp f# delegate"
 
 let company = "Delegate A/S"
-let copyright = @"Copyright (c) Delegate A/S 2015"
+let copyright = @"Copyright (c) Delegate A/S 2016"
 
 // File system information 
 let solutionFile  = "XrmContext.sln"
@@ -155,7 +155,7 @@ Target "NuGet" (fun _ ->
         Tags = tags
         NoDefaultExcludes = true
         AccessKey = getBuildParamOrDefault "delegateas-nugetkey" ""
-        Dependencies = [ "Microsoft.CrmSdk.CoreAssemblies", "5.0.18" ]
+        Dependencies = [ "Microsoft.CrmSdk.CoreAssemblies", "[8.0.2.1]" ]
         References = [ ] 
         OutputPath = "bin"
         Version = release.NugetVersion

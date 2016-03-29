@@ -3,18 +3,27 @@
 open System
 open System.Threading.Tasks
 
+open Utility
 open Microsoft.Xrm.Sdk
 open Microsoft.Xrm.Sdk.Client
 open Microsoft.Xrm.Sdk.Messages
 open Microsoft.Xrm.Sdk.Query
 open Microsoft.Xrm.Sdk.Metadata
+open Microsoft.Crm.Sdk.Messages
 
 module internal CrmBaseHelper =
+  
 
   // Execute request
   let getResponse<'T when 'T :> OrganizationResponse> (proxy:OrganizationServiceProxy) request =
     proxy.Timeout <- TimeSpan(1,0,0)
     (proxy.Execute(request)) :?> 'T
+
+  // Retrieve version
+  let retrieveVersion proxy =
+    let req = RetrieveVersionRequest()
+    let resp = getResponse<RetrieveVersionResponse> proxy req
+    parseVersion resp.Version
 
   // Retrieve data
   let internal retrieveMultiple proxy logicalName (query:QueryExpression) = 

@@ -5,6 +5,7 @@ open System.Text.RegularExpressions
 open Microsoft.Xrm.Sdk.Client
 
 open DG.XrmContext
+open Utility
 open CommandLineHelper
 open GeneratorLogic
 
@@ -37,6 +38,7 @@ let executeGetContext argv =
       entities = entities
       solutions = solutions
       deprecatedPrefix = parsedArgs.TryFind "deprecatedprefix"
+      sdkVersion = parsedArgs.TryFind "sdkversion" ?|> parseVersion
     }
   
   XrmContext.GetContext(xrmAuth, settings)

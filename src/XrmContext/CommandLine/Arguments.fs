@@ -51,6 +51,10 @@ type Args private () =
     { command="deprecatedprefix";
       description="Marks all attributes with the given prefix in their display name as deprecated."
       required=false }
+
+    { command="sdkversion";
+      description="The version of the CrmSdk.CoreAssemblies which is used by your library. Automatically figures out the version from CRM if none is specified."
+      required=false }
     ]
 
   // Usage

@@ -5,6 +5,7 @@ open IntermediateRepresentation
 open InterpretOptionSetMetadata
 open Microsoft.Xrm.Sdk
 open Microsoft.Xrm.Sdk.Metadata
+open Utility
 
 module internal InterpretEntityMetadata =
   
@@ -37,6 +38,22 @@ module internal InterpretEntityMetadata =
   let (|IsWrongYomi|) (haystack : string) =
     not(haystack.StartsWith("Yomi")) && haystack.Contains("Yomi")
 
+  let (|LabelIsNullOrNullspace|) (label:LocalizedLabel) = 
+    label = null || String.IsNullOrWhiteSpace label.Label
+
+  let getLabelOption (label:Label) =
+    match label.UserLocalizedLabel <> null with
+    | true -> Some label.UserLocalizedLabel.Label
+    | _ -> None
+
+  let getDescription displayName (descriptionLabel:Label) =
+    let desc = 
+      match descriptionLabel.UserLocalizedLabel with 
+      | LabelIsNullOrNullspace true -> None 
+      | desc -> Some desc.Label
+
+    [ desc; displayName ?|> sprintf "Display Name: %s" ] 
+    |> List.choose id |> fun l -> if List.isEmpty l then None else Some l
 
 
   let interpretAttribute deprecatedPrefix (e:EntityMetadata) (a:AttributeMetadata) =
@@ -67,22 +84,14 @@ module internal InterpretEntityMetadata =
         | _ -> typeConv aType |> Default
       
 
-      let displayName = 
-        match a.DisplayName.UserLocalizedLabel <> null with
-        | true -> Some a.DisplayName.UserLocalizedLabel.Label
-        | _ -> None
+      let displayName = getLabelOption a.DisplayName
+      let desc = getDescription displayName a.Description
 
       let isDeprecated = 
         match displayName, deprecatedPrefix with
         | Some x, Some prefix -> x.StartsWith(prefix)
         | _ -> false
-
-      let desc =
-        match displayName, a.Description.UserLocalizedLabel with
-        | None, null -> None
-        | None, desc -> if String.IsNullOrWhiteSpace(desc.Label) then None else Some [desc.Label]
-        | Some name, null -> Some [sprintf "Display Name: %s" name]
-        | Some name, desc -> Some [desc.Label; sprintf "Display Name: %s" name]
+      
 
 
       options, Some {
@@ -159,8 +168,15 @@ module internal InterpretEntityMetadata =
     Some (rEntity.LogicalName, xRel)
 
 
+  let interpretKeyAttribute attrTypeMap (keyMetadata:EntityKeyMetadata) =
+    let attrs = keyMetadata.KeyAttributes |> Array.choose (fun x -> Map.tryFind x attrTypeMap)
+    { XrmAlternateKey.displayName = keyMetadata.DisplayName.UserLocalizedLabel.Label
+      XrmAlternateKey.schemaName = keyMetadata.SchemaName
+      XrmAlternateKey.keyAttributes = attrs
+    }
 
-  let interpretEntity entityMap deprecatedPrefix (metadata:EntityMetadata) =
+
+  let interpretEntity entityMap deprecatedPrefix sdkVersion (metadata:EntityMetadata) =
     if (metadata.Attributes = null) then failwith "No attributes found!"
 
     // Attributes and option sets
@@ -175,9 +191,24 @@ module internal InterpretEntityMetadata =
       opt_sets |> Seq.choose id |> Seq.distinctBy (fun x -> x.displayName) 
       |> Seq.toList
 
+    // Status and state
     let stateAttr = opt_sets |> List.tryFind (fun x -> x.osType = XrmOptionSetType.State)
     let statusAttr = opt_sets |> List.tryFind (fun x -> x.osType = XrmOptionSetType.Status)
-    
+
+    // Alternate keys
+    let alt_keys =
+      match checkVersion (7,1,0,0) sdkVersion && not (isNull metadata.Keys) with
+      | true ->
+        let attrTypeMap = 
+          attr_vars 
+          |> List.map (fun a -> a.logicalName, (a. logicalName, a.schemaName, a.varType)) 
+          |> Map.ofList
+
+        metadata.Keys
+        |> Array.map (interpretKeyAttribute attrTypeMap)
+        |> List.ofArray
+      | _ -> []
+
     // Relationships
     let handleOneToMany referencing = function
       | null -> Array.empty
@@ -199,14 +230,17 @@ module internal InterpretEntityMetadata =
       rel_entities 
       |> Set.ofList |> Set.remove metadata.SchemaName |> Set.toList
 
+    let desc = getDescription (getLabelOption metadata.DisplayName) metadata.Description
 
     // Return the entity representation
     { XrmEntity.typecode = metadata.ObjectTypeCode.GetValueOrDefault()
+      description = desc
       schemaName = metadata.SchemaName
       logicalName = metadata.LogicalName
       attr_vars = attr_vars
       rel_vars = rel_vars
       opt_sets = opt_sets
+      alt_keys = alt_keys
       stateAttribute = stateAttr
       statusAttribute = statusAttr
       primaryNameAttribute = metadata.PrimaryNameAttribute

@@ -1,5 +1,16 @@
 # Release Notes
 
+### 1.2.0 - March 29 2016
+* Added functionality that helps with alternate keys for entities, 
+  and in order to support this, the dependency `Microsoft.CrmSdk.CoreAssemblies` has been increased to the newest version again
+* Added a comment description for entity classes
+* Added several functions to easily create CRM requests from entity objects
+* Added static retrieve methods (`.Retrieve_<keyname>`) on entity classes that makes it possible to retrieve records using alternate keys
+* Added methods (`.AltKey_<keyname>`) that helps set the alternate keys correctly on an entity object before upserting it
+* Added `.Retrieve<T>`, `.Upsert`, `.Assign` and `.SetState` extension methods on `IOrganizationService` to simplify the use of these requests
+* Added `.PerformAsBulk` extension method on `IOrganizationService` that performs requests as bulk
+* To support multiple versions of `CrmSdk.CoreAssemblies` in the target library, a new "***/version***" argument has been added
+
 ### 1.1.2 - February 24 2016
 * Added "***/genconfig***" argument which generates a dummy configuration file to use
 * Added "***/useconfig***" argument, see [usage for more information](tool-usage.html#Configuration-file)

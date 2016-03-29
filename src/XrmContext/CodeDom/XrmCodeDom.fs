@@ -39,7 +39,7 @@ module internal XrmCodeDom =
         CodeTypeReference("decimal?")
 
       | Default ty -> 
-        let varType = getAttributeTypeRef ty
+        let varType = getSafeAttributeTypeRef ty
         sprintf "AttributeValue", Some varType, varType
 
     
@@ -122,8 +122,73 @@ module internal XrmCodeDom =
         [|StringLiteral relationship.schemaName; entityRole; VarRef "value"|]) |> ignore
 
     updatedUsedProps, var :> CodeTypeMember
-  
+ 
 
+  (** Entity Alternate Keys *)
+  let MakeEntityAltKey usedProps (altKey:XrmAlternateKey) =
+    
+    let name = sprintf "AltKey_%s" altKey.schemaName
+    let validName = getValidName usedProps name
+    let updatedUsedProps = usedProps.Add validName
+    let func = Function validName (VoidType())
+
+    func.Statements.Add(MemberMethodInvoke "KeyAttributes" "Clear" None [||]) |> ignore
+    altKey.keyAttributes
+    |> Array.iter (fun (logicalName, schemaName, ty) -> 
+      func.Parameters.Add(
+        CodeParameterDeclarationExpression(getAltKeyVarType ty, schemaName)) |> ignore
+      func.Statements.Add(
+        MemberMethodInvoke "KeyAttributes" "Add" None 
+          [| StringLiteral(logicalName); VarRef schemaName |]) |> ignore
+    )
+
+    func.Comments.AddRange(
+      CommentSummary [sprintf "Set values for the alternate key called '%s'" altKey.displayName])
+      
+    updatedUsedProps, func :> CodeTypeMember
+
+  (** Entity Static Retrieve Method *)
+  let MakeEntityStaticRetrieve (entityName:string) =
+    
+    let name = "Retrieve"
+    let func = Function name (TypeRef entityName)
+    func.Attributes <- func.Attributes ||| MemberAttributes.Static
+
+    func.Parameters.Add(CodeParameterDeclarationExpression(typeof<IOrganizationService>.Name, "service")) |> ignore
+    func.Parameters.Add(CodeParameterDeclarationExpression(typeof<Guid>.Name, "id")) |> ignore
+    func.Parameters.Add(CodeParameterDeclarationExpression(sprintf "params Expression<Func<%s,object>>[]" entityName, "attrs")) |> ignore
+    func.Statements.Add(Return <| MemberMethodInvoke "service" "Retrieve" None 
+      [| VarRef "id"; VarRef "attrs" |]) |> ignore
+
+    func :> CodeTypeMember
+
+  (** Entity Alternate Keys Static Retrieve Methods *)
+  let MakeEntityAltKeyRetrieve (entityName:string) (altKey:XrmAlternateKey) =
+    
+    let name = sprintf "Retrieve_%s" altKey.schemaName
+    let func = Function name (TypeRef entityName)
+    func.Attributes <- func.Attributes ||| MemberAttributes.Static
+
+    func.Parameters.Add(CodeParameterDeclarationExpression(typeof<IOrganizationService>.Name, "service")) |> ignore
+    func.Statements.Add(VarNewDec "KeyAttributeCollection" "keys") |> ignore
+
+    altKey.keyAttributes
+    |> Array.iter (fun (logicalName, schemaName, ty) -> 
+      func.Parameters.Add(
+        CodeParameterDeclarationExpression(getAltKeyVarType ty, schemaName)) |> ignore
+      func.Statements.Add(
+        CodeExprMethodInvoke (VarRef "keys") "Add" None 
+          [| StringLiteral(logicalName); VarRef schemaName |]) |> ignore
+    )
+
+    func.Parameters.Add(CodeParameterDeclarationExpression(sprintf "params Expression<Func<%s,object>>[]" entityName, "attrs")) |> ignore
+    func.Statements.Add(Return <| MethodInvoke "Retrieve_AltKey" None 
+      [| VarRef "service"; VarRef "keys"; VarRef "attrs" |]) |> ignore
+    
+    func.Comments.AddRange(
+      CommentSummary [sprintf "Retrieves the record using the alternate key called '%s'" altKey.displayName])
+      
+    func :> CodeTypeMember
 
   (** Entity Id Attributes *)
   let MakeEntityIdAttributes (attr: XrmAttribute) =
@@ -185,13 +250,18 @@ module internal XrmCodeDom =
     let cl = Class name
     let baseProperties = baseReservedProperties |> Set.add name
 
-    let getEnumType getter =
+    let getEnumType (getter: XrmEntity -> XrmOptionSet option) =
       match getter entity with
       | Some optSet -> CodeTypeReference(optSet.displayName)
       | None -> CodeTypeReference("EmptyEnum")
 
     let stateType = getEnumType (fun x -> x.stateAttribute)
     let statusType = getEnumType (fun x -> x.statusAttribute)
+    
+    // Comment summary
+    match entity.description with
+    | Some desc -> cl.Comments.AddRange(CommentSummary desc)
+    | None -> ()
 
     // Setup the entity class
     cl.IsClass <- true
@@ -208,6 +278,19 @@ module internal XrmCodeDom =
     cl.Members.Add(Constant "EntityTypeCode" entity.typecode) |> ignore
     cl.Members.Add(DebuggerDisplayMember entity.primaryNameAttribute) |> ignore
 
+    // Static retrieve methods
+    cl.Members.Add(MakeEntityStaticRetrieve name) |> ignore
+
+    entity.alt_keys
+    |> Array.ofList
+    |> Array.fold 
+      (fun keys k ->
+        let key = MakeEntityAltKeyRetrieve name k
+        key :: keys) []
+    |> Array.ofList
+    |> cl.Members.AddRange
+
+
     // Find id attribute
     let idAttrs, remainingAttrs = 
       entity.attr_vars 
@@ -220,32 +303,18 @@ module internal XrmCodeDom =
       if attr.varType = Default typeof<Guid> then
         cl.Members.AddRange(MakeEntityIdAttributes attr)
     | None -> ()
-    
 
-    let usedProps, attrMembers = 
-      remainingAttrs
-      |> Array.ofList
-      |> Array.fold 
-        (fun (usedProps, attrs) e ->
-          let newProps, attr = MakeEntityAttribute usedProps e
-          newProps, attr :: attrs) 
-        (baseProperties, [])
     
-    attrMembers
-    |> Array.ofList
-    |> cl.Members.AddRange
+    // Add attributes, relationships and alternative keys
+    let addMembers (props,members:CodeTypeMember list) = 
+      members |> Array.ofList |> cl.Members.AddRange; props
 
-    // Create entity relationship properties
-    entity.rel_vars
-    |> Array.ofList
-    |> Array.fold 
-      (fun (usedProps, rels) r ->
-        let newProps, rel = MakeEntityRelationship usedProps r
-        newProps, rel :: rels) 
-      (usedProps, [])
-    |> snd 
-    |> Array.ofList
-    |> cl.Members.AddRange
+    let usedProps = 
+      baseProperties 
+      |> expandProps MakeEntityAttribute remainingAttrs |> addMembers
+      |> expandProps MakeEntityRelationship entity.rel_vars |> addMembers
+      |> expandProps MakeEntityAltKey entity.alt_keys |> addMembers
+
 
     // Create the enums related to the entity
     let optionSetEnums =
@@ -282,6 +351,7 @@ module internal XrmCodeDom =
     let globalNs = CodeNamespace()
     globalNs.Imports.Add(CodeNamespaceImport("System"))
     globalNs.Imports.Add(CodeNamespaceImport("System.Linq"))
+    globalNs.Imports.Add(CodeNamespaceImport("System.Linq.Expressions"))
     globalNs.Imports.Add(CodeNamespaceImport("System.Diagnostics"))
     globalNs.Imports.Add(CodeNamespaceImport("System.Collections.Generic"))
     globalNs.Imports.Add(CodeNamespaceImport("System.Runtime.Serialization"))
@@ -302,16 +372,20 @@ module internal XrmCodeDom =
       |> Array.map MakeEntity
       |> Array.unzip
 
+    // Add entities
+    ns.Types.AddRange(codeDomEntities)
+    
+    // Add context if specified
+    match context with
+    | Some contextName -> 
+      ns.Types.Add(MakeContext entities contextName) |> ignore
+    | None -> ()
+
+    // Add option sets
     optSets
     |> List.concat 
     |> List.distinctBy (fun x -> x.Name)
     |> Array.ofList
     |> ns.Types.AddRange
-
-    ns.Types.AddRange(codeDomEntities)
-    match context with
-    | Some contextName -> 
-      ns.Types.Add(MakeContext entities contextName) |> ignore
-    | None -> ()
 
     cu

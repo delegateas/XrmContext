@@ -8,7 +8,7 @@ open System.IO
 
 type XrmContext private () =
 
-  static member GetContext(url, username, password, ?domain, ?ap, ?out, ?entities, ?solutions, ?ns, ?context, ?deprecatedPrefix) =
+  static member GetContext(url, username, password, ?domain, ?ap, ?out, ?entities, ?solutions, ?ns, ?context, ?deprecatedPrefix, ?sdkVersion) =
     let xrmAuth =
       { XrmAuthentication.url = Uri(url)
         username = username
@@ -24,6 +24,7 @@ type XrmContext private () =
         solutions = solutions
         entities = entities
         deprecatedPrefix = deprecatedPrefix
+        sdkVersion = sdkVersion
       }
     
     XrmContext.GetContext(xrmAuth, settings)
@@ -43,14 +44,18 @@ type XrmContext private () =
       let entities = 
         getFullEntityList settings.entities settings.solutions proxy
       
+      let sdkVersion =
+        if settings.sdkVersion.IsNone then retrieveCrmVersion proxy
+        else settings.sdkVersion.Value
+
       let data = 
         (proxy, proxyGetter)
         ||> retrieveCrmData entities
-        |> interpretCrmData out ns settings.context settings.deprecatedPrefix
+        |> interpretCrmData out ns settings.deprecatedPrefix settings.context sdkVersion
 
       // Generate the code
       createCodeDom data
-      createResourceFiles out
+      createResourceFiles sdkVersion out
 
       printfn "\nDone generating context!"
 
