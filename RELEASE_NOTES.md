@@ -1,5 +1,10 @@
 # Release Notes
 
+### 1.2.1 - April 7 2016
+* Fixed PerformAsBulk sending too many requests
+* Ensures distinct entity logical names
+* Argument names are now case-insensitive
+
 ### 1.2.0 - March 29 2016
 * Added functionality that helps with alternate keys for entities, 
   and in order to support this, the dependency `Microsoft.CrmSdk.CoreAssemblies` has been increased to the newest version again
