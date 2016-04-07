@@ -25,14 +25,15 @@ module internal CommandLineHelper =
 
   let (|GetArgVal|_|) input = 
     let m = Regex("^/([^:]+):\"?(.*)\"?$").Match(input)
-    if m.Success then Some (m.Groups.[1].Value.ToLower(), m.Groups.[2].Value)
+    if m.Success then Some (m.Groups.[1].Value, m.Groups.[2].Value)
     else None
 
-  let handleArg expectedArgs parsedArgs k v =
-    match Set.contains k expectedArgs with
-    | true -> Map.add k v parsedArgs
+  let handleArg expectedArgs parsedArgs (k:string) v =
+    let lowerKey = k.ToLower()
+    match Set.contains lowerKey expectedArgs with
+    | true -> Map.add lowerKey v parsedArgs
     | false ->
-      printfn "Option '%s' not recognized." k
+      printfn "Option '%s' not recognized." lowerKey
       parsedArgs
 
   let sharesElement set1 =
