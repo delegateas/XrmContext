@@ -154,7 +154,8 @@ module internal CrmBaseHelper =
       md.ManyToManyRelationships 
       |> Array.filter (fun m2m -> 
         m2m.Entity1LogicalName = md.LogicalName && 
-        Set.contains m2m.Entity2LogicalName allLogicalNames)
+        Set.contains m2m.Entity2LogicalName allLogicalNames &&
+        not(Set.contains m2m.IntersectEntityName allLogicalNames))
       |> Array.map (fun m2m -> m2m.IntersectEntityName))
     |> Array.concat
     |> Array.distinct
@@ -181,6 +182,8 @@ module internal CrmBaseHelper =
       |> getMetadata
 
     Array.append entities additionalEntities
+    |> Array.distinctBy (fun e -> e.LogicalName)
+    |> Array.sortBy (fun e -> e.LogicalName)
 
 
   // Retrieve single entity metadata
