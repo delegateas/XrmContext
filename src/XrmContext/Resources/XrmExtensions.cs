@@ -205,7 +205,7 @@ namespace DG.XrmContext {
             foreach (var rs in splitReqs) {
                 var req = new ExecuteMultipleRequest();
                 req.Requests = new OrganizationRequestCollection();
-                req.Requests.AddRange(requests);
+                req.Requests.AddRange(rs);
                 req.Settings = new ExecuteMultipleSettings();
                 req.Settings.ContinueOnError = continueOnError;
                 req.Settings.ReturnResponses = true;
