@@ -1,5 +1,8 @@
 # Release Notes
 
+### 1.2.2 - April 15 2016
+* Added support for entities and global option sets sharing the same name
+
 ### 1.2.1 - April 7 2016
 * Fixed PerformAsBulk sending too many requests
 * Ensures distinct entity logical names
