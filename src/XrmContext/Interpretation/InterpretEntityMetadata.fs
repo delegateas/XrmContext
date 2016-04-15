@@ -56,7 +56,7 @@ module internal InterpretEntityMetadata =
     |> List.choose id |> fun l -> if List.isEmpty l then None else Some l
 
 
-  let interpretAttribute deprecatedPrefix (e:EntityMetadata) (a:AttributeMetadata) =
+  let interpretAttribute deprecatedPrefix entityNames (e:EntityMetadata) (a:AttributeMetadata) =
     let canSet = a.IsValidForCreate.GetValueOrDefault() || a.IsValidForUpdate.GetValueOrDefault()
     let canGet = a.IsValidForRead.GetValueOrDefault() || canSet
 
@@ -71,7 +71,7 @@ module internal InterpretEntityMetadata =
       let options, hasOptions =
         match a with
         | :? EnumAttributeMetadata as eam -> 
-          let options = interpretOptionSet (Some e) eam
+          let options = interpretOptionSet entityNames (Some e) eam
           options, options.IsSome && options.Value.options.Length > 0
         | _ -> None, false
 
@@ -176,19 +176,21 @@ module internal InterpretEntityMetadata =
     }
 
 
-  let interpretEntity entityMap deprecatedPrefix sdkVersion (metadata:EntityMetadata) =
+  let interpretEntity entityNames entityMap deprecatedPrefix sdkVersion (metadata:EntityMetadata) =
     if (metadata.Attributes = null) then failwith "No attributes found!"
 
     // Attributes and option sets
     let opt_sets, attr_vars = 
       metadata.Attributes 
-      |> Array.map (interpretAttribute deprecatedPrefix metadata)
+      |> Array.map (interpretAttribute deprecatedPrefix entityNames metadata)
       |> Array.unzip
 
     let attr_vars = attr_vars |> Array.choose id |> Array.toList
     
     let opt_sets = 
-      opt_sets |> Seq.choose id |> Seq.distinctBy (fun x -> x.displayName) 
+      opt_sets 
+      |> Seq.choose id 
+      |> Seq.distinctBy (fun x -> x.displayName)
       |> Seq.toList
 
     // Status and state

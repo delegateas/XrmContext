@@ -146,9 +146,14 @@ module internal GeneratorLogic =
       |> Array.Parallel.map (fun em -> em.LogicalName, em)
       |> Map.ofArray
 
+    let entityNames = 
+      rawState.metadata
+      |> Array.Parallel.map (fun em -> em.SchemaName)
+      |> Set.ofArray
+
     let entityMetadata =
       rawState.metadata 
-      |> Array.Parallel.map (interpretEntity entityMap deprecatedPrefix sdkVersion)
+      |> Array.Parallel.map (interpretEntity entityNames entityMap deprecatedPrefix sdkVersion)
     printfn "Done!"
 
     { InterpretedState.entities = entityMetadata

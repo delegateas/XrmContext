@@ -56,7 +56,7 @@ module internal InterpretOptionSetMetadata =
 
 
   /// Interprets CRM OptionSetMetadata into intermediate type
-  let interpretOptionSet (entity:EntityMetadata option) (enumAttribute:EnumAttributeMetadata) =
+  let interpretOptionSet entityNames (entity:EntityMetadata option) (enumAttribute:EnumAttributeMetadata) =
     let optionSet = enumAttribute.OptionSet :> OptionSetMetadataBase
     if optionSet = null then None
     else
@@ -65,10 +65,14 @@ module internal InterpretOptionSetMetadata =
       match optionSet.OptionSetType.GetValueOrDefault(), 
             optionSet.IsGlobal.GetValueOrDefault(), 
             entity with
-      | OptionSetType.State, _, Some x -> 
-        sprintf "%sState" x.SchemaName
+      | OptionSetType.State, _, Some x -> sprintf "%sState" x.SchemaName
       | _, false, Some x -> sprintf "%s_%s" x.SchemaName enumAttribute.SchemaName
       | _ -> optionSet.Name
+
+    let displayName = 
+      match entityNames |> Set.contains displayName with
+      | true  -> sprintf "%s_Enum" displayName
+      | false -> displayName
 
     match optionSet with
     | :? OptionSetMetadata as osm ->
