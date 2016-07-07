@@ -229,5 +229,15 @@ namespace DG.XrmContext {
             }
             return body.Member.Name;
         }
+
+        public static bool ContainsAttributes<T>(this T entity, params Expression<Func<T, object>>[] attrGetters) where T : Entity {
+            if (attrGetters == null) return true;
+            return attrGetters.Select(a => GetMemberName(a).ToLower()).All(a => entity.Contains(a));
+        }
+
+        public static bool RemoveAttributes<T>(this T entity, params Expression<Func<T, object>>[] attrGetters) where T : Entity {
+            if (attrGetters == null) return false;
+            return attrGetters.Select(a => GetMemberName(a).ToLower()).Any(a => entity.Attributes.Remove(a));
+        }
     }
 }
