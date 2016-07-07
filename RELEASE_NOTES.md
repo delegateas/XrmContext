@@ -1,5 +1,8 @@
 # Release Notes
 
+### 1.2.3 - July 7 2016
+* Added new extension helper methods to Entity: `ContainsAttributes`, `RemoveAttributes` 
+
 ### 1.2.2 - April 15 2016
 * Added support for entities and global option sets sharing the same name
 
