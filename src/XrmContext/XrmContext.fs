@@ -60,10 +60,7 @@ type XrmContext private () =
       printfn "\nDone generating context!"
 
     #if !DEBUG
-    with 
-      | :? AggregateException as ex ->
-        failwithf "\nUnable to generate context: %s" ex.InnerException.Message
-      | _ as ex ->
-        failwithf "\nUnable to generate context: %s" ex.Message
+    with _ as ex ->
+      getFirstExceptionMessage ex |> failwithf "\nUnable to generate context: %s"
     #endif
 
