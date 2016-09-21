@@ -1,5 +1,8 @@
 # Release Notes
 
+### 1.2.4 - September 21 2016
+* Fixed CustomAttribute on relationships that were of type `EntityRole.Referenced`
+
 ### 1.2.3 - July 7 2016
 * Added new extension helper methods to Entity: `ContainsAttributes`, `RemoveAttributes` 
 

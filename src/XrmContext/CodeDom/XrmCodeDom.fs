@@ -97,7 +97,7 @@ module internal XrmCodeDom =
       match relationship.useEntityRole, relationship.referencing with
       | false, _    -> CodePrimitiveExpression(null) :> CodeExpression
       | true, true  -> FieldRef typeof<EntityRole>.Name "Referencing" :> CodeExpression
-      | true, false -> FieldRef typeof<EntityRole>.Name "Referencing" :> CodeExpression
+      | true, false -> FieldRef typeof<EntityRole>.Name "Referenced" :> CodeExpression
 
 
     if relationship.referencing then

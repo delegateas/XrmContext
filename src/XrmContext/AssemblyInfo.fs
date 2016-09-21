@@ -6,10 +6,10 @@ open System.Reflection
 [<assembly: AssemblyDescriptionAttribute("Tool to generate early-bound .NET framework classes and enumerations for MS CRM Dynamics server-side coding.")>]
 [<assembly: AssemblyCompanyAttribute("Delegate A/S")>]
 [<assembly: AssemblyCopyrightAttribute("Copyright (c) Delegate A/S 2016")>]
-[<assembly: AssemblyVersionAttribute("1.2.3")>]
-[<assembly: AssemblyFileVersionAttribute("1.2.3")>]
+[<assembly: AssemblyVersionAttribute("1.2.4")>]
+[<assembly: AssemblyFileVersionAttribute("1.2.4")>]
 do ()
 
 module internal AssemblyVersionInformation =
-    let [<Literal>] Version = "1.2.3"
-    let [<Literal>] InformationalVersion = "1.2.3"
+    let [<Literal>] Version = "1.2.4"
+    let [<Literal>] InformationalVersion = "1.2.4"
