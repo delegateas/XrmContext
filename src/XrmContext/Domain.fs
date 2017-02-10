@@ -2,6 +2,11 @@
 
 open System
 open Microsoft.Xrm.Sdk.Client
+open Microsoft.Xrm.Sdk.Metadata
+open System.Runtime.Serialization
+
+type Version = int * int * int * int
+type EntityIntersect = string * string[]
 
 type XrmAuthentication = {
   url: Uri
@@ -11,14 +16,26 @@ type XrmAuthentication = {
   ap: AuthenticationProviderType option
 }
 
-type XrmVersion = int * int * int * int
-
-type XrmContextSettings = {
+type XcGenerationSettings = {
   out: string option
   ns: string option
   context: string option
+  deprecatedPrefix: string option
+  sdkVersion: Version option
+  intersections: EntityIntersect[] option
+}
+
+type XcRetrievalSettings = {
   entities: string[] option
   solutions: string[] option
-  deprecatedPrefix: string option
-  sdkVersion: XrmVersion option
+}
+
+
+
+/// Serializable record containing necessary (meta)data
+[<DataContract>]
+type RawState = {
+
+  [<field : DataMember>]
+  metadata: EntityMetadata[]
 }

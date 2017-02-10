@@ -18,32 +18,33 @@ open CodeDomHelper
 
 module internal XrmCodeDom =
 
+  let getVarDefFromAttribute attribute =
+    match attribute.varType with
+    | PartyList ->
+      "EntityCollection",
+      CodeTypeReference "ActivityParty" |> Some,
+      CodeTypeReference(typedefof<IEnumerable<_>>.Name, CodeTypeReference "ActivityParty")
+
+    | OptionSet enumName -> 
+      "OptionSetValue", 
+      CodeTypeReference enumName |> Some,
+      CodeTypeReference (sprintf "%s?" enumName)
+
+    | Default ty when ty.Equals(typeof<Money>) ->
+      "MoneyValue", 
+      None,
+      CodeTypeReference("decimal?")
+
+    | Default ty -> 
+      let varType = getSafeAttributeTypeRef ty
+      sprintf "AttributeValue", Some varType, varType
+
 
   (** Entity Attribute *)
   let MakeEntityAttribute usedProps (attribute:XrmAttribute) =
-    let funcName, varType, returnType = 
-      match attribute.varType with
-      | PartyList ->
-        "EntityCollection",
-        CodeTypeReference "ActivityParty" |> Some,
-        CodeTypeReference(typedefof<IEnumerable<_>>.Name, CodeTypeReference "ActivityParty")
-
-      | OptionSet enumName -> 
-        "OptionSetValue", 
-        CodeTypeReference enumName |> Some,
-        CodeTypeReference (sprintf "%s?" enumName)
-
-      | Default ty when ty.Equals(typeof<Money>) ->
-        "MoneyValue", 
-        None,
-        CodeTypeReference("decimal?")
-
-      | Default ty -> 
-        let varType = getSafeAttributeTypeRef ty
-        sprintf "AttributeValue", Some varType, varType
-
+    let funcName, varType, returnType = getVarDefFromAttribute attribute
     
-    let name = CrmNameHelper.attributeMap.TryFind attribute.logicalName |? attribute.schemaName
+    let name = CrmNameHelper.attributeMap.TryFind attribute.logicalName ?| attribute.schemaName
     let validName = getValidName usedProps name
     let updatedUsedProps = usedProps.Add validName
     let var = Variable validName returnType
@@ -76,6 +77,23 @@ module internal XrmCodeDom =
 
     updatedUsedProps, var :> CodeTypeMember
   
+
+  (** Interface Attribute *)
+  let MakeInterfaceAttribute usedProps (attribute: XrmAttribute) =
+    let funcName, varType, returnType = getVarDefFromAttribute attribute
+    
+    let name = CrmNameHelper.attributeMap.TryFind attribute.logicalName ?| attribute.schemaName
+    let var = Variable name returnType
+
+    var.HasGet <- attribute.canGet
+    var.HasSet <- attribute.canSet
+    
+    // Deprecated attribute check
+    if attribute.isDeprecated then
+      var.CustomAttributes.Add(CodeAttributeDeclaration(typeof<ObsoleteAttribute>.Name)) |> ignore
+
+    var :> CodeTypeMember
+
 
   (** Entity Relationship *)
   let MakeEntityRelationship (usedProps:Set<string>) (relationship:XrmRelationship) =
@@ -246,7 +264,7 @@ module internal XrmCodeDom =
 
   (** Entity *)
   let MakeEntity (entity: XrmEntity) =
-    let name = CrmNameHelper.entityMap.TryFind entity.logicalName |? entity.schemaName
+    let name = CrmNameHelper.entityMap.TryFind entity.logicalName ?| entity.schemaName
     let cl = Class name
     let baseProperties = baseReservedProperties |> Set.add name
 
@@ -267,6 +285,7 @@ module internal XrmCodeDom =
     cl.IsClass <- true
     cl.IsPartial <- true
     cl.BaseTypes.Add(ExtendedEntity stateType statusType) |> ignore
+    entity.interfaces ?|> List.iter (fun i -> cl.BaseTypes.Add(i)) |> ignore
     cl.CustomAttributes.Add(EntityCustomAttribute entity.logicalName) |> ignore
     cl.CustomAttributes.Add(DebuggerDisplayAttribute()) |> ignore
     cl.CustomAttributes.Add(
@@ -343,9 +362,19 @@ module internal XrmCodeDom =
 
     context
 
+  (** Intersection interface *)
+  let MakeIntersectInterface (intersect: XrmIntersect) =
+    let name, attributes = intersect
+    let intersect = Interface name
+
+    intersect.BaseTypes.Add("IEntity");
+    attributes
+    |> List.iter (fun a -> intersect.Members.Add(MakeInterfaceAttribute Set.empty a) |> ignore)
+    
+    intersect
 
   (** Full Codeunit *)
-  let MakeCodeUnit (entities: XrmEntity[]) ns context =
+  let MakeCodeUnit (entities: XrmEntity[]) (intersects: XrmIntersect[]) ns context =
     let cu = CodeCompileUnit()
 
     let globalNs = CodeNamespace()
@@ -372,7 +401,13 @@ module internal XrmCodeDom =
       |> Array.map MakeEntity
       |> Array.unzip
 
-    // Add entities
+    let intersects = 
+      intersects
+      |> Array.map MakeIntersectInterface
+
+
+    // Add types
+    ns.Types.AddRange(intersects)
     ns.Types.AddRange(codeDomEntities)
     
     // Add context if specified

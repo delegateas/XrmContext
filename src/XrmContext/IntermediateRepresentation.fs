@@ -61,8 +61,15 @@ module internal IntermediateRepresentation =
     rel_vars: XrmRelationship list
     opt_sets: XrmOptionSet list
     alt_keys: XrmAlternateKey list
+    interfaces: string list option
   }
 
+  type XrmIntersect = string * XrmAttribute list
 
-
-
+  type InterpretedState = {
+    outputDir: string
+    entities: XrmEntity[]
+    ns: string
+    context: string option
+    intersections: XrmIntersect[]
+  }

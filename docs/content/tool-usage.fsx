@@ -12,10 +12,6 @@ The executable can be used from a command prompt, but also directly from code,
 if you want the generation of the context files to be a part of your 
 workflow.
 
-> **Note:** The executable must be able to find the assemblies it depends on.
-> This can be solved by having them placed in the same folder.
-> It also needs either `FSharp.Core.dll` or F# installed on the computer.
-
 
 Arguments
 -------------------------------
@@ -23,23 +19,24 @@ Arguments
 The arguments are similar to those given to the [CrmSvcUtil][crmsvcutil] tool,
 but with a few additions. Here is the full list of arguments:
 
-| Argument            | Description   
-| :-                  |:-             
-| url                 | URL to the Organization.svc
-| username            | CRM Username
-| password            | CRM Password
-| domain              | Domain to use for CRM
-| ap                  | Authentication Provider Type
-| out                 | Output directory for the generated files.
-| solutions           | Comma-separated list of solutions names. Generates code for the entities found in these solutions.
-| entities            | Comma-separated list of logical names of the entities it should generate code for. This is additive with the entities gotten via the ***solutions*** argument.
-| namespace           | The namespace for the generated code. The default is the global namespace.
-| servicecontextname  | The name of the generated organization service context class. If no value is supplied, no service context is created.
-| deprecatedprefix    | Marks all attributes with the given prefix in their display name as deprecated.
-| sdkversion          | The version of `CrmSdk.CoreAssemblies` used by your library. Automatically finds the matching version from CRM if nothing is specified.
-
+| Argument            | Short-hand  | Description   
+| :-                  | :-          |:-             
+| url                 |             | URL to the Organization.svc
+| username            | u, usr      | CRM Username
+| password            | p, pwd      | CRM Password
+| domain              | d, dmn      | Domain to use for CRM
+| ap                  |             | Authentication Provider Type
+| out                 | o           | Output directory for the generated files.
+| solutions           | ss          | Comma-separated list of solutions names. Generates code for the entities found in these solutions.
+| entities            | es          | Comma-separated list of logical names of the entities it should generate code for. This is additive with the entities gotten via the ***solutions*** argument.
+| namespace           | ns          | The namespace for the generated code. The default is the global namespace.
+| servicecontextname  | scn         | The name of the generated organization service context class. If no value is supplied, no service context is created.
+| deprecatedprefix    | dp          | Marks all attributes with the given prefix in their display name as deprecated.
+| sdkversion          | sv          | The version of `CrmSdk.CoreAssemblies` used by your library. Automatically finds the matching version from CRM if nothing is specified.
+| intersect           | is          | Comma-separated list of named semicolon-separated lists of entity logical names that should be intersected. Example: <br /> <code>ICustomer:account;contact, IActivity: phonecall;email;task</code>
+                      
 You can also view this list of arguments using the "***/help***" argument.
-
+                      
 ### Configuration file
 
 If no arguments are given to the executable, it will check if there is an configuration file in the same folder with arguments it can use instead.
@@ -69,7 +66,7 @@ It can also be run through code by referencing the executable and calling the
 open Microsoft.Xrm.Sdk.Client
 open DG.XrmContext
 
-XrmContext.GetContext(
+XrmContext.GenerateFromCrm(
   "http://<serverName>/<organizationName>/XRMServices/2011/Organization.svc", 
   "username", "password", 
   out = @"..\path\to\BusinessDomain")

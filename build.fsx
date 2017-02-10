@@ -42,10 +42,10 @@ let description = "Tool to generate early-bound .NET framework classes and enume
 let authors = [ "Delegate A/S"; "Martin Kasban Tange" ]
 
 // Tags for your project (for NuGet package)
-let tags = "microsoft crm xrm dynamics xrmcontext crmsvcutil c# csharp optionset enum sdk fsharp f# delegate"
+let tags = "microsoft crm xrm dynamics xrmcontext crmsvcutil c# csharp optionset enum sdk fsharp f# delegate D365 Dynamics365 365"
 
 let company = "Delegate A/S"
-let copyright = @"Copyright (c) Delegate A/S 2016"
+let copyright = @"Copyright (c) Delegate A/S 2017"
 
 // File system information 
 let solutionFile  = "XrmContext.sln"
@@ -155,7 +155,7 @@ Target "NuGet" (fun _ ->
         Tags = tags
         NoDefaultExcludes = true
         AccessKey = getBuildParamOrDefault "delegateas-nugetkey" ""
-        Dependencies = [ "Microsoft.CrmSdk.CoreAssemblies", "[8.0.2.1]" ]
+        Dependencies = [ "Microsoft.CrmSdk.CoreAssemblies", "8.2.0" ]
         References = [ ] 
         OutputPath = "bin"
         Version = release.NugetVersion
@@ -203,15 +203,23 @@ let copySpecialFiles () =
     CopyFile "docs/content/" "LICENSE.md"
     Rename "docs/content/license.md" "docs/content/LICENSE.md"
 
+let copyExtraFiles () =
+    let path = "docs/output/files"
+    CleanDir path
+    // Copy additional files
+    CopyRecursive "files" path true |> tracefn "%A"
+
 
 Target "GenerateHelp" (fun _ ->
     copySpecialFiles()
     generateHelp true
+    copyExtraFiles()
 )
 
 Target "GenerateHelpDebug" (fun _ ->
     copySpecialFiles()
     generateHelp' true true
+    copyExtraFiles()
 )
 
 Target "KeepRunning" (fun _ ->    

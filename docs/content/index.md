@@ -1,27 +1,17 @@
 XrmContext
 ======================
 
+XrmContext generates early-bound .NET classes which represent the entity
+model of the given Dynamics CRM instance.
 
-<div class="row">
-  <div class="span1"></div>
-  <div class="span6">
-    <div class="well well-small" id="nuget">
-      The XrmContext executable can be 
-      <a href="https://nuget.org/packages/Delegate.XrmContext">
-        installed from NuGet
-      </a>:
-      <pre>PM> Install-Package Delegate.XrmContext</pre>
-    </div>
-  </div>
-  <div class="span1"></div>
-</div>
+<form method="get" action="files/install-latest.cmd">
+<center><button type="submit" class="btn">Download installer</button></center>
+</form>
 
 
 What is it?
 -----------
 
-XrmContext generates early-bound .NET framework classes which represent the entity
-model of the given Dynamics CRM instance.
 It is very similar to that of [CrmSvcUtil][crmsvcutil], but has several new features that 
 help you code better and more reliably, and generates files that takes up less space.
 

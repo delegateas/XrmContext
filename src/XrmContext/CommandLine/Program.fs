@@ -7,55 +7,113 @@ open Microsoft.Xrm.Sdk.Client
 open DG.XrmContext
 open Utility
 open CommandLineHelper
-open GeneratorLogic
+open FileGeneration
 
-
-// Main executable function
-let executeGetContext argv =
-  let parsedArgs = parseArgs argv Args.expectedArgs
-
-  if parsedArgs.Count = 0 then showUsage()
-  else
-
+let getXrmAuth parsedArgs = 
   let ap = 
-    getArg parsedArgs "ap" 
-      (fun ap -> Enum.Parse(typeof<AuthenticationProviderType>, ap) :?> AuthenticationProviderType)
+    getArg parsedArgs "ap" (fun ap ->
+      Enum.Parse(typeof<AuthenticationProviderType>, ap) 
+        :?> AuthenticationProviderType)
 
-  let xrmAuth =
-    { XrmAuthentication.url = Uri(parsedArgs.Item "url")
-      username = parsedArgs.Item "username"
-      password = parsedArgs.Item "password"
-      domain = parsedArgs.TryFind "domain"
-      ap = ap }
+  { XrmAuthentication.url = Uri(Map.find "url" parsedArgs)
+    username = Map.find "username" parsedArgs
+    password = Map.find "password" parsedArgs
+    domain = Map.tryFind "domain" parsedArgs
+    ap = ap; }
 
+let getRetrieveSettings parsedArgs =
   let entities = getListArg parsedArgs "entities" (fun s -> s.ToLower())
   let solutions = getListArg parsedArgs "solutions" id
 
-  let settings = 
-    { XrmContextSettings.out = parsedArgs.TryFind "out"
-      ns = parsedArgs.TryFind "namespace"
-      context = parsedArgs.TryFind "servicecontextname"
-      entities = entities
-      solutions = solutions
-      deprecatedPrefix = parsedArgs.TryFind "deprecatedprefix"
-      sdkVersion = parsedArgs.TryFind "sdkversion" ?|> parseVersion
-    }
-  
-  XrmContext.GetContext(xrmAuth, settings)
+  { XcRetrievalSettings.entities = entities
+    solutions = solutions
+  }
+
+
+let getGenerationSettings parsedArgs =
+  let intersections = getListArg parsedArgs "intersect" (fun definition -> 
+    let nameSplit = definition.IndexOf(":")
+    if nameSplit < 0 then failwithf "Missing name specification in intersect list at: '%s'" definition
+
+    let name = definition.Substring(0, nameSplit) |> Utility.sanitizeString
+    let list = definition.Substring(nameSplit + 1)
+
+    let intersects = list.Split(';')
+
+    name, intersects)
+
+  let nsSanitizer ns =
+    if String.IsNullOrWhiteSpace ns then String.Empty
+    else ns.Split('.') |> Array.map sanitizeString |> String.concat "."
+
+  { XcGenerationSettings.out = Map.tryFind "out" parsedArgs
+    ns = getArg parsedArgs "namespace" nsSanitizer
+    context = Map.tryFind "servicecontextname" parsedArgs
+    deprecatedPrefix = Map.tryFind "deprecatedPrefix" parsedArgs
+    sdkVersion = getArg parsedArgs "sdkVersion" parseVersion
+    intersections = intersections
+  }
+
+/// Load metadata from local file and generate
+let loadGen parsedArgs =
+  let filename = 
+    match Map.tryFind "load" parsedArgs with
+    | Some p -> p
+    | None -> failwithf "No load argument found"
+
+  XrmContext.GenerateFromFile(
+    getGenerationSettings parsedArgs,
+    filename)
+
+/// Save metadata to file
+let dataSave parsedArgs =
+  let filename = 
+    match Map.tryFind "save" parsedArgs with
+    | Some p -> p
+    | None -> failwithf "No load argument found"
+
+  XrmContext.SaveMetadataToFile(
+      getXrmAuth parsedArgs, 
+      getRetrieveSettings parsedArgs,
+      filename)
+
+// Regular connect to CRM and generate
+let connectGen parsedArgs =
+  XrmContext.GenerateFromCrm(
+    getXrmAuth parsedArgs, 
+    getRetrieveSettings parsedArgs, 
+    getGenerationSettings parsedArgs)
+
+
+// Main executable function
+let executeWithArgs argv =
+  let parsedArgs = parseArgs argv Args.argMap
+
+  match parsedArgs |> Map.tryPick (fun k v -> Args.flagArgMap.TryFind k) with
+  | Some flagArg when flagArg = Args.genConfigFlag -> 
+    Args.genConfig()
+
+  | Some flagArg when flagArg = Args.loadFlag ->
+    parsedArgs |> checkArgs Args.generationArgs |> loadGen
+
+  | Some flagArg when flagArg = Args.saveFlag ->
+    parsedArgs |> checkArgs Args.connectionArgs |> dataSave
+
+  | _ -> 
+    parsedArgs |> checkArgs Args.fullArgList |> connectGen
 
 
 // Main method
 [<EntryPoint>]
 let main argv = 
   #if DEBUG
-  executeGetContext argv
+  executeWithArgs (List.ofArray argv)
   0
   #else
   try 
     showDescription()
     if argv.Length > 0 && Args.helpArgs.Contains argv.[0] then showUsage()
-    else if argv.Length > 0 && Args.genConfigArgs.Contains argv.[0] then Args.genConfig()
-    else executeGetContext argv
+    else executeWithArgs (List.ofArray argv)
     0
   with ex ->
     eprintfn "%s" ex.Message

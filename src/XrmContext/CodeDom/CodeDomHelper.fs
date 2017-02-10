@@ -45,6 +45,8 @@ module internal CodeDomHelper =
 
 
   let Class name = CodeTypeDeclaration(name)
+  let Interface name = CodeTypeDeclaration(name) |>> fun c -> c.IsInterface <- true
+
   let Variable name ty = 
     CodeMemberProperty() 
     |> fun m -> 

@@ -176,7 +176,7 @@ module internal InterpretEntityMetadata =
     }
 
 
-  let interpretEntity entityNames entityMap deprecatedPrefix sdkVersion (metadata:EntityMetadata) =
+  let interpretEntity entityNames entityMap entityToIntersects deprecatedPrefix sdkVersion (metadata:EntityMetadata) =
     if (metadata.Attributes = null) then failwith "No attributes found!"
 
     // Attributes and option sets
@@ -199,7 +199,7 @@ module internal InterpretEntityMetadata =
 
     // Alternate keys
     let alt_keys =
-      match checkVersion (7,1,0,0) sdkVersion && not (isNull metadata.Keys) with
+      match sdkVersion .>= (7,1,0,0) && not (isNull metadata.Keys) with
       | true ->
         let attrTypeMap = 
           attr_vars 
@@ -246,4 +246,6 @@ module internal InterpretEntityMetadata =
       stateAttribute = stateAttr
       statusAttribute = statusAttr
       primaryNameAttribute = metadata.PrimaryNameAttribute
-      primaryIdAttribute = metadata.PrimaryIdAttribute }
+      primaryIdAttribute = metadata.PrimaryIdAttribute
+      interfaces = Map.tryFind metadata.LogicalName entityToIntersects
+    }

@@ -18,7 +18,9 @@
   </metadata>
   <files>
     <file src="..\install.ps1" target="tools" />
+    <file src="..\src\XrmContext\bin\Release\FSharp.Core.dll" target="content\bin\dgtools" />
     <file src="..\src\XrmContext\bin\Release\XrmContext.exe" target="content\bin\dgtools" />
     <file src="..\src\XrmContext\bin\Release\XrmContext.xml" target="content\bin\dgtools" />
+    <file src="..\files\install-latest.cmd" target="content\bin\dgtools" />
   </files>
 </package>

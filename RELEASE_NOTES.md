@@ -1,5 +1,9 @@
 # Release Notes
 
+### 1.3.0 - February 10 2017
+* Added the possibility to intersect entities, in order to generate interfaces that only contain common attributes
+* Added functionality to easily determine changes done to attributes of a record with `TagForDelta` and `PerformDelta`
+
 ### 1.2.4 - September 21 2016
 * Fixed CustomAttribute on relationships that were of type `EntityRole.Referenced`
 

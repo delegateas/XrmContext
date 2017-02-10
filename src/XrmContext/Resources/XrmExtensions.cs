@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 using System.Linq.Expressions;
 
 using Microsoft.Xrm.Sdk;
@@ -89,6 +90,26 @@ namespace DG.XrmContext {
             SetAttributeValue(primaryIdAttribute, guid);
         }
 
+
+        protected KeyValuePair<string, object>[] DeltaAttributes;
+
+        public void TagForDelta() {
+            DeltaAttributes = new KeyValuePair<string, object>[Attributes.Count];
+            Attributes.CopyTo(DeltaAttributes, 0);
+        }
+
+        public void PerformDelta() {
+            if (DeltaAttributes == null) return;
+            var guid = Id;
+
+            foreach (var prev in DeltaAttributes) {
+                if (!Attributes.ContainsKey(prev.Key)) continue;
+                if (Object.Equals(Attributes[prev.Key], prev.Value)) Attributes.Remove(prev.Key);
+            }
+            if (guid != Guid.Empty) Id = guid;
+        }
+
+
         //VERSIONCHECK 7.1.0.0
         protected static T Retrieve_AltKey<T>(IOrganizationService service, KeyAttributeCollection keys, params Expression<Func<T, object>>[] attributes) where T : Entity {
             var req = new RetrieveRequest();
@@ -146,6 +167,25 @@ namespace DG.XrmContext {
         public UpsertRequest MakeUpsertRequest() {
             return new UpsertRequest() { Target = this };
         }
+        //ENDVERSIONCHECK
+    }
+
+    public interface IEntity {
+        object this[string attributeName] { get; set; }
+        AttributeCollection Attributes { get; set; }
+        EntityState? EntityState { get; set; }
+        ExtensionDataObject ExtensionData { get; set; }
+        FormattedValueCollection FormattedValues { get; }
+        Guid Id { get; set; }
+        string LogicalName { get; set; }
+        RelatedEntityCollection RelatedEntities { get; }
+        string RowVersion { get; set; }
+        bool Contains(string attributeName);
+        T GetAttributeValue<T>(string attributeLogicalName);
+        T ToEntity<T>() where T : Entity;
+        EntityReference ToEntityReference();
+        //VERSIONCHECK 7.1.0.0
+        KeyAttributeCollection KeyAttributes { get; set; }
         //ENDVERSIONCHECK
     }
 

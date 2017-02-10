@@ -71,6 +71,17 @@
   <Target Name="AfterBuild">
   </Target>
   -->
+  <PropertyGroup>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
+  <PropertyGroup>
+    <PreBuildEvent>
+    </PreBuildEvent>
+  </PropertyGroup>
+  <PropertyGroup>
+    <PreBuildEvent />
+  </PropertyGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Domain.fs" />
@@ -82,17 +93,27 @@
     <Compile Include="IntermediateRepresentation.fs" />
     <Compile Include="Interpretation/InterpretOptionSetMetadata.fs" />
     <Compile Include="Interpretation/InterpretEntityMetadata.fs" />
+    <Compile Include="Interpretation/InterpretIntersectionInterfaces.fs" />
     <Compile Include="CodeDom/CodeDomHelper.fs" />
     <Compile Include="CodeDom/XrmCodeDom.fs" />
-    <Compile Include="GeneratorLogic.fs" />
+    <Compile Include="Generation/DataRetrieval.fs" />
+    <Compile Include="Generation\Setup.fs" />
+    <Compile Include="Generation\FileGeneration.fs" />
+    <Compile Include="Generation/GenerationMain.fs" />
     <Compile Include="XrmContext.fs" />
     <Compile Include="CommandLine\Arguments.fs" />
     <Compile Include="CommandLine\CommandLineHelper.fs" />
     <Compile Include="CommandLine\Program.fs" />
-    <None Include="App.config" />
+    <None Include="App.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="paket.references" />
+    <Content Include="EnvInfo.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="FSharp.Core, Version=4.4.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="mscorlib" />
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
@@ -109,27 +130,16 @@
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
-  <PropertyGroup>
-    <PostBuildEvent>
-    </PostBuildEvent>
-  </PropertyGroup>
-  <PropertyGroup>
-    <PreBuildEvent>
-    </PreBuildEvent>
-  </PropertyGroup>
-  <PropertyGroup>
-    <PreBuildEvent />
-  </PropertyGroup>
   <Choose>
-    <When Condition="($(TargetFrameworkIdentifier) == '.NETStandard' And ($(TargetFrameworkVersion) == 'v1.2' Or $(TargetFrameworkVersion) == 'v1.3' Or $(TargetFrameworkVersion) == 'v1.4' Or $(TargetFrameworkVersion) == 'v1.5')) Or ($(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v4.5.2' Or $(TargetFrameworkVersion) == 'v4.5.3' Or $(TargetFrameworkVersion) == 'v4.6' Or $(TargetFrameworkVersion) == 'v4.6.1' Or $(TargetFrameworkVersion) == 'v4.6.2'))">
+    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v4.5' Or $(TargetFrameworkVersion) == 'v4.5.1' Or $(TargetFrameworkVersion) == 'v4.5.2' Or $(TargetFrameworkVersion) == 'v4.5.3' Or $(TargetFrameworkVersion) == 'v4.6' Or $(TargetFrameworkVersion) == 'v4.6.1' Or $(TargetFrameworkVersion) == 'v4.6.2' Or $(TargetFrameworkVersion) == 'v4.6.3')">
       <ItemGroup>
         <Reference Include="Microsoft.Crm.Sdk.Proxy">
-          <HintPath>..\..\packages\Microsoft.CrmSdk.CoreAssemblies\lib\net452\Microsoft.Crm.Sdk.Proxy.dll</HintPath>
+          <HintPath>..\..\packages\Microsoft.CrmSdk.CoreAssemblies\lib\net45\Microsoft.Crm.Sdk.Proxy.dll</HintPath>
           <Private>True</Private>
           <Paket>True</Paket>
         </Reference>
         <Reference Include="Microsoft.Xrm.Sdk">
-          <HintPath>..\..\packages\Microsoft.CrmSdk.CoreAssemblies\lib\net452\Microsoft.Xrm.Sdk.dll</HintPath>
+          <HintPath>..\..\packages\Microsoft.CrmSdk.CoreAssemblies\lib\net45\Microsoft.Xrm.Sdk.dll</HintPath>
           <Private>True</Private>
           <Paket>True</Paket>
         </Reference>
@@ -137,7 +147,7 @@
     </When>
   </Choose>
   <Choose>
-    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v3.5' Or $(TargetFrameworkVersion) == 'v4.0' Or $(TargetFrameworkVersion) == 'v4.5' Or $(TargetFrameworkVersion) == 'v4.5.1' Or $(TargetFrameworkVersion) == 'v4.5.2' Or $(TargetFrameworkVersion) == 'v4.5.3' Or $(TargetFrameworkVersion) == 'v4.6' Or $(TargetFrameworkVersion) == 'v4.6.1' Or $(TargetFrameworkVersion) == 'v4.6.2')">
+    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v3.5' Or $(TargetFrameworkVersion) == 'v4.0' Or $(TargetFrameworkVersion) == 'v4.5' Or $(TargetFrameworkVersion) == 'v4.5.1' Or $(TargetFrameworkVersion) == 'v4.5.2' Or $(TargetFrameworkVersion) == 'v4.5.3' Or $(TargetFrameworkVersion) == 'v4.6' Or $(TargetFrameworkVersion) == 'v4.6.1' Or $(TargetFrameworkVersion) == 'v4.6.2' Or $(TargetFrameworkVersion) == 'v4.6.3')">
       <ItemGroup>
         <Reference Include="Microsoft.IdentityModel">
           <HintPath>..\..\packages\Microsoft.IdentityModel\lib\net35\Microsoft.IdentityModel.dll</HintPath>
