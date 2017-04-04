@@ -58,7 +58,10 @@ module internal DataRetrieval =
     let rawEntityMetadata = 
       retrieveEntityMetadata entities mainProxy proxyGetter
 
-    { RawState.metadata = rawEntityMetadata }
+    { 
+      RawState.metadata = rawEntityMetadata
+      crmVersion = retrieveCrmVersion mainProxy
+    }
 
 
   /// Gets all the entities related to the given solutions and merges with the given entities

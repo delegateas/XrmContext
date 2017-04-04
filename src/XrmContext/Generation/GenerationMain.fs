@@ -23,13 +23,13 @@ module GenerationMain =
 
 
   /// Main generator function
-  let generateFromRaw gSettings rawState =
+  let generateFromRaw gSettings (rawState: RawState) =
     let out = gSettings.out ?| "."
     let sdkVersion =
-      gSettings.sdkVersion ?| (Int32.MaxValue, Int32.MaxValue, Int32.MaxValue, Int32.MaxValue)
+      gSettings.sdkVersion ?| rawState.crmVersion
     
     // Generate the files
-    interpretCrmData gSettings out sdkVersion rawState 
+    interpretCrmData gSettings out sdkVersion rawState
     |> createCodeDom
 
     createResourceFiles out sdkVersion

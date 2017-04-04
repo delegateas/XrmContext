@@ -37,5 +37,8 @@ type XcRetrievalSettings = {
 type RawState = {
 
   [<field : DataMember>]
+  crmVersion: Version
+
+  [<field : DataMember>]
   metadata: EntityMetadata[]
 }
