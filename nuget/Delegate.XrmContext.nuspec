@@ -17,10 +17,14 @@
     @references@
   </metadata>
   <files>
-    <file src="..\install.ps1" target="tools" />
-    <file src="..\src\XrmContext\bin\Release\FSharp.Core.dll" target="content\bin\dgtools" />
-    <file src="..\src\XrmContext\bin\Release\XrmContext.exe" target="content\bin\dgtools" />
-    <file src="..\src\XrmContext\bin\Release\XrmContext.xml" target="content\bin\dgtools" />
-    <file src="..\files\install-latest.cmd" target="content\bin\dgtools" />
+    <file src="..\files\Run.ps1" target="content\XrmContext" />
+    <file src="..\files\Run.fsx" target="content\XrmContext" />
+    <file src="..\files\XrmContext.exe.config" target="content\XrmContext" />
+    <file src="..\src\XrmContext\bin\Release\FSharp.Core.dll" target="content\XrmContext" />
+    <file src="..\src\XrmContext\bin\Release\Microsoft.Xrm.Sdk.dll" target="content\XrmContext" />
+    <file src="..\src\XrmContext\bin\Release\Microsoft.IdentityModel.dll" target="content\XrmContext" />
+    <file src="..\src\XrmContext\bin\Release\Microsoft.Crm.Sdk.Proxy.dll" target="content\XrmContext" />
+    <file src="..\src\XrmContext\bin\Release\XrmContext.exe" target="content\XrmContext" />
+    <file src="..\src\XrmContext\bin\Release\XrmContext.xml" target="content\XrmContext" />
   </files>
 </package>

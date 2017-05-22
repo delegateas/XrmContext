@@ -1,5 +1,8 @@
 # Release Notes
 
+### 1.4.0 - May 22 2017
+* Removed NuGet dependencies and added necessary assemblies directly as files -- making it easy to use the tool straight from NuGet
+
 ### 1.3.1 - April 4 2017
 * Fixed automatic CRM version check
 

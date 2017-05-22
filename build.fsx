@@ -32,11 +32,11 @@ let project = "XrmContext"
 
 // Short summary of the project
 // (used as description in AssemblyInfo and as a short summary for NuGet package)
-let summary = "Tool to generate early-bound .NET framework classes and enumerations for MS CRM Dynamics server-side coding."
+let summary = "Tool to generate early-bound .NET classes and enumerations for MS Dynamics 365/CRM server-side coding."
 
 // Longer description of the project
 // (used as a description for NuGet package; line breaks are automatically cleaned up)
-let description = "Tool to generate early-bound .NET framework classes and enumerations for MS CRM Dynamics server-side coding."
+let description = "Tool to generate early-bound .NET classes and enumerations for MS Dynamics 365/CRM server-side coding."
 
 // List of author names (for NuGet package)
 let authors = [ "Delegate A/S"; "Martin Kasban Tange" ]
@@ -155,7 +155,7 @@ Target "NuGet" (fun _ ->
         Tags = tags
         NoDefaultExcludes = true
         AccessKey = getBuildParamOrDefault "delegateas-nugetkey" ""
-        Dependencies = [ "Microsoft.CrmSdk.CoreAssemblies", "8.2.0" ]
+        Dependencies = [ ]
         References = [ ] 
         OutputPath = "bin"
         Version = release.NugetVersion
