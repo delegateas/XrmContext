@@ -1,7 +1,6 @@
 ﻿namespace DG.XrmContext
 
 open DG.XrmContext
-open FileGeneration
 open System.Configuration
 
 type ArgInfo = 

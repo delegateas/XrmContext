@@ -1,13 +1,11 @@
 ﻿
 open System
-open System.Text.RegularExpressions
 
 open Microsoft.Xrm.Sdk.Client
 
 open DG.XrmContext
 open Utility
 open CommandLineHelper
-open FileGeneration
 
 let getXrmAuth parsedArgs = 
   let ap = 
@@ -19,7 +17,8 @@ let getXrmAuth parsedArgs =
     username = Map.find "username" parsedArgs
     password = Map.find "password" parsedArgs
     domain = Map.tryFind "domain" parsedArgs
-    ap = ap; }
+    ap = ap 
+  }
 
 let getRetrieveSettings parsedArgs =
   let entities = getListArg parsedArgs "entities" (fun s -> s.ToLower())

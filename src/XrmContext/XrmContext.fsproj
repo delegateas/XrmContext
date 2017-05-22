@@ -93,7 +93,6 @@
     <Compile Include="IntermediateRepresentation.fs" />
     <Compile Include="Interpretation/InterpretOptionSetMetadata.fs" />
     <Compile Include="Interpretation/InterpretEntityMetadata.fs" />
-    <Compile Include="Interpretation/InterpretIntersectionInterfaces.fs" />
     <Compile Include="CodeDom/CodeDomHelper.fs" />
     <Compile Include="CodeDom/XrmCodeDom.fs" />
     <Compile Include="Generation/DataRetrieval.fs" />
