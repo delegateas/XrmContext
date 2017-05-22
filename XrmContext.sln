@@ -34,8 +34,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "nuget", "nuget", "{32CC141A-51F1-4F07-9599-64DEEF9961DA}"
 	ProjectSection(SolutionItems) = preProject
 		nuget\Delegate.XrmContext.nuspec = nuget\Delegate.XrmContext.nuspec
-		nuget\getAssemblies.cmd = nuget\getAssemblies.cmd
-		install.ps1 = install.ps1
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "resources", "resources", "{434B7BF8-F4AD-47F2-8BEC-08565D274504}"
@@ -45,7 +43,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "resources", "resources", "{
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "files", "files", "{F83F3F6A-60C0-49CA-8FFA-640326596A77}"
 	ProjectSection(SolutionItems) = preProject
-		install-latest.cmd = install-latest.cmd
+		files\Run.fsx = files\Run.fsx
+		files\Run.ps1 = files\Run.ps1
+		files\XrmContext.exe.config = files\XrmContext.exe.config
 	EndProjectSection
 EndProject
 Global
