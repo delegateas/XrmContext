@@ -1,5 +1,8 @@
 # Release Notes
 
+### 1.4.1 - May 24 2017
+* Fixed certain arguments not being parsed correctly
+
 ### 1.4.0 - May 22 2017
 * Removed NuGet dependencies and added necessary assemblies directly as files -- making it easy to use the tool straight from NuGet
 
