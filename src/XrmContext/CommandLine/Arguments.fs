@@ -37,12 +37,12 @@ type Args private () =
       description="The name of the generated organization service context class. If no value is supplied, no service context is created."
       required=false }
 
-    { command="deprecatedprefix";
+    { command="deprecatedPrefix";
       altCommands=["dp"]
       description="Marks all attributes with the given prefix in their display name as deprecated."
       required=false }
 
-    { command="sdkversion";
+    { command="sdkVersion";
       altCommands=["sv"]
       description="The version of the CrmSdk.CoreAssemblies which is used by your library. Automatically figures out the version from CRM if none is specified."
       required=false }
