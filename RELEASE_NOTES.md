@@ -1,5 +1,8 @@
 # Release Notes
 
+### 1.4.2 - September 12 2017
+* Fixed building without specified solution(s)
+
 ### 1.4.1 - May 24 2017
 * Fixed certain arguments not being parsed correctly
 
