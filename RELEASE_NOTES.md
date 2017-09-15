@@ -1,5 +1,8 @@
 # Release Notes
 
+### 1.4.3 - Setptember 15 2017
+* Entities with PrimaryEntityId of id no longer causes an error in the generated file
+
 ### 1.4.2 - September 12 2017
 * Fixed building without specified solution(s)
 
