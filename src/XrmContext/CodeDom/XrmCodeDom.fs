@@ -222,15 +222,18 @@ let MakeEntityIdAttributes (attr: XrmAttribute) =
     MethodInvoke "SetId" None 
       [|StringLiteral attr.logicalName; VarRef "value"|]) |> ignore
     
+  let idAttrs = [|baseId :> CodeTypeMember;|]
+  if attr.logicalName = "id" 
+  then 
+    idAttrs 
+  else
+    let attrId = MakeEntityAttribute Set.empty attr |> snd :?> CodeMemberProperty
+    attrId.SetStatements.Clear()
+    attrId.SetStatements.Add(
+      MethodInvoke "SetId" None
+        [|StringLiteral attr.logicalName; VarRef "value"|]) |> ignore
 
-  let attrId = MakeEntityAttribute Set.empty attr |> snd :?> CodeMemberProperty
-  attrId.SetStatements.Clear()
-  attrId.SetStatements.Add(
-    MethodInvoke "SetId" None
-      [|StringLiteral attr.logicalName; VarRef "value"|]) |> ignore
-
-  [|baseId :> CodeTypeMember; attrId :> CodeTypeMember|]
-
+    Array.append idAttrs [|attrId :> CodeTypeMember|]
 
 (** Entity OptionSet *)
 let MakeEntityOptionSet (optSet: XrmOptionSet) =
