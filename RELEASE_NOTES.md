@@ -1,6 +1,9 @@
 # Release Notes
 
-### 1.4.3 - Setptember 15 2017
+### 1.4.4 - September 20 2017
+* Setting the new "***/oneFile***" argument to false will now generate one file per entity instead of one big file. (Remember to include all the files in your project if your are switching over.)
+
+### 1.4.3 - September 15 2017
 * Entities with PrimaryEntityId of id no longer causes an error in the generated file
 
 ### 1.4.2 - September 12 2017
