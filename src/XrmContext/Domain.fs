@@ -23,6 +23,7 @@ type XcGenerationSettings = {
   deprecatedPrefix: string option
   sdkVersion: Version option
   intersections: EntityIntersect[] option
+  oneFile: bool
 }
 
 type XcRetrievalSettings = {

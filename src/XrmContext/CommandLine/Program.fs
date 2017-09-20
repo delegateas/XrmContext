@@ -51,6 +51,7 @@ let getGenerationSettings parsedArgs =
     deprecatedPrefix = Map.tryFind "deprecatedPrefix" parsedArgs
     sdkVersion = getArg parsedArgs "sdkVersion" parseVersion
     intersections = intersections
+    oneFile = getArg parsedArgs "oneFile" parseBoolish ?| true
   }
 
 /// Load metadata from local file and generate

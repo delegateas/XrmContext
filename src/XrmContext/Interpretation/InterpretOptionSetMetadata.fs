@@ -58,7 +58,7 @@ let interpretOptionSet entityNames (entity:EntityMetadata option) (enumAttribute
   let optionSet = enumAttribute.OptionSet :> OptionSetMetadataBase
   if optionSet = null then None
   else
-    
+
   let displayName = 
     match optionSet.OptionSetType.GetValueOrDefault(), 
           optionSet.IsGlobal.GetValueOrDefault(), 
@@ -80,7 +80,8 @@ let interpretOptionSet entityNames (entity:EntityMetadata option) (enumAttribute
       { logicalName = optionSet.Name
         displayName = displayName
         osType = getOptionSetType optionSet
-        options = options } |> Some
+        options = options 
+        isGlobal = optionSet.IsGlobal.Value} |> Some
       
   | :? BooleanOptionSetMetadata as bosm ->
     let options =
@@ -92,6 +93,7 @@ let interpretOptionSet entityNames (entity:EntityMetadata option) (enumAttribute
     { logicalName = optionSet.Name
       displayName = displayName
       osType = XrmOptionSetType.Boolean
-      options = options } |> Some
+      options = options 
+      isGlobal = optionSet.IsGlobal.Value} |> Some
 
   | _ -> None

@@ -15,6 +15,7 @@ type XrmOptionSet = {
   displayName: string
   osType: XrmOptionSetType
   options: XrmOption[]
+  isGlobal: bool
 }
 
 type XrmAttributeType = 

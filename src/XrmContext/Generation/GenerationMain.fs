@@ -25,9 +25,10 @@ let generateFromRaw gSettings (rawState: RawState) =
   let out = gSettings.out ?| "."
   let sdkVersion =
     gSettings.sdkVersion ?| rawState.crmVersion
-    
+  
+  let entities = rawState.metadata |> Array.sortBy(fun e -> e.LogicalName)
   // Generate the files
-  interpretCrmData gSettings out sdkVersion rawState
-  |> createCodeDom
+  let interpretedData = interpretCrmData gSettings out sdkVersion rawState
+  if gSettings.oneFile then createSingleFileCodeDom interpretedData else createMultiFileCodeDom interpretedData
 
   createResourceFiles out sdkVersion

@@ -51,6 +51,11 @@ type Args private () =
       altCommands=["is"]
       description="Entities for which intersection interfaces should be created."
       required=false }
+
+    { command="oneFile";
+      altCommands=["of"]
+      description="Set to false to generate one file per entity instead of one big file."
+      required=false }
     ]
 
   static member connectionArgs = [

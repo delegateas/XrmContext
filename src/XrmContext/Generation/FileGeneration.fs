@@ -55,17 +55,54 @@ let removeUnsupportedLines sdkVersion (lines:string seq) =
   |> fst
   |> Seq.rev
 
-/// Generates the code represented in the CodeDom object
-let createCodeDom (state: InterpretedState) =
-  printf "Generating code..."
-  let cu = MakeCodeUnit state.entities state.intersections state.ns state.context
-
+// Generates the code represented in the CodeDom object
+let generateFromCu (outputDir: string) (className: string) (cu: CodeDom.CodeCompileUnit) =
   let provider = CodeDomProvider.CreateProvider("CSharp")
-  let path = Path.Combine(state.outputDir, "XrmContext.cs")
+  let path = Path.Combine(outputDir, className + ".cs")
   use writer = new StreamWriter(path)
   let options = CodeGeneratorOptions()
 
   provider.GenerateCodeFromCompileUnit(cu, writer, options)
+
+// Creates a single source file from the interpreted state
+let createSingleFileCodeDom (state: InterpretedState) =
+  printf "Generating code..."
+  let cu = MakeCodeUnit state.entities state.intersections state.ns state.context
+
+  cu |> generateFromCu state.outputDir "XrmContext"
+  printfn "Done!"
+
+// Creates multiple sources files from the interpreted state
+let createMultiFileCodeDom (state: InterpretedState) =
+  printf "Generating code..."
+  let entities, globalSets = 
+    state.entities 
+    |> Array.map (fun entity -> MakeEntityCodeUnit entity state.ns)
+    |> Array.unzip
+
+  let intersects = state.intersections |> Array.map (fun intersect -> MakeIntersectCodeUnit intersect state.ns)
+  let cu = Array.append entities intersects
+  
+  // Iterate through each code unit and generate source files
+  cu |> Array.iter (fun (u, name) -> u |> generateFromCu state.outputDir name)
+  
+  // Generate global enums file
+  let globalSets = 
+    globalSets
+    |> List.ofArray
+    |> List.concat
+    |> MakeEnumsCodeUnit state.ns
+    |> generateFromCu state.outputDir "GlobalOptionSets"
+
+
+  // Optionally generate context
+  match state.context with
+  | Some contextName -> 
+    let contextCU, contextCUns = CreateStandardCodeUnit state.ns
+    contextCUns.Types.Add(MakeContext state.entities contextName) |> ignore
+    contextCU |> generateFromCu state.outputDir "XrmContext"
+  | None -> ()
+
   printfn "Done!"
 
 // Create resource files
