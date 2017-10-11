@@ -327,7 +327,7 @@ let MakeEntity (entity: XrmEntity) =
     
   // Add attributes, relationships and alternative keys
   let addMembers (props,members:CodeTypeMember list) = 
-    members |> Array.ofList |> cl.Members.AddRange; props
+    members |> Array.ofList |> Array.sortBy (fun m -> m.Name) |> cl.Members.AddRange; props
 
   let usedProps = 
     baseProperties 
