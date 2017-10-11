@@ -33,7 +33,7 @@ let typeConv = function
 
   | _                           -> typeof<obj>
 
-let (|IsWrongYomi|) (haystack : string) =
+let IsWrongYomi (haystack : string) =
   not(haystack.StartsWith("Yomi")) && haystack.Contains("Yomi")
 
 let (|LabelIsNullOrNullspace|) (label:LocalizedLabel) = 
@@ -60,11 +60,11 @@ let interpretAttribute deprecatedPrefix entityNames (e:EntityMetadata) (a:Attrib
 
   let aType = a.AttributeType.GetValueOrDefault()
 
-  match canGet, aType, a.SchemaName with
-    | false, _, _
-    | _, AttributeTypeCode.Virtual, _
-    | _, _, IsWrongYomi true           -> None, None
-    | _ -> 
+  if not canGet ||
+    aType = AttributeTypeCode.Virtual ||
+    IsWrongYomi a.SchemaName ||
+    a.AttributeOf <> null then None, None
+    else
       
     let options, hasOptions =
       match a with
