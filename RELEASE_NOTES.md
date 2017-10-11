@@ -1,4 +1,7 @@
 # Release Notes
+### 1.4.5 - October 11 2017
+* Attributes of attributes, like Account.AccountParentIdName are no longer generated
+* Attributes, Relationships and Alt Keys for entities are now ordered alphabetically in their classes
 
 ### 1.4.4 - September 20 2017
 * Setting the new "***/oneFile***" argument to false will now generate one file per entity instead of one big file. (Remember to include all the files in your project if your are switching over.)
