@@ -48,7 +48,7 @@ type XrmContext private () =
       printfn "\nSuccessfully generated the C# context files."
 
     #if !DEBUG
-    with ex -> getFirstExceptionMessage ex |> failwithf "\nUnable to generate context files: %s"
+    with ex -> getExceptionTrace ex |> failwithf "\nUnable to generate context files: %s"
     #endif
 
 
@@ -71,7 +71,7 @@ type XrmContext private () =
       printfn "\nSuccessfully saved retrieved data to file."
 
     #if !DEBUG
-    with ex -> getFirstExceptionMessage ex |> failwithf "\nUnable to generate context file: %s"
+    with ex -> getExceptionTrace ex |> failwithf "\nUnable to generate context file: %s"
     #endif
 
 
@@ -85,7 +85,7 @@ type XrmContext private () =
       printfn "\nSuccessfully generated the C# context files."
 
     #if !DEBUG
-    with ex -> getFirstExceptionMessage ex |> failwithf "\nUnable to generate context files: %s"
+    with ex -> getExceptionTrace ex |> failwithf "\nUnable to generate context files: %s"
     #endif
 
 
@@ -109,5 +109,5 @@ type XrmContext private () =
       printfn "\nSuccessfully generated the C# context files."
 
     #if !DEBUG
-    with ex -> getFirstExceptionMessage ex |> failwithf "\nUnable to generate context files: %s"
+    with ex -> getExceptionTrace ex |> failwithf "\nUnable to generate context files: %s"
     #endif

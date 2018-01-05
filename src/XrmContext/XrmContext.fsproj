@@ -9,7 +9,7 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>DG.XrmContext</RootNamespace>
     <AssemblyName>XrmContext</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <TargetFSharpCoreVersion>4.3.1.0</TargetFSharpCoreVersion>
     <Name>XrmContext</Name>

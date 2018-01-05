@@ -37,6 +37,11 @@ let rec getFirstExceptionMessage (ex:Exception) =
   | :? AggregateException as ae -> getFirstExceptionMessage ae.InnerException
   | _ -> ex.Message
 
+let rec getExceptionTrace (ex:Exception) =
+  match ex.InnerException with
+  | :? AggregateException as ae -> ex.Message + ": " + getExceptionTrace ae.InnerException
+  | _ -> ex.Message
+
 let (|StartsWithNumber|) (str:string) = str.Length > 0 && str.[0] >= '0' && str.[0] <= '9'
 let (|StartsWith|_|) needle (haystack : string) = if haystack.StartsWith(needle) then Some() else None
 
