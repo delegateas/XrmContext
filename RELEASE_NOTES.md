@@ -3,6 +3,7 @@
 ### 1.5.0 - January 5 2018
 * Updated .Net Framework from 4.5.2 to 4.6.2
 * Inner exceptions are printed (rather than just outmost exception message)
+* Ensured that XrmContext fetches the correct attribute logical name in instance where attribute has the same name as the entity
 
 ### 1.4.5 - October 11 2017
 * Attributes of attributes, like Account.AccountParentIdName are no longer generated
