@@ -62,35 +62,27 @@ namespace DG.XrmContext
                 SetAttributeValue(attributeName, null);
             }
         }
+
         protected T[] GetOptionSetCollectionValue<T>(string attributeName) where T : struct, IComparable, IConvertible, IFormattable
         {
             var optionSetCollection = GetAttributeValue<OptionSetValueCollection>(attributeName);
-            if (optionSetCollection != null && optionSetCollection.Any())
+            if (optionSetCollection != null && optionSetCollection.Count != 0)
             {
-                var arr = new T[optionSetCollection.Count];
-
-                for (var index = 0; index < optionSetCollection.Count; index++)
-                {
-                    arr[index] = (T)Enum.ToObject(typeof(T), optionSetCollection[index].Value);
-                }
-                return arr;
+                return optionSetCollection
+                    .Select(osv => (T)Enum.ToObject(typeof(T), osv.Value))
+                    .ToArray();
             }
-            else
-            {
-                return null;
-            }
+            return null;
         }
 
         protected void SetOptionSetCollectionValue<T>(string attributeName, T[] value)
         {
+
             if (value != null && value.Any())
             {
-                var arr = new OptionSetValue[value.Length];
-
-                for (var index = 0; index < value.Length; index++)
-                {
-                    arr[index] = new OptionSetValue((int)(object)value[index]);
-                }
+                var arr = value
+                    .Select(v => new OptionSetValue((int)(object)v))
+                    .ToArray();
                 SetAttributeValue(attributeName, arr);
             }
             else
