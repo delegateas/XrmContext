@@ -62,6 +62,42 @@ namespace DG.XrmContext
                 SetAttributeValue(attributeName, null);
             }
         }
+        protected T[] GetOptionSetCollectionValue<T>(string attributeName) where T : struct, IComparable, IConvertible, IFormattable
+        {
+            var optionSetCollection = GetAttributeValue<OptionSetValueCollection>(attributeName);
+            if (optionSetCollection != null && optionSetCollection.Any())
+            {
+                var arr = new T[optionSetCollection.Count];
+
+                for (var index = 0; index < optionSetCollection.Count; index++)
+                {
+                    arr[index] = (T)Enum.ToObject(typeof(T), optionSetCollection[index].Value);
+                }
+                return arr;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        protected void SetOptionSetCollectionValue<T>(string attributeName, T[] value)
+        {
+            if (value != null && value.Any())
+            {
+                var arr = new OptionSetValue[value.Length];
+
+                for (var index = 0; index < value.Length; index++)
+                {
+                    arr[index] = new OptionSetValue((int)(object)value[index]);
+                }
+                SetAttributeValue(attributeName, arr);
+            }
+            else
+            {
+                SetAttributeValue(attributeName, null);
+            }
+        }
 
         protected decimal? GetMoneyValue(string attributeName)
         {
