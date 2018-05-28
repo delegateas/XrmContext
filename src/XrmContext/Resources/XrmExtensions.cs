@@ -63,7 +63,7 @@ namespace DG.XrmContext
             }
         }
 
-        protected T[] GetOptionSetCollectionValue<T>(string attributeName) where T : struct, IComparable, IConvertible, IFormattable
+        protected IEnumerable<T> GetOptionSetCollectionValue<T>(string attributeName) where T : struct, IComparable, IConvertible, IFormattable
         {
             var optionSetCollection = GetAttributeValue<OptionSetValueCollection>(attributeName);
             if (optionSetCollection != null && optionSetCollection.Count != 0)
@@ -75,9 +75,8 @@ namespace DG.XrmContext
             return null;
         }
 
-        protected void SetOptionSetCollectionValue<T>(string attributeName, T[] value)
+        protected void SetOptionSetCollectionValue<T>(string attributeName, IEnumerable<T> value)
         {
-
             if (value != null && value.Any())
             {
                 var arr = value
