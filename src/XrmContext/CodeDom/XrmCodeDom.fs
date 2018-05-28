@@ -28,6 +28,11 @@ let getVarDefFromAttribute attribute =
     CodeTypeReference enumName |> Some,
     CodeTypeReference (sprintf "%s?" enumName)
 
+   | OptionSetCollection enumName ->
+    "OptionSetCollectionValue", 
+    CodeTypeReference enumName |> Some,
+    CodeTypeReference(typedefof<IEnumerable<_>>.Name, CodeTypeReference enumName)
+
   | Default ty when ty.Equals(typeof<Money>) ->
     "MoneyValue", 
     None,

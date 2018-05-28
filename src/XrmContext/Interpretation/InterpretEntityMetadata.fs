@@ -61,7 +61,7 @@ let interpretAttribute deprecatedPrefix entityNames (e:EntityMetadata) (a:Attrib
   let aType = a.AttributeType.GetValueOrDefault()
 
   if not canGet ||
-    aType = AttributeTypeCode.Virtual ||
+    //aType = AttributeTypeCode.Virtual ||
     IsWrongYomi a.SchemaName ||
     a.AttributeOf <> null then None, None
     else
@@ -74,11 +74,12 @@ let interpretAttribute deprecatedPrefix entityNames (e:EntityMetadata) (a:Attrib
       | _ -> None, false
 
     let vType = 
-      match aType, hasOptions with
-      | AttributeTypeCode.State,    true
-      | AttributeTypeCode.Status,   true
-      | AttributeTypeCode.Picklist, true -> OptionSet options.Value.displayName
-      | AttributeTypeCode.PartyList, _   -> PartyList
+      match aType, hasOptions, a with
+      | AttributeTypeCode.State,    true, _
+      | AttributeTypeCode.Status,   true, _
+      | AttributeTypeCode.Picklist, true, _ -> OptionSet options.Value.displayName
+      | AttributeTypeCode.Virtual , true, :? MultiSelectPicklistAttributeMetadata -> OptionSetCollection options.Value.displayName
+      | AttributeTypeCode.PartyList, _, _   -> PartyList
       | _ -> typeConv aType |> Default
       
 
