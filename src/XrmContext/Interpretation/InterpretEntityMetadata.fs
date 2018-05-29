@@ -60,8 +60,7 @@ let interpretAttribute deprecatedPrefix entityNames (e:EntityMetadata) (a:Attrib
 
   let aType = a.AttributeType.GetValueOrDefault()
 
-  if not canGet ||
-    //aType = AttributeTypeCode.Virtual ||
+  if not canGet ||   
     IsWrongYomi a.SchemaName ||
     a.AttributeOf <> null then None, None
     else
