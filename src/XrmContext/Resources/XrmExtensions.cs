@@ -82,7 +82,7 @@ namespace DG.XrmContext
                 var arr = value
                     .Select(v => new OptionSetValue((int)(object)v))
                     .ToArray();
-                SetAttributeValue(attributeName, arr);
+                SetAttributeValue(attributeName, new OptionSetValueCollection(arr););
             }
             else
             {
