@@ -75,14 +75,14 @@ namespace DG.XrmContext
             return null;
         }
 
-        protected void SetOptionSetCollectionValue<T>(string attributeName, IEnumerable<T> value)
+        protected void SetOptionSetCollectionValue<T>(string attributeName, params T[] value)
         {
             if (value != null && value.Any())
             {
                 var arr = value
                     .Select(v => new OptionSetValue((int)(object)v))
                     .ToArray();
-                SetAttributeValue(attributeName, new OptionSetValueCollection(arr););
+                SetAttributeValue(attributeName, new OptionSetValueCollection(arr));
             }
             else
             {
