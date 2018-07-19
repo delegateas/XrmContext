@@ -1,5 +1,11 @@
 # Release Notes
 
+### 1.5.1 - July 19 2018
+* Updated CRM assemblies to latest version (from v8 to v9)
+* Updated other dependencies to latest version as well
+* Included FSharp.Core to be able to build nuget package
+* Removed Microsoft.IdentityModel.dll under the assumption that it is no longer needed (for comparison XDT does not include it)
+
 ### 1.5.0 - January 5 2018
 * Updated .Net Framework from 4.5.2 to 4.6.2
 * Inner exceptions are printed (rather than just outmost exception message)
