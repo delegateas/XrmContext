@@ -192,7 +192,6 @@ Target "All" DoNothing
   ==> "AssemblyInfo"
   ==> "Build"
   ==> "CopyBinaries"
-  ==> "RunTests"
   ==> "NuGet"
   ==> "BuildPackage"
   ==> "All"
@@ -200,4 +199,4 @@ Target "All" DoNothing
 "BuildPackage"
   ==> "PublishNuget"
 
-RunTargetOrDefault "All"
+RunTargetOrDefault "Build"
