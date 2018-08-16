@@ -121,19 +121,6 @@ let makeAsyncTask  (f : unit->'a) =
   async { return! Task<'a>.Factory.StartNew( new Func<'a>(f) ) |> Async.AwaitTask }
 
 
-// Retrieve entity metadata with parallelism and bulk requests
-let getSpecificEntityMetadataHybrid proxyGetter parallelism lnames =
-  lnames
-  |> Array.splitInto parallelism
-  |> Array.Parallel.map (fun lname -> 
-    makeAsyncTask (fun () -> 
-      let proxy = proxyGetter()
-      getEntityMetadataBulk proxy lname))
-  |> Async.Parallel
-  |> Async.RunSynchronously
-  |> Array.concat
-
-
 // Retrieve all optionset metadata
 let getAllOptionSetMetadata proxy =
   let request = RetrieveAllOptionSetsRequest()
@@ -158,9 +145,9 @@ let findRelationEntities allLogicalNames (metadata:EntityMetadata[]) =
 
 
 // Retrieve specific entity metadata along with any intersect
-let getSpecificEntitiesAndDependentMetadata proxyGetter logicalNames =
+let getSpecificEntitiesAndDependentMetadata proxy logicalNames =
   // TODO: either figure out the best degree of parallelism through code, or add it as a setting
-  let getMetadata = getSpecificEntityMetadataHybrid proxyGetter 4
+  let getMetadata = getEntityMetadataBulk proxy
   let entities = getMetadata logicalNames
 
   let set = logicalNames |> Set.ofArray
