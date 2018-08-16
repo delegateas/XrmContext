@@ -28,14 +28,14 @@ let retrieveEntityNameMap mainProxy =
   map
 
 // Retrieve CRM entity metadata
-let retrieveEntityMetadata entities mainProxy proxyGetter =
+let retrieveEntityMetadata entities mainProxy =
   printf "Fetching specific entity metadata from CRM..."
 
   let rawEntityMetadata = 
     match entities with
     | None -> getAllEntityMetadata mainProxy
     | Some logicalNames -> 
-      getSpecificEntitiesAndDependentMetadata proxyGetter logicalNames
+      getSpecificEntitiesAndDependentMetadata mainProxy logicalNames
 
   printfn "Done!"
   rawEntityMetadata
@@ -51,10 +51,10 @@ let retrieveCrmVersion mainProxy =
   version
 
 /// Retrieve all the necessary CRM data
-let retrieveCrmData entities mainProxy proxyGetter =
+let retrieveCrmData entities mainProxy =
 
   let rawEntityMetadata = 
-    retrieveEntityMetadata entities mainProxy proxyGetter
+    retrieveEntityMetadata entities mainProxy
 
   { 
     RawState.metadata = rawEntityMetadata

@@ -12,12 +12,11 @@ open Setup
 let retrieveRawState xrmAuth (rSettings: XcRetrievalSettings) =
   let mainProxy = connectToCrm xrmAuth
 
-  let proxyGetter = proxyHelper xrmAuth
   let entities = 
     getFullEntityList rSettings.entities rSettings.solutions mainProxy
       
   // Retrieve data from CRM
-  retrieveCrmData entities mainProxy proxyGetter
+  retrieveCrmData entities mainProxy
 
 
 /// Main generator function
