@@ -1,5 +1,8 @@
 # Release Notes
 
+### 1.5.2 - August 17 2018
+* Reduced the amount of proxies connected to the environment
+
 ### 1.5.1 - July 19 2018
 * Updated CRM assemblies to latest version (from v8 to v9)
 * Updated other dependencies to latest version as well
