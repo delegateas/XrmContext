@@ -50,14 +50,17 @@ let intersectEntities (entities: XrmEntity[]) (intersections: EntityIntersect[])
 /// Interprets the raw CRM data into an intermediate state used for further generation
 let interpretCrmData (gSettings: XcGenerationSettings) out sdkVersion (rawState: RawState) =
   printf "Interpreting data..."
+  let publicEntities =  
+    rawState.metadata
+    |> Array.filter(fun x-> not x.IsPrivate.Value)
 
   let entityMap = 
-    rawState.metadata
+    publicEntities
     |> Array.Parallel.map (fun em -> em.LogicalName, em)
     |> Map.ofArray
 
   let entityNames = 
-    rawState.metadata
+    publicEntities
     |> Array.Parallel.map (fun em -> em.SchemaName)
     |> Set.ofArray
 
@@ -73,8 +76,9 @@ let interpretCrmData (gSettings: XcGenerationSettings) out sdkVersion (rawState:
     ?| Map.empty
 
   let entityMetadata =
-    rawState.metadata 
+    publicEntities
     |> Array.Parallel.map (interpretEntity entityNames entityMap entityToIntersects gSettings.deprecatedPrefix sdkVersion)
+    |> Array.sortBy (fun x -> x.schemaName)
 
 
   let intersections = 
