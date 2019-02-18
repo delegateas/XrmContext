@@ -1,4 +1,6 @@
 # Release Notes
+### 1.5.3 - February 18 2019
+* Added support for multi-option set
 
 ### 1.5.2 - August 17 2018
 * Reduced the amount of proxies connected to the environment
