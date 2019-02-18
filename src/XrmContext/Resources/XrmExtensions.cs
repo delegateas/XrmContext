@@ -63,6 +63,33 @@ namespace DG.XrmContext
             }
         }
 
+        protected IEnumerable<T> GetOptionSetCollectionValue<T>(string attributeName) where T : struct, IComparable, IConvertible, IFormattable
+        {
+            var optionSetCollection = GetAttributeValue<OptionSetValueCollection>(attributeName);
+            if (optionSetCollection != null && optionSetCollection.Count != 0)
+            {
+                return optionSetCollection
+                    .Select(osv => (T)Enum.ToObject(typeof(T), osv.Value))
+                    .ToArray();
+            }
+            return null;
+        }
+
+        protected void SetOptionSetCollectionValue<T>(string attributeName, params T[] value)
+        {
+            if (value != null && value.Any())
+            {
+                var arr = value
+                    .Select(v => new OptionSetValue((int)(object)v))
+                    .ToArray();
+                SetAttributeValue(attributeName, new OptionSetValueCollection(arr));
+            }
+            else
+            {
+                SetAttributeValue(attributeName, null);
+            }
+        }
+
         protected decimal? GetMoneyValue(string attributeName)
         {
             var money = GetAttributeValue<Money>(attributeName);
