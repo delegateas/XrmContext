@@ -28,8 +28,17 @@ let getRetrieveSettings parsedArgs =
     solutions = solutions
   }
 
-
 let getGenerationSettings parsedArgs =
+  
+  let labelMapping = getListArg parsedArgs "labelMappings" (fun definition -> 
+    let nameSplit = definition.IndexOf(":")
+    if nameSplit < 0 then failwithf "Missing name specification in label Mapping list at: '%s'" definition
+    
+    let label = definition.Substring(0, nameSplit)
+    let value = definition.Substring(nameSplit + 1)
+
+    label, value)
+
   let intersections = getListArg parsedArgs "intersect" (fun definition -> 
     let nameSplit = definition.IndexOf(":")
     if nameSplit < 0 then failwithf "Missing name specification in intersect list at: '%s'" definition
@@ -51,6 +60,7 @@ let getGenerationSettings parsedArgs =
     deprecatedPrefix = Map.tryFind "deprecatedPrefix" parsedArgs
     sdkVersion = getArg parsedArgs "sdkVersion" parseVersion
     intersections = intersections
+    labelMapping = labelMapping
     oneFile = getArg parsedArgs "oneFile" parseBoolish ?| true
   }
 

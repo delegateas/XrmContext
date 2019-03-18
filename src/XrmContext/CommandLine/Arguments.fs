@@ -52,6 +52,11 @@ type Args private () =
       description="Entities for which intersection interfaces should be created."
       required=false }
 
+    { command="labelMappings";
+      altCommands=["lm"]
+      description="Labels unicode charecters that should not be displayed in code and istead be resepresentated by a different string: Example ✔️ to Checkmark."
+      required=false }
+
     { command="oneFile";
       altCommands=["of"]
       description="Set to false to generate one file per entity instead of one big file."

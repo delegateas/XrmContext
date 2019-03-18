@@ -67,7 +67,7 @@ let interpretNormalAttribute aType (options:XrmOptionSet option) hasOptions  =
   | AttributeTypeCode.PartyList, _   -> Some PartyList
   | _ -> typeConv aType |> Default |> Some
 
-let interpretAttribute deprecatedPrefix entityNames (e:EntityMetadata) (a:AttributeMetadata) =
+let interpretAttribute deprecatedPrefix labelmapping entityNames (e:EntityMetadata) (a:AttributeMetadata) =
   let canSet = a.IsValidForCreate.GetValueOrDefault() || a.IsValidForUpdate.GetValueOrDefault()
   let canGet = a.IsValidForRead.GetValueOrDefault() || canSet
 
@@ -81,7 +81,7 @@ let interpretAttribute deprecatedPrefix entityNames (e:EntityMetadata) (a:Attrib
       let options, hasOptions =
         match a with
         | :? EnumAttributeMetadata as eam -> 
-          let options = interpretOptionSet entityNames (Some e) eam
+          let options = interpretOptionSet entityNames (Some e) eam labelmapping
           options, options.IsSome && options.Value.options.Length > 0
         | _ -> None, false
       
@@ -184,13 +184,13 @@ let interpretKeyAttribute attrTypeMap (keyMetadata:EntityKeyMetadata) =
   }
 
 
-let interpretEntity entityNames entityMap entityToIntersects deprecatedPrefix sdkVersion (metadata:EntityMetadata) =
+let interpretEntity entityNames entityMap entityToIntersects deprecatedPrefix labelmapping sdkVersion (metadata:EntityMetadata) =
   if (metadata.Attributes = null) then failwith "No attributes found!"
 
   // Attributes and option sets
   let opt_sets, attr_vars = 
     metadata.Attributes 
-    |> Array.map (interpretAttribute deprecatedPrefix entityNames metadata)
+    |> Array.map (interpretAttribute deprecatedPrefix labelmapping entityNames metadata)
     |> Array.unzip
 
   let attr_vars = attr_vars |> Array.choose id |> Array.toList
