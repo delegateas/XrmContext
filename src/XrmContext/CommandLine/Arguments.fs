@@ -54,7 +54,7 @@ type Args private () =
 
     { command="labelMappings";
       altCommands=["lm"]
-      description="Labels unicode charecters that should not be displayed in code and istead be resepresentated by a different string: Example ✔️ to Checkmark."
+      description="Labels unicode characters that should not be displayed in code and instead be represented by a different string: Example ✔️ to Checkmark."
       required=false }
 
     { command="oneFile";

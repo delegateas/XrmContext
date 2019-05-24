@@ -1,4 +1,7 @@
 # Release Notes
+### 1.5.4 - May 24 2019
+* Added support for emojis through label mappings 
+
 ### 1.5.3 - February 18 2019
 * Added support for multi-option set
 
