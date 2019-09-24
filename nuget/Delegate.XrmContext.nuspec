@@ -23,6 +23,10 @@
     <file src="..\src\XrmContext\bin\Release\FSharp.Core.dll" target="content\XrmContext" />
     <file src="..\src\XrmContext\bin\Release\Microsoft.Xrm.Sdk.dll" target="content\XrmContext" />
     <file src="..\src\XrmContext\bin\Release\Microsoft.Crm.Sdk.Proxy.dll" target="content\XrmContext" />
+    <file src="..\src\XrmContext\bin\Release\Microsoft.Xrm.Sdk.Deployment.dll" target="content\XrmContext" />
+    <file src="..\src\XrmContext\bin\Release\Microsoft.Xrm.Tooling.Connector.dll" target="content\XrmContext" />
+    <file src="..\src\XrmContext\bin\Release\Microsoft.IdentityModel.Clients.ActiveDirectory.dll" target="content\XrmContext" />
+    <file src="..\src\XrmContext\bin\Release\Microsoft.IdentityModel.Clients.ActiveDirectory.WindowsForms.dll" target="content\XrmContext" />
     <file src="..\src\XrmContext\bin\Release\XrmContext.exe" target="content\XrmContext" />
     <file src="..\src\XrmContext\bin\Release\XrmContext.xml" target="content\XrmContext" />
   </files>

@@ -13,8 +13,7 @@ open Microsoft.Crm.Sdk.Messages
 
 
 // Execute request
-let getResponse<'T when 'T :> OrganizationResponse> (proxy:OrganizationServiceProxy) request =
-  proxy.Timeout <- TimeSpan(1,0,0)
+let getResponse<'T when 'T :> OrganizationResponse> (proxy:IOrganizationService) request =
   (proxy.Execute(request)) :?> 'T
 
 // Retrieve version
@@ -28,7 +27,7 @@ let internal retrieveMultiple proxy logicalName (query:QueryExpression) =
   query.PageInfo <- PagingInfo()
 
   let rec retrieveMultiple' 
-    (proxy:OrganizationServiceProxy) (query:QueryExpression) page cookie =
+    (proxy:IOrganizationService) (query:QueryExpression) page cookie =
     seq {
         query.PageInfo.PageNumber <- page
         query.PageInfo.PagingCookie <- cookie
@@ -74,7 +73,7 @@ let getAllEntityMetadataLight proxy =
   resp.EntityMetadata
 
 // Retrieve all metadata for all entities
-let getAllEntityMetadata (proxy:OrganizationServiceProxy) =
+let getAllEntityMetadata (proxy:IOrganizationService) =
   let request = RetrieveAllEntitiesRequest()
   request.EntityFilters <- Microsoft.Xrm.Sdk.Metadata.EntityFilters.All
   request.RetrieveAsIfPublished <- false
@@ -170,7 +169,7 @@ let getSpecificEntitiesAndDependentMetadata proxy logicalNames =
 
 
 // Retrieve single entity metadata
-let getEntityLogicalNameFromId (proxy:OrganizationServiceProxy) metadataId =
+let getEntityLogicalNameFromId (proxy:IOrganizationService) metadataId =
   let request = RetrieveEntityRequest()
   request.MetadataId <- metadataId
   request.EntityFilters <- Microsoft.Xrm.Sdk.Metadata.EntityFilters.Entity
@@ -205,7 +204,14 @@ let retrieveSolutionEntities proxy solutionName =
 let proxyHelper xrmAuth () =
   let ap = xrmAuth.ap ?| AuthenticationProviderType.OnlineFederation
   let domain = xrmAuth.domain ?| ""
-  CrmAuth.authenticate
-    xrmAuth.url ap xrmAuth.username 
-    xrmAuth.password domain
-  ||> CrmAuth.proxyInstance
+  let mfaAppId = xrmAuth.mfaAppId ?| ""
+  let mfaReturnUrl = xrmAuth.mfaReturnUrl ?| ""
+  let proxyInstance = 
+    match mfaReturnUrl with
+    | "" ->
+      let manager = CrmAuth.getServiceManagement xrmAuth.url
+      let authToken = CrmAuth.authenticate manager ap xrmAuth.username xrmAuth.password domain
+      CrmAuth.getOrganizationServiceProxy manager authToken
+    | _ -> 
+      CrmAuth.getOrganizationServiceProxyUsingMFA xrmAuth.username xrmAuth.password xrmAuth.url mfaAppId mfaReturnUrl 
+  proxyInstance
