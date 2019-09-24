@@ -1,4 +1,7 @@
 # Release Notes
+### 1.6.0 - September 24 2019
+* Added support for MFA
+
 ### 1.5.4 - May 24 2019
 * Added support for emojis through label mappings 
 
