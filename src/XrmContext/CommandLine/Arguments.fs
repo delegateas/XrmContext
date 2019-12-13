@@ -51,6 +51,16 @@ type Args private () =
       altCommands=["is"]
       description="Entities for which intersection interfaces should be created."
       required=false }
+
+    { command="labelMappings";
+      altCommands=["lm"]
+      description="Labels unicode characters that should not be displayed in code and instead be represented by a different string: Example ✔️ to Checkmark."
+      required=false }
+
+    { command="oneFile";
+      altCommands=["of"]
+      description="Set to false to generate one file per entity instead of one big file."
+      required=false }
     ]
 
   static member connectionArgs = [
@@ -77,6 +87,16 @@ type Args private () =
     { command="ap"
       altCommands=[]
       description="Authentication Provider Type"
+      required=false }
+
+    { command="mfaAppId"
+      altCommands=[]
+      description="Azure Application Id"
+      required=false }
+    
+    { command="mfaReturnUrl"
+      altCommands=[]
+      description="Return URL defined for the Azure Application"
       required=false }
   ]
 

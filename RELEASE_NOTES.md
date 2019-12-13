@@ -1,4 +1,39 @@
 # Release Notes
+### 1.6.0 - September 24 2019
+* Added support for MFA
+
+### 1.5.4 - May 24 2019
+* Added support for emojis through label mappings 
+
+### 1.5.3 - February 18 2019
+* Added support for multi-option set
+
+### 1.5.2 - August 17 2018
+* Reduced the amount of proxies connected to the environment
+
+### 1.5.1 - July 19 2018
+* Updated CRM assemblies to latest version (from v8 to v9)
+* Updated other dependencies to latest version as well
+* Included FSharp.Core to be able to build nuget package
+* Removed Microsoft.IdentityModel.dll under the assumption that it is no longer needed (for comparison XDT does not include it)
+
+### 1.5.0 - January 5 2018
+* Updated .Net Framework from 4.5.2 to 4.6.2
+* Inner exceptions are printed (rather than just outmost exception message)
+* Ensured that XrmContext fetches the correct attribute logical name in instance where attribute has the same name as the entity
+
+### 1.4.5 - October 11 2017
+* Attributes of attributes, like Account.AccountParentIdName are no longer generated
+* Attributes, Relationships and Alt Keys for entities are now ordered alphabetically in their classes
+
+### 1.4.4 - September 20 2017
+* Setting the new "***/oneFile***" argument to false will now generate one file per entity instead of one big file. (Remember to include all the files in your project if your are switching over.)
+
+### 1.4.3 - September 15 2017
+* Entities with PrimaryEntityId of id no longer causes an error in the generated file
+
+### 1.4.2 - September 12 2017
+* Fixed building without specified solution(s)
 
 ### 1.4.1 - May 24 2017
 * Fixed certain arguments not being parsed correctly

@@ -37,6 +37,11 @@ let rec getFirstExceptionMessage (ex:Exception) =
   | :? AggregateException as ae -> getFirstExceptionMessage ae.InnerException
   | _ -> ex.Message
 
+let rec getExceptionTrace (ex:Exception) =
+  match ex.InnerException with
+  | :? AggregateException as ae -> ex.Message + ": " + getExceptionTrace ae.InnerException
+  | _ -> ex.Message
+
 let (|StartsWithNumber|) (str:string) = str.Length > 0 && str.[0] >= '0' && str.[0] <= '9'
 let (|StartsWith|_|) needle (haystack : string) = if haystack.StartsWith(needle) then Some() else None
 
@@ -44,6 +49,14 @@ let (|StartsWith|_|) needle (haystack : string) = if haystack.StartsWith(needle)
 let keywords = [ "import"; "export"; "class"; "enum"; "var"; "for"; "if"; "else"; "const"; "true"; "false" ] |> Set.ofList
 let emptyLabel = "_EmptyString"
 let (|IsKeyword|) = keywords.Contains
+
+let applyLabelMappings (labelMapping:(string*string)[] option) (label:string)  =
+    match labelMapping with
+    Some mapping -> 
+        mapping 
+        |> Array.fold (fun (acc:string) (elem:(string*string)) -> 
+            Regex.Replace(acc,fst elem,snd elem)) label
+    | None  -> label;;
 
 let sanitizeString str = 
   Regex.Replace(str, @"[^\w]", "")

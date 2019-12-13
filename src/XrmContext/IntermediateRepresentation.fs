@@ -15,11 +15,13 @@ type XrmOptionSet = {
   displayName: string
   osType: XrmOptionSetType
   options: XrmOption[]
+  isGlobal: bool
 }
 
 type XrmAttributeType = 
   | Default of Type 
   | OptionSet of string
+  | OptionSetCollection of string
   | PartyList
 
 type XrmAttribute = {

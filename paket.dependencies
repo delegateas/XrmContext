@@ -1,11 +1,14 @@
 source https://nuget.org/api/v2
 
-nuget FSharp.Core
 nuget FSharp.Formatting
-nuget Microsoft.CrmSdk.CoreAssemblies
 nuget NUnit
 nuget NUnit.Runners
-nuget FAKE
+nuget FAKE ~> 4
 nuget SourceLink.Fake
+nuget Microsoft.CrmSdk.CoreAssemblies
+nuget FSharp.Core
+nuget Microsoft.CrmSdk.Deployment >= 8
+nuget Microsoft.CrmSdk.XrmTooling.CoreAssembly >= 8
+nuget Microsoft.IdentityModel.Clients.ActiveDirectory ~> 2.22.0
 
 github fsharp/FAKE modules/Octokit/Octokit.fsx

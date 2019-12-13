@@ -11,13 +11,15 @@ open System.Runtime.Serialization.Json
 
 type XrmContext private () =
 
-  static member GenerateFromCrm(url, username, password, ?domain, ?ap, ?out, ?entities, ?solutions, ?ns, ?context, ?deprecatedPrefix, ?sdkVersion, ?intersections) = 
+  static member GenerateFromCrm(url, username, password, ?domain, ?ap, ?mfaAppId, ?mfaReturnUrl, ?out, ?entities, ?solutions, ?ns, ?context, ?deprecatedPrefix, ?sdkVersion, ?intersections,?labelMapping, ?oneFile) = 
     let xrmAuth = 
       { XrmAuthentication.url = Uri(url)
         username = username
         password = password
         domain = domain
-        ap = ap }
+        ap = ap 
+        mfaAppId = mfaAppId
+        mfaReturnUrl = mfaReturnUrl}
     
     let rSettings = 
       { XcRetrievalSettings.entities = entities
@@ -31,6 +33,8 @@ type XrmContext private () =
         ns = ns
         context = context
         intersections = intersections
+        labelMapping = labelMapping
+        oneFile = oneFile ?| true
        }
     
     XrmContext.GenerateFromCrm(xrmAuth, rSettings, gSettings)
@@ -47,7 +51,7 @@ type XrmContext private () =
       printfn "\nSuccessfully generated the C# context files."
 
     #if !DEBUG
-    with ex -> getFirstExceptionMessage ex |> failwithf "\nUnable to generate context files: %s"
+    with ex -> getExceptionTrace ex |> failwithf "\nUnable to generate context files: %s"
     #endif
 
 
@@ -70,7 +74,7 @@ type XrmContext private () =
       printfn "\nSuccessfully saved retrieved data to file."
 
     #if !DEBUG
-    with ex -> getFirstExceptionMessage ex |> failwithf "\nUnable to generate context file: %s"
+    with ex -> getExceptionTrace ex |> failwithf "\nUnable to generate context file: %s"
     #endif
 
 
@@ -84,7 +88,7 @@ type XrmContext private () =
       printfn "\nSuccessfully generated the C# context files."
 
     #if !DEBUG
-    with ex -> getFirstExceptionMessage ex |> failwithf "\nUnable to generate context files: %s"
+    with ex -> getExceptionTrace ex |> failwithf "\nUnable to generate context files: %s"
     #endif
 
 
@@ -108,5 +112,5 @@ type XrmContext private () =
       printfn "\nSuccessfully generated the C# context files."
 
     #if !DEBUG
-    with ex -> getFirstExceptionMessage ex |> failwithf "\nUnable to generate context files: %s"
+    with ex -> getExceptionTrace ex |> failwithf "\nUnable to generate context files: %s"
     #endif

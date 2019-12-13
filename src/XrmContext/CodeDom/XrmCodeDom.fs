@@ -28,6 +28,11 @@ let getVarDefFromAttribute attribute =
     CodeTypeReference enumName |> Some,
     CodeTypeReference (sprintf "%s?" enumName)
 
+   | OptionSetCollection enumName ->
+    "OptionSetCollectionValue", 
+    CodeTypeReference enumName |> Some,
+    CodeTypeReference(typedefof<IEnumerable<_>>.Name, CodeTypeReference enumName)
+
   | Default ty when ty.Equals(typeof<Money>) ->
     "MoneyValue", 
     None,
@@ -222,15 +227,18 @@ let MakeEntityIdAttributes (attr: XrmAttribute) =
     MethodInvoke "SetId" None 
       [|StringLiteral attr.logicalName; VarRef "value"|]) |> ignore
     
+  let idAttrs = [|baseId :> CodeTypeMember;|]
+  if attr.logicalName = "id" 
+  then 
+    idAttrs 
+  else
+    let attrId = MakeEntityAttribute Set.empty attr |> snd :?> CodeMemberProperty
+    attrId.SetStatements.Clear()
+    attrId.SetStatements.Add(
+      MethodInvoke "SetId" None
+        [|StringLiteral attr.logicalName; VarRef "value"|]) |> ignore
 
-  let attrId = MakeEntityAttribute Set.empty attr |> snd :?> CodeMemberProperty
-  attrId.SetStatements.Clear()
-  attrId.SetStatements.Add(
-    MethodInvoke "SetId" None
-      [|StringLiteral attr.logicalName; VarRef "value"|]) |> ignore
-
-  [|baseId :> CodeTypeMember; attrId :> CodeTypeMember|]
-
+    Array.append idAttrs [|attrId :> CodeTypeMember|]
 
 (** Entity OptionSet *)
 let MakeEntityOptionSet (optSet: XrmOptionSet) =
@@ -324,7 +332,7 @@ let MakeEntity (entity: XrmEntity) =
     
   // Add attributes, relationships and alternative keys
   let addMembers (props,members:CodeTypeMember list) = 
-    members |> Array.ofList |> cl.Members.AddRange; props
+    members |> Array.ofList |> Array.sortBy (fun m -> m.Name) |> cl.Members.AddRange; props
 
   let usedProps = 
     baseProperties 
@@ -334,16 +342,21 @@ let MakeEntity (entity: XrmEntity) =
 
 
   // Create the enums related to the entity
-  let optionSetEnums =
-    entity.opt_sets |> List.map MakeEntityOptionSet
+  let globalOptionSets, relatedOptionSets =
+    entity.opt_sets |> List.partition (fun optionSet -> optionSet.isGlobal)
 
-  cl, optionSetEnums
+  let relatedOptionSetEnums =
+    relatedOptionSets |> List.map MakeEntityOptionSet
 
+  let globalOptionSetEnums =
+    globalOptionSets |> List.map MakeEntityOptionSet
 
+  cl, relatedOptionSetEnums, globalOptionSetEnums
+  
 (** Query Context *)
 let MakeContext (entities: XrmEntity[]) contextName =
   let sets = entities |> Array.map MakeEntityQueryable
-    
+
   let context = CodeTypeDeclaration(contextName)
   context.IsClass <- true
   context.IsPartial <- true
@@ -356,6 +369,7 @@ let MakeContext (entities: XrmEntity[]) contextName =
   cons.BaseConstructorArgs.Add(CodeVariableReferenceExpression("service")) |> ignore
 
   context.Members.Add(cons) |> ignore
+
   context.Members.AddRange(sets)
 
   context
@@ -371,8 +385,8 @@ let MakeIntersectInterface (intersect: XrmIntersect) =
     
   intersect
 
-(** Full Codeunit *)
-let MakeCodeUnit (entities: XrmEntity[]) (intersects: XrmIntersect[]) ns context =
+(** Create Standard CodeUnit **)
+let CreateStandardCodeUnit ns =
   let cu = CodeCompileUnit()
 
   let globalNs = CodeNamespace()
@@ -387,17 +401,26 @@ let MakeCodeUnit (entities: XrmEntity[]) (intersects: XrmIntersect[]) ns context
   globalNs.Imports.Add(CodeNamespaceImport("DG.XrmContext"))
   cu.Namespaces.Add(globalNs) |> ignore
 
-  cu.AssemblyCustomAttributes.Add(
-    CodeAttributeDeclaration(
-      AttributeName typeof<ProxyTypesAssemblyAttribute>)) |> ignore
-    
   let ns = CodeNamespace(ns)
   cu.Namespaces.Add(ns) |> ignore
 
-  let codeDomEntities, optSets = 
+  cu, ns
+
+(** Full Codeunit *)
+let MakeCodeUnit (entities: XrmEntity[]) (intersects: XrmIntersect[]) ns context =
+  //Create Standard CodeUnit with imports and assembly attributes
+  let cu, ns = CreateStandardCodeUnit ns
+
+  cu.AssemblyCustomAttributes.Add(
+    CodeAttributeDeclaration(
+      AttributeName typeof<ProxyTypesAssemblyAttribute>)) |> ignore
+
+  let codeDomEntities, rOptSets, globalOptSets = 
     entities
     |> Array.map MakeEntity
-    |> Array.unzip
+    |> Array.unzip3
+
+  let optSets = Array.append rOptSets globalOptSets
 
   let intersects = 
     intersects
@@ -418,6 +441,62 @@ let MakeCodeUnit (entities: XrmEntity[]) (intersects: XrmIntersect[]) ns context
   optSets
   |> List.concat 
   |> List.distinctBy (fun x -> x.Name)
+  |> Array.ofList
+  |> ns.Types.AddRange
+
+  cu
+
+(** Single File Entity CodeUnit **)
+let MakeEntityCodeUnit (entity: XrmEntity) ns =
+  //Create Standard CodeUnit with imports and assembly attributes
+  let cu, ns = CreateStandardCodeUnit ns
+
+  let codeDomEntity, optSets, globalOptSets = 
+    entity
+    |> MakeEntity
+
+  // Add class
+  ns.Types.Add(codeDomEntity) |> ignore
+
+  // Add option sets
+  optSets
+  |> Array.ofList
+  |> ns.Types.AddRange
+
+  (cu, codeDomEntity.Name), globalOptSets
+
+(** Single File Intersect CodeUnit **)
+let MakeIntersectCodeUnit (intersect :XrmIntersect) ns =
+ //Create Standard CodeUnit with imports and assembly attributes
+  let cu, ns = CreateStandardCodeUnit ns
+
+  let intersect = MakeIntersectInterface intersect
+
+  //Add interface
+  ns.Types.Add(intersect) |> ignore
+
+  (cu, intersect.Name)
+
+(** Enums Code Unit **)
+let MakeEnumsCodeUnit ns (enumCodeTypeDeclerations: CodeTypeDeclaration list) =
+ //Create empty code unit and add the namespace
+  let cu = CodeCompileUnit()
+
+  let globalNs = CodeNamespace()
+  globalNs.Imports.Add(CodeNamespaceImport("System.Runtime.Serialization"))
+  globalNs.Imports.Add(CodeNamespaceImport("Microsoft.Xrm.Sdk.Client"))
+  cu.Namespaces.Add(globalNs) |> ignore
+
+  cu.AssemblyCustomAttributes.Add(
+    CodeAttributeDeclaration(
+      AttributeName typeof<ProxyTypesAssemblyAttribute>)) |> ignore
+
+  let ns = CodeNamespace(ns)
+  cu.Namespaces.Add(ns) |> ignore
+
+  //Add the enum code type declerations to a single code unit
+  enumCodeTypeDeclerations
+  |> List.distinctBy (fun x -> x.Name) 
   |> Array.ofList
   |> ns.Types.AddRange
 

@@ -33,7 +33,7 @@ let typeConv = function
 
   | _                           -> typeof<obj>
 
-let (|IsWrongYomi|) (haystack : string) =
+let IsWrongYomi (haystack : string) =
   not(haystack.StartsWith("Yomi")) && haystack.Contains("Yomi")
 
 let (|LabelIsNullOrNullspace|) (label:LocalizedLabel) = 
@@ -54,52 +54,62 @@ let getDescription displayName (descriptionLabel:Label) =
   |> List.choose id |> fun l -> if List.isEmpty l then None else Some l
 
 
-let interpretAttribute deprecatedPrefix entityNames (e:EntityMetadata) (a:AttributeMetadata) =
+let interpretVirtualAttribute (a:AttributeMetadata) (options:XrmOptionSet option) =
+  match a with
+  | :? MultiSelectPicklistAttributeMetadata -> Some (OptionSetCollection options.Value.displayName)
+  | _ -> None
+
+let interpretNormalAttribute aType (options:XrmOptionSet option) hasOptions  =
+  match aType, hasOptions with
+  | AttributeTypeCode.State,    true
+  | AttributeTypeCode.Status,   true
+  | AttributeTypeCode.Picklist, true -> Some (OptionSet options.Value.displayName)
+  | AttributeTypeCode.PartyList, _   -> Some PartyList
+  | _ -> typeConv aType |> Default |> Some
+
+let interpretAttribute deprecatedPrefix labelmapping entityNames (e:EntityMetadata) (a:AttributeMetadata) =
   let canSet = a.IsValidForCreate.GetValueOrDefault() || a.IsValidForUpdate.GetValueOrDefault()
   let canGet = a.IsValidForRead.GetValueOrDefault() || canSet
 
   let aType = a.AttributeType.GetValueOrDefault()
 
-  match canGet, aType, a.SchemaName with
-    | false, _, _
-    | _, AttributeTypeCode.Virtual, _
-    | _, _, IsWrongYomi true           -> None, None
-    | _ -> 
+  if not canGet ||
+    IsWrongYomi a.SchemaName ||
+    a.AttributeOf <> null then None, None
+    else
+
+      let options, hasOptions =
+        match a with
+        | :? EnumAttributeMetadata as eam -> 
+          let options = interpretOptionSet entityNames (Some e) eam labelmapping
+          options, options.IsSome && options.Value.options.Length > 0
+        | _ -> None, false
       
-    let options, hasOptions =
-      match a with
-      | :? EnumAttributeMetadata as eam -> 
-        let options = interpretOptionSet entityNames (Some e) eam
-        options, options.IsSome && options.Value.options.Length > 0
-      | _ -> None, false
+      let vTypeOption = 
+        match aType with
+        | AttributeTypeCode.Virtual -> interpretVirtualAttribute a options
+        | _ -> interpretNormalAttribute aType options hasOptions
 
-    let vType = 
-      match aType, hasOptions with
-      | AttributeTypeCode.State,    true
-      | AttributeTypeCode.Status,   true
-      | AttributeTypeCode.Picklist, true -> OptionSet options.Value.displayName
-      | AttributeTypeCode.PartyList, _   -> PartyList
-      | _ -> typeConv aType |> Default
-      
+      match vTypeOption with
+      | None -> None, None
+      | Some vType ->
 
-    let displayName = getLabelOption a.DisplayName
-    let desc = getDescription displayName a.Description
+        let displayName = getLabelOption a.DisplayName
+        let desc = getDescription displayName a.Description
 
-    let isDeprecated = 
-      match displayName, deprecatedPrefix with
-      | Some x, Some prefix -> x.StartsWith(prefix)
-      | _ -> false
-      
+        let isDeprecated = 
+          match displayName, deprecatedPrefix with
+          | Some x, Some prefix -> x.StartsWith(prefix)
+          | _ -> false
 
-
-    options, Some {
-      XrmAttribute.schemaName = a.SchemaName
-      logicalName = a.LogicalName
-      varType = vType
-      canSet = canSet
-      canGet = a.IsValidForRead.GetValueOrDefault() || canSet
-      description = desc
-      isDeprecated = isDeprecated }
+        options, Some {
+        XrmAttribute.schemaName = a.SchemaName
+        logicalName = a.LogicalName
+        varType = vType
+        canSet = canSet
+        canGet = a.IsValidForRead.GetValueOrDefault() || canSet
+        description = desc
+        isDeprecated = isDeprecated }    
 
 
 let interpretRelationship (entityMap:Map<string,EntityMetadata>) referencing (rel:OneToManyRelationshipMetadata) =
@@ -174,13 +184,13 @@ let interpretKeyAttribute attrTypeMap (keyMetadata:EntityKeyMetadata) =
   }
 
 
-let interpretEntity entityNames entityMap entityToIntersects deprecatedPrefix sdkVersion (metadata:EntityMetadata) =
+let interpretEntity entityNames entityMap entityToIntersects deprecatedPrefix labelmapping sdkVersion (metadata:EntityMetadata) =
   if (metadata.Attributes = null) then failwith "No attributes found!"
 
   // Attributes and option sets
   let opt_sets, attr_vars = 
     metadata.Attributes 
-    |> Array.map (interpretAttribute deprecatedPrefix entityNames metadata)
+    |> Array.map (interpretAttribute deprecatedPrefix labelmapping entityNames metadata)
     |> Array.unzip
 
   let attr_vars = attr_vars |> Array.choose id |> Array.toList

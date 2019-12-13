@@ -3,6 +3,8 @@
 open System.Net
 open Microsoft.Xrm.Sdk
 open Microsoft.Xrm.Sdk.Client
+open Microsoft.Xrm.Tooling.Connector
+open System
 
 
 // Get credentials based on provider, username, password and domain
@@ -36,15 +38,24 @@ let internal getOrganizationServiceProxy
 
   match serviceManagement.AuthenticationType with
   | AuthenticationProviderType.ActiveDirectory ->
-      new OrganizationServiceProxy(serviceManagement, ac.ClientCredentials)
+      let proxy = new OrganizationServiceProxy(serviceManagement, ac.ClientCredentials) 
+      proxy.Timeout <- TimeSpan(1,0,0)
+      proxy:> IOrganizationService
   | _ ->
-      new OrganizationServiceProxy(serviceManagement, ac.SecurityTokenResponse)
+      new OrganizationServiceProxy(serviceManagement, ac.SecurityTokenResponse) :> IOrganizationService
+
+let internal getOrganizationServiceProxyUsingMFA userName password (orgUrl:Uri) mfaAppId mfaReturnUrl =
+    let mutable orgName = ""
+    let mutable region = ""
+    let mutable isOnPrem = false
+    Utilities.GetOrgnameAndOnlineRegionFromServiceUri(orgUrl, &region, &orgName, &isOnPrem)
+    let cacheFileLocation = System.IO.Path.Combine(System.IO.Path.GetTempPath(), orgName, "oauth-cache.txt")
+    let mutable proxy = new CrmServiceClient(userName, CrmServiceClient.MakeSecureString(password), region, orgName, false, null, null, mfaAppId, new Uri(mfaReturnUrl), cacheFileLocation, null)
+    proxy :> IOrganizationService
 
 // Authentication
-let authenticate org ap username password domain =
-  let m = ServiceConfigurationFactory.CreateManagement<IOrganizationService>(org)
-  let at = m.Authenticate(getCredentials ap username password domain)
-  m,at
+let internal getServiceManagement org = 
+    ServiceConfigurationFactory.CreateManagement<IOrganizationService>(org)
 
-let proxyInstance manager authToken =
-  getOrganizationServiceProxy manager authToken
+let internal authenticate (serviceManagement:IServiceManagement<IOrganizationService>) ap username password domain =
+    serviceManagement.Authenticate(getCredentials ap username password domain)

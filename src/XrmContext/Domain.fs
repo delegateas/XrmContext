@@ -14,6 +14,8 @@ type XrmAuthentication = {
   password: string
   domain: string option
   ap: AuthenticationProviderType option
+  mfaAppId: string option
+  mfaReturnUrl: string option
 }
 
 type XcGenerationSettings = {
@@ -23,6 +25,8 @@ type XcGenerationSettings = {
   deprecatedPrefix: string option
   sdkVersion: Version option
   intersections: EntityIntersect[] option
+  labelMapping: (string * string)[] option
+  oneFile: bool
 }
 
 type XcRetrievalSettings = {

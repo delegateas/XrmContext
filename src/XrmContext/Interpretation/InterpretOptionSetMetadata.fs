@@ -9,14 +9,15 @@ open Utility
 open IntermediateRepresentation
 
 
-let getLabelString (label:Label) =
+let getLabelString (label:Label) (labelmapping:(string*string)[] option) =
   try
     label.UserLocalizedLabel.Label 
-    |> Utility.sanitizeString
+    |> Utility.applyLabelMappings labelmapping
+    |> Utility.sanitizeString 
   with _ -> emptyLabel
 
-let getMetadataString (metadata:OptionSetMetadataBase) =
-  getLabelString metadata.DisplayName
+let getMetadataString (metadata:OptionSetMetadataBase) labelMapping =
+  getLabelString metadata.DisplayName labelMapping
   |> fun name -> 
     if name <> emptyLabel then name
     else metadata.Name
@@ -29,14 +30,14 @@ let getOptionSetType (optionSet:OptionSetMetadataBase) =
   | OptionSetType.Boolean  -> XrmOptionSetType.Boolean
   | _ -> XrmOptionSetType.Picklist
 
-let getOptionsFromOptionSetMetadata (osm:OptionSetMetadata) =
+let getOptionsFromOptionSetMetadata (osm:OptionSetMetadata) labelMapping =
   if osm.Options.Count = 0 then None
   else
 
   let options =
     osm.Options
     |> Seq.map (fun opt ->
-      { label = getLabelString opt.Label
+      { label = getLabelString opt.Label labelMapping
         value = opt.Value.GetValueOrDefault() }) 
     
   options
@@ -54,11 +55,11 @@ let getOptionsFromOptionSetMetadata (osm:OptionSetMetadata) =
 
 
 /// Interprets CRM OptionSetMetadata into intermediate type
-let interpretOptionSet entityNames (entity:EntityMetadata option) (enumAttribute:EnumAttributeMetadata) =
+let interpretOptionSet entityNames (entity:EntityMetadata option) (enumAttribute:EnumAttributeMetadata) (labelmappings:(string*string)[] option)=
   let optionSet = enumAttribute.OptionSet :> OptionSetMetadataBase
   if optionSet = null then None
   else
-    
+
   let displayName = 
     match optionSet.OptionSetType.GetValueOrDefault(), 
           optionSet.IsGlobal.GetValueOrDefault(), 
@@ -74,24 +75,26 @@ let interpretOptionSet entityNames (entity:EntityMetadata option) (enumAttribute
 
   match optionSet with
   | :? OptionSetMetadata as osm ->
-    match getOptionsFromOptionSetMetadata osm with
+    match getOptionsFromOptionSetMetadata osm labelmappings with
     | None -> None
     | Some options -> 
       { logicalName = optionSet.Name
         displayName = displayName
         osType = getOptionSetType optionSet
-        options = options } |> Some
+        options = options 
+        isGlobal = optionSet.IsGlobal.Value} |> Some
       
   | :? BooleanOptionSetMetadata as bosm ->
     let options =
-      [|  { label = getLabelString bosm.TrueOption.Label
+      [|  { label = getLabelString bosm.TrueOption.Label labelmappings
             value = 1 }
-          { label = getLabelString bosm.FalseOption.Label
+          { label = getLabelString bosm.FalseOption.Label labelmappings
             value = 0 } |]
 
     { logicalName = optionSet.Name
       displayName = displayName
       osType = XrmOptionSetType.Boolean
-      options = options } |> Some
+      options = options 
+      isGlobal = optionSet.IsGlobal.Value} |> Some
 
   | _ -> None
