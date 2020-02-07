@@ -14,6 +14,7 @@ let toComparableAttr (a: XrmAttribute) =
     | Default ty -> ty.FullName
     | OptionSet name -> name
     | PartyList -> "partylist"
+    | OptionSetCollection name -> name
 
   a.logicalName, a.schemaName, ty, a.canGet, a.canSet, a.isDeprecated
 
