@@ -18,12 +18,12 @@ NUGET
       Microsoft.AspNet.Razor (>= 3.2.7 < 4.0)
       System.ValueTuple (>= 4.5 < 5.0)
     Microsoft.AspNet.Razor (3.2.7)
-    Microsoft.CrmSdk.CoreAssemblies (9.0.2.22)
-    Microsoft.CrmSdk.Deployment (9.0.2.22)
+    Microsoft.CrmSdk.CoreAssemblies (9.0.2.23)
+    Microsoft.CrmSdk.Deployment (9.0.2.23)
       Microsoft.CrmSdk.CoreAssemblies (>= 9.0.2) - restriction: >= net462
-    Microsoft.CrmSdk.Workflow (9.0.2.22) - restriction: >= net462
+    Microsoft.CrmSdk.Workflow (9.0.2.23) - restriction: >= net462
       Microsoft.CrmSdk.CoreAssemblies (>= 9.0.2) - restriction: >= net462
-    Microsoft.CrmSdk.XrmTooling.CoreAssembly (9.1.0.26)
+    Microsoft.CrmSdk.XrmTooling.CoreAssembly (9.1.0.37)
       Microsoft.CrmSdk.CoreAssemblies (>= 9.0.2.21) - restriction: >= net462
       Microsoft.CrmSdk.Deployment (>= 9.0.2.21) - restriction: >= net462
       Microsoft.CrmSdk.Workflow (>= 9.0.2.21) - restriction: >= net462
@@ -113,7 +113,7 @@ NUGET
     NUnit.Extension.VSProjectLoader (3.8)
     NUnit.Runners (3.10)
       NUnit.Console (>= 3.10)
-    Octokit (0.37)
+    Octokit (0.40)
       NETStandard.Library (>= 1.6) - restriction: && (< net45) (>= netstandard1.1) (< netstandard2.0)
     runtime.debian.8-x64.runtime.native.System.Security.Cryptography.OpenSsl (4.3.3) - restriction: || (&& (< monoandroid) (< monotouch) (< net45) (>= netstandard1.6) (< netstandard2.0) (< win8) (< wpa81) (< xamarintvos) (< xamarinwatchos)) (&& (< monoandroid) (< net45) (< netstandard1.2) (>= netstandard1.6) (< win8)) (&& (< monoandroid) (< net45) (< netstandard1.3) (>= netstandard1.6) (< win8) (< wpa81)) (&& (< monoandroid) (< net45) (< netstandard1.4) (>= netstandard1.6) (< win8) (< wpa81)) (&& (< monoandroid) (< net45) (< netstandard1.5) (>= netstandard1.6) (< win8) (< wpa81)) (&& (< net45) (>= net46) (< netstandard1.4) (>= netstandard1.6)) (&& (< netstandard1.5) (>= netstandard1.6) (>= uap10.0))
     runtime.debian.9-x64.runtime.native.System.Security.Cryptography.OpenSsl (4.3.3) - restriction: || (&& (< monoandroid) (< monotouch) (< net45) (>= netstandard1.6) (< netstandard2.0) (< win8) (< wpa81) (< xamarintvos) (< xamarinwatchos)) (&& (< monoandroid) (< net45) (< netstandard1.2) (>= netstandard1.6) (< win8)) (&& (< monoandroid) (< net45) (< netstandard1.3) (>= netstandard1.6) (< win8) (< wpa81)) (&& (< monoandroid) (< net45) (< netstandard1.4) (>= netstandard1.6) (< win8) (< wpa81)) (&& (< monoandroid) (< net45) (< netstandard1.5) (>= netstandard1.6) (< win8) (< wpa81)) (&& (< net45) (>= net46) (< netstandard1.4) (>= netstandard1.6)) (&& (< netstandard1.5) (>= netstandard1.6) (>= uap10.0))
@@ -737,5 +737,5 @@ NUGET
       System.Xml.XmlDocument (>= 4.3) - restriction: && (< monoandroid) (< monotouch) (< net45) (>= netstandard1.3) (< win8) (< wpa81) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)
 GITHUB
   remote: fsharp/FAKE
-    modules/Octokit/Octokit.fsx (8f396fb3aaeba2d263d47f9e1e0540dc0e1d444b)
+    modules/Octokit/Octokit.fsx (b8f82a3e2d1b3e834897bdb0e2b49f170f9be504)
       Octokit (>= 0.20)

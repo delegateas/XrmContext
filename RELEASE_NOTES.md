@@ -1,4 +1,7 @@
 # Release Notes
+### 1.7.0 - February 11 2020
+* Added support for client secret authentication
+
 ### 1.6.0 - September 24 2019
 * Added support for MFA
 
