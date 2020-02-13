@@ -1,4 +1,8 @@
 # Release Notes
+
+### 1.7.1 - February 13 2020
+* Fix assembly reference issue when calling from Daxif
+
 ### 1.7.0 - February 11 2020
 * Added support for client secret authentication
 
