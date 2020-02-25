@@ -1,4 +1,6 @@
 # Release Notes
+### 1.7.2 - February 25 2020
+* Fixed error when an alternate key used an optionset attribute
 
 ### 1.7.1 - February 13 2020
 * Fix assembly reference issue when calling from Daxif
