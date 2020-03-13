@@ -78,7 +78,7 @@ let interpretCrmData (gSettings: XcGenerationSettings) out sdkVersion (rawState:
 
   let entityMetadata =
     publicEntities
-    |> Array.Parallel.map (interpretEntity entityNames entityMap entityToIntersects gSettings.deprecatedPrefix sdkVersion)
+    |> Array.Parallel.map (interpretEntity entityNames entityMap entityToIntersects gSettings.deprecatedPrefix gSettings.labelMapping sdkVersion)
     |> Array.sortBy (fun x -> x.schemaName)
 
 
