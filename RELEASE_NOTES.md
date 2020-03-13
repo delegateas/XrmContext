@@ -1,4 +1,7 @@
 # Release Notes
+### 1.7.3 - March 13 2020
+* Now ignores private entities and files are ordered by schema name (@rajyraman)
+
 ### 1.7.2 - February 25 2020
 * Fixed error when an alternate key used an optionset attribute
 
