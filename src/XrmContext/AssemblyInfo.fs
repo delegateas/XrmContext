@@ -7,8 +7,8 @@ open System.Reflection
 [<assembly: AssemblyDescriptionAttribute("Tool to generate early-bound .NET classes and enumerations for MS Dynamics 365/CRM server-side coding.")>]
 [<assembly: AssemblyCompanyAttribute("Delegate A/S")>]
 [<assembly: AssemblyCopyrightAttribute("Copyright (c) Delegate A/S 2017")>]
-[<assembly: AssemblyVersionAttribute("1.7.3")>]
-[<assembly: AssemblyFileVersionAttribute("1.7.3")>]
+[<assembly: AssemblyVersionAttribute("1.7.4")>]
+[<assembly: AssemblyFileVersionAttribute("1.7.4")>]
 do ()
 
 module internal AssemblyVersionInformation =
@@ -17,5 +17,5 @@ module internal AssemblyVersionInformation =
     let [<Literal>] AssemblyDescription = "Tool to generate early-bound .NET classes and enumerations for MS Dynamics 365/CRM server-side coding."
     let [<Literal>] AssemblyCompany = "Delegate A/S"
     let [<Literal>] AssemblyCopyright = "Copyright (c) Delegate A/S 2017"
-    let [<Literal>] AssemblyVersion = "1.7.3"
-    let [<Literal>] AssemblyFileVersion = "1.7.3"
+    let [<Literal>] AssemblyVersion = "1.7.4"
+    let [<Literal>] AssemblyFileVersion = "1.7.4"
