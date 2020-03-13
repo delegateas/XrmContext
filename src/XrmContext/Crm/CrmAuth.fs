@@ -5,6 +5,7 @@ open Microsoft.Xrm.Sdk
 open Microsoft.Xrm.Sdk.Client
 open Microsoft.Xrm.Tooling.Connector
 open System
+open System.IO
 
 
 // Get credentials based on provider, username, password and domain
@@ -44,14 +45,28 @@ let internal getOrganizationServiceProxy
   | _ ->
       new OrganizationServiceProxy(serviceManagement, ac.SecurityTokenResponse) :> IOrganizationService
 
-let internal getOrganizationServiceProxyUsingMFA userName password (orgUrl:Uri) mfaAppId mfaReturnUrl =
-    let mutable orgName = ""
-    let mutable region = ""
-    let mutable isOnPrem = false
-    Utilities.GetOrgnameAndOnlineRegionFromServiceUri(orgUrl, &region, &orgName, &isOnPrem)
-    let cacheFileLocation = System.IO.Path.Combine(System.IO.Path.GetTempPath(), orgName, "oauth-cache.txt")
-    let mutable proxy = new CrmServiceClient(userName, CrmServiceClient.MakeSecureString(password), region, orgName, false, null, null, mfaAppId, new Uri(mfaReturnUrl), cacheFileLocation, null)
-    proxy :> IOrganizationService
+// Get Organization Service Proxy using MFA
+let ensureClientIsReady (client: CrmServiceClient) =
+  match client.IsReady with
+  | false ->
+    let s = sprintf "Client could not authenticate. If the application user was just created, it might take a while before it is available.\n%s" client.LastCrmError 
+    in failwith s
+  | true -> client
+
+let internal getCrmServiceClient userName password (orgUrl:Uri) mfaAppId mfaReturnUrl =
+  let mutable orgName = ""
+  let mutable region = ""
+  let mutable isOnPrem = false
+  Utilities.GetOrgnameAndOnlineRegionFromServiceUri(orgUrl, &region, &orgName, &isOnPrem)
+  let cacheFileLocation = System.IO.Path.Combine(System.IO.Path.GetTempPath(), orgName, "oauth-cache.txt")
+  new CrmServiceClient(userName, CrmServiceClient.MakeSecureString(password), region, orgName, false, null, null, mfaAppId, Uri(mfaReturnUrl), cacheFileLocation, null)
+  |> ensureClientIsReady
+  |> fun x -> x :> IOrganizationService
+
+let internal getCrmServiceClientClientSecret (org: Uri) appId clientSecret =
+  new CrmServiceClient(org, appId, CrmServiceClient.MakeSecureString(clientSecret), true, Path.Combine(Path.GetTempPath(), appId, "oauth-cache.txt"))
+  |> ensureClientIsReady
+  |> fun x -> x :> IOrganizationService
 
 // Authentication
 let internal getServiceManagement org = 

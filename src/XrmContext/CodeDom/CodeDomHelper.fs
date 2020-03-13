@@ -126,6 +126,7 @@ let getStrictAttributeTypeRef ty =
 
 let getAltKeyVarType = function
   | Default ty -> getStrictAttributeTypeRef ty
+  | OptionSet name -> CodeTypeReference name
   | x -> failwithf "Invalid type for alternate key: %A" x
 
 let expandProps func list baseProps =

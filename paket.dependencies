@@ -5,10 +5,12 @@ nuget NUnit
 nuget NUnit.Runners
 nuget FAKE ~> 4
 nuget SourceLink.Fake
-nuget Microsoft.CrmSdk.CoreAssemblies
+
 nuget FSharp.Core
-nuget Microsoft.CrmSdk.Deployment >= 8
-nuget Microsoft.CrmSdk.XrmTooling.CoreAssembly >= 8
-nuget Microsoft.IdentityModel.Clients.ActiveDirectory ~> 2.22.0
+nuget Microsoft.CrmSdk.CoreAssemblies >= 9
+nuget Microsoft.CrmSdk.Deployment >= 9
+nuget Microsoft.CrmSdk.XrmTooling.CoreAssembly >= 9
+nuget Microsoft.IdentityModel.Clients.ActiveDirectory ~> 3.19.8
+nuget Newtonsoft.Json ~> 10.0.3
 
 github fsharp/FAKE modules/Octokit/Octokit.fsx
