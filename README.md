@@ -1,4 +1,4 @@
-# XrmContext ![Appveyor build status](https://ci.appveyor.com/api/projects/status/github/delegateAS/XrmContext?svg=true&branch=master) [![NuGet version](https://badge.fury.io/nu/Delegate.XrmContext.svg)](https://badge.fury.io/nu/Delegate.XrmContext)
+# XrmContext ![Appveyor build status](https://ci.appveyor.com/api/projects/status/github/delegateAS/XrmContext?svg=true&branch=master) [![NuGet version](https://badge.fury.io/nu/Delegate.XrmContext.svg)](https://badge.fury.io/nu/Delegate.XrmContext) [![Join the chat at https://gitter.im/delegateas/XrmContext](https://badges.gitter.im/delegateas/XrmContext.svg)](https://gitter.im/delegateas/XrmContext?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 XrmContext generates early-bound .NET classes which represent the entity
 model of the given Dynamics CRM instance.
