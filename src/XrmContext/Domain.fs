@@ -12,6 +12,7 @@ type ConnectionType =
   | Proxy
   | OAuth
   | ClientSecret
+  | ConnectionString
 
 type XrmAuthentication = {
   url: Uri
@@ -23,6 +24,7 @@ type XrmAuthentication = {
   clientId: string option
   returnUrl: string option
   clientSecret: string option
+  connectionString: string option
 }
 
 type XcGenerationSettings = {

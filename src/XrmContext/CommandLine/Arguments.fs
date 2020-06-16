@@ -108,6 +108,11 @@ type Args private () =
       altCommands=[]
       description="Client secret for the Azure Application"
       required=false }
+
+    { command="connectionString"
+      altCommands=[]
+      description="Connection string used for authentication"
+      required=false }
   ]
 
   (** Special arguments, which make the program act differently than normal *)
