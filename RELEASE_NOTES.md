@@ -1,4 +1,7 @@
 # Release Notes
+### 1.7.5 - June 17 2020
+* Added Connection String Authentication method
+
 ### 1.7.4 - March 13 2020
 * Now ignores private entities and files are ordered by schema name (@rajyraman)
 
