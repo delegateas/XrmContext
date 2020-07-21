@@ -50,7 +50,7 @@ type XrmAlternateKey = {
 }
 
 type XrmEntity = {
-  typecode: int
+  typecode: int option
   schemaName: string
   logicalName: string
   description: string list option
