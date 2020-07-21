@@ -11,7 +11,7 @@ open System.Runtime.Serialization.Json
 
 type XrmContext private () =
 
-  static member GenerateFromCrm(url, ?method, ?username, ?password, ?domain, ?ap, ?mfaAppId, ?mfaReturnUrl, ?mfaClientSecret, ?connectionString, ?out, ?entities, ?solutions, ?ns, ?context, ?deprecatedPrefix, ?sdkVersion, ?intersections,?labelMapping, ?oneFile) = 
+  static member GenerateFromCrm(url, ?method, ?username, ?password, ?domain, ?ap, ?mfaAppId, ?mfaReturnUrl, ?mfaClientSecret, ?connectionString, ?out, ?entities, ?solutions, ?ns, ?context, ?deprecatedPrefix, ?sdkVersion, ?intersections,?labelMapping, ?oneFile, ?includeEntityTypeCode) = 
     let xrmAuth = 
       { XrmAuthentication.url = Uri(url)
         method = method
@@ -38,6 +38,7 @@ type XrmContext private () =
         intersections = intersections
         labelMapping = labelMapping
         oneFile = oneFile ?| true
+        includeEntityTypeCode = includeEntityTypeCode ?| true
        }
     
     XrmContext.GenerateFromCrm(xrmAuth, rSettings, gSettings)

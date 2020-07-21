@@ -61,6 +61,12 @@ type Args private () =
       altCommands=["of"]
       description="Set to false to generate one file per entity instead of one big file."
       required=false }
+
+    { command = "includeEntityTypeCode";
+      altCommands=["ietc"]
+      description = "Set to false to prevent generation of an Entity Type Code constant in each entity definition. Default is true."
+      required=false }
+
     ]
 
   static member connectionArgs = [
