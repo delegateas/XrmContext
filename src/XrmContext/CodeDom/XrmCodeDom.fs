@@ -346,10 +346,10 @@ let MakeEntity (entity: XrmEntity) =
     entity.opt_sets |> List.partition (fun optionSet -> optionSet.isGlobal)
 
   let relatedOptionSetEnums =
-    relatedOptionSets |> List.map MakeEntityOptionSet
+    relatedOptionSets |> List.map MakeEntityOptionSet |> List.sortBy (fun o -> o.Name)
 
   let globalOptionSetEnums =
-    globalOptionSets |> List.map MakeEntityOptionSet
+    globalOptionSets |> List.map MakeEntityOptionSet |> List.sortBy (fun o -> o.Name)
 
   cl, relatedOptionSetEnums, globalOptionSetEnums
   
