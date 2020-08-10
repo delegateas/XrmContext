@@ -1,4 +1,8 @@
 # Release Notes
+
+### 1.7.6 - August 10 2020
+* Fix an issue in `XrmExtensions.cs` when working with multi select option set (@pksorensen)
+
 ### 1.7.5 - June 17 2020
 * Added Connection String Authentication method
 
