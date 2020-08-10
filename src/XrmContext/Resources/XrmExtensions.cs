@@ -75,7 +75,7 @@ namespace DG.XrmContext
             return null;
         }
 
-        protected void SetOptionSetCollectionValue<T>(string attributeName, params T[] value)
+        protected void SetOptionSetCollectionValue<T>(string attributeName, IEnumerable<T> value)
         {
             if (value != null && value.Any())
             {
