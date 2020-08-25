@@ -75,6 +75,7 @@ let getGenerationSettings parsedArgs =
     intersections = intersections
     labelMapping = labelMapping
     oneFile = getArg parsedArgs "oneFile" parseBoolish ?| true
+    includeEntityTypeCode = getArg parsedArgs "includeEntityTypeCode" parseBoolish ?| true
   }
 
 /// Load metadata from local file and generate

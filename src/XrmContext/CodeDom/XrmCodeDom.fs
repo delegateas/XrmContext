@@ -300,7 +300,7 @@ let MakeEntity (entity: XrmEntity) =
   // Add static members
   cl.Members.AddRange(EntityConstructors()) |> ignore
   cl.Members.Add(Constant "EntityLogicalName" entity.logicalName) |> ignore
-  cl.Members.Add(Constant "EntityTypeCode" entity.typecode) |> ignore
+  if entity.typecode.IsSome then cl.Members.Add(Constant "EntityTypeCode" entity.typecode.Value) |> ignore
   cl.Members.Add(DebuggerDisplayMember entity.primaryNameAttribute) |> ignore
 
   // Static retrieve methods
@@ -346,10 +346,10 @@ let MakeEntity (entity: XrmEntity) =
     entity.opt_sets |> List.partition (fun optionSet -> optionSet.isGlobal)
 
   let relatedOptionSetEnums =
-    relatedOptionSets |> List.map MakeEntityOptionSet
+    relatedOptionSets |> List.map MakeEntityOptionSet |> List.sortBy (fun o -> o.Name)
 
   let globalOptionSetEnums =
-    globalOptionSets |> List.map MakeEntityOptionSet
+    globalOptionSets |> List.map MakeEntityOptionSet |> List.sortBy (fun o -> o.Name)
 
   cl, relatedOptionSetEnums, globalOptionSetEnums
   

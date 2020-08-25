@@ -184,7 +184,7 @@ let interpretKeyAttribute attrTypeMap (keyMetadata:EntityKeyMetadata) =
   }
 
 
-let interpretEntity entityNames entityMap entityToIntersects deprecatedPrefix labelmapping sdkVersion (metadata:EntityMetadata) =
+let interpretEntity entityNames entityMap entityToIntersects deprecatedPrefix labelmapping includeEntityTypeCode sdkVersion (metadata:EntityMetadata) =
   if (metadata.Attributes = null) then failwith "No attributes found!"
 
   // Attributes and option sets
@@ -243,7 +243,7 @@ let interpretEntity entityNames entityMap entityToIntersects deprecatedPrefix la
   let desc = getDescription (getLabelOption metadata.DisplayName) metadata.Description
 
   // Return the entity representation
-  { XrmEntity.typecode = metadata.ObjectTypeCode.GetValueOrDefault()
+  { XrmEntity.typecode = if includeEntityTypeCode then Some(metadata.ObjectTypeCode.GetValueOrDefault()) else None
     description = desc
     schemaName = metadata.SchemaName
     logicalName = metadata.LogicalName
