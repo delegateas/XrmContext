@@ -243,7 +243,7 @@ let interpretEntity entityNames entityMap entityToIntersects deprecatedPrefix la
   let desc = getDescription (getLabelOption metadata.DisplayName) metadata.Description
 
   // Return the entity representation
-  { XrmEntity.typecode = if includeEntityTypeCode then Some(metadata.ObjectTypeCode.GetValueOrDefault()) else None
+  { typecode = if includeEntityTypeCode then metadata.ObjectTypeCode.GetValueOrDefault() |> Some else None
     description = desc
     schemaName = metadata.SchemaName
     logicalName = metadata.LogicalName
