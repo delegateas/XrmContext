@@ -36,6 +36,7 @@ type XcGenerationSettings = {
   intersections: EntityIntersect[] option
   labelMapping: (string * string)[] option
   oneFile: bool
+  includeEntityTypeCode: bool
 }
 
 type XcRetrievalSettings = {
