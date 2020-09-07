@@ -1,4 +1,7 @@
 # Release Notes
+### 1.8.0 - September 07 2020
+* Added option for ignore Object Type Codes
+* Ordered output from option sets
 
 ### 1.7.6 - August 10 2020
 * Fix an issue in `XrmExtensions.cs` when working with multi select option set (@pksorensen)
