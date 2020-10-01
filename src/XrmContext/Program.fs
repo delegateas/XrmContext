@@ -1,8 +1,5 @@
-﻿
-open System
-
+﻿open System
 open Microsoft.Xrm.Sdk.Client
-
 open DG.XrmContext
 open Utility
 open CommandLineHelper

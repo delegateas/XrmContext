@@ -14,7 +14,7 @@ open XrmCodeDom
 (** Resource helpers *)
 let getResourceLines resName =
   let assembly = Assembly.GetExecutingAssembly()
-  use res = assembly.GetManifestResourceStream(resName)
+  use res = assembly.GetManifestResourceStream("XrmContext.Resources." + resName)
   use sr = new StreamReader(res)
 
   seq {

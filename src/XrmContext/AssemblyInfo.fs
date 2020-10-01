@@ -2,8 +2,8 @@
 namespace System
 open System.Reflection
 
-[<assembly: AssemblyTitleAttribute("XrmContext")>]
-[<assembly: AssemblyProductAttribute("XrmContext")>]
+[<assembly: AssemblyTitleAttribute("src/XrmContext")>]
+[<assembly: AssemblyProductAttribute("src/XrmContext")>]
 [<assembly: AssemblyDescriptionAttribute("Tool to generate early-bound .NET classes and enumerations for MS Dynamics 365/CRM server-side coding.")>]
 [<assembly: AssemblyCompanyAttribute("Delegate A/S")>]
 [<assembly: AssemblyCopyrightAttribute("Copyright (c) Delegate A/S 2017")>]
@@ -12,8 +12,8 @@ open System.Reflection
 do ()
 
 module internal AssemblyVersionInformation =
-    let [<Literal>] AssemblyTitle = "XrmContext"
-    let [<Literal>] AssemblyProduct = "XrmContext"
+    let [<Literal>] AssemblyTitle = "src/XrmContext"
+    let [<Literal>] AssemblyProduct = "src/XrmContext"
     let [<Literal>] AssemblyDescription = "Tool to generate early-bound .NET classes and enumerations for MS Dynamics 365/CRM server-side coding."
     let [<Literal>] AssemblyCompany = "Delegate A/S"
     let [<Literal>] AssemblyCopyright = "Copyright (c) Delegate A/S 2017"

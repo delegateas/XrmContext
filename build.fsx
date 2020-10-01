@@ -3,17 +3,14 @@
 // --------------------------------------------------------------------------------------
 
 #r @"packages/FAKE/tools/FakeLib.dll"
-open Fake
-open Fake.Git
-open Fake.AssemblyInfoFile
-open Fake.ReleaseNotesHelper
+open Fake.Core
+open Fake.Core.TargetOperators
+open Fake.DotNet
+open Fake.DotNet.NuGet.NuGet
+open Fake.IO
+open Fake.IO.Globbing.Operators
 open System
 open System.IO
-//#if MONO
-//#else
-//#load "packages/SourceLink.Fake/tools/Fake.fsx"
-//open SourceLink
-//#endif
 
 
 // --------------------------------------------------------------------------------------
@@ -28,21 +25,11 @@ open System.IO
 
 // The name of the project
 // (used by attributes in AssemblyInfo, name of a NuGet package and directory in 'src')
-let project = "XrmContext"
+let project = "src/XrmContext"
 
 // Short summary of the project
 // (used as description in AssemblyInfo and as a short summary for NuGet package)
 let summary = "Tool to generate early-bound .NET classes and enumerations for MS Dynamics 365/CRM server-side coding."
-
-// Longer description of the project
-// (used as a description for NuGet package; line breaks are automatically cleaned up)
-let description = "Tool to generate early-bound .NET classes and enumerations for MS Dynamics 365/CRM server-side coding."
-
-// List of author names (for NuGet package)
-let authors = [ "Delegate A/S"; "Martin Kasban Tange" ]
-
-// Tags for your project (for NuGet package)
-let tags = "microsoft crm xrm dynamics xrmcontext crmsvcutil c# csharp optionset enum sdk fsharp f# delegate D365 Dynamics365 365"
 
 let company = "Delegate A/S"
 let copyright = @"Copyright (c) Delegate A/S 2017"
@@ -50,28 +37,14 @@ let copyright = @"Copyright (c) Delegate A/S 2017"
 // File system information 
 let solutionFile  = "XrmContext.sln"
 
-
-// Git configuration (used for publishing documentation in gh-pages branch)
-// The profile where the project is posted
-let gitOwner = "delegateas" 
-let gitHome = "https://github.com/" + gitOwner
-
-// The name of the project on GitHub
-let gitName = "Delegate.XrmContext"
-
-// The profile where the docs project is posted 
-let docsGitHome = "https://github.com/delegateas"
-// The name of the project on GitHub
-let docsGitName = "delegateas.github.io"
-// The name of the subfolder
-let fullProjectName = "Delegate.XrmContext"
-
 // --------------------------------------------------------------------------------------
 // END TODO: The rest of the file includes standard build steps
 // --------------------------------------------------------------------------------------
 
+Environment.CurrentDirectory <- __SOURCE_DIRECTORY__
+let (++) x y = Path.Combine(x,y)
 // Read additional information from the release notes document
-let release = LoadReleaseNotes "RELEASE_NOTES.md"
+let release = ReleaseNotes.parse (File.ReadAllLines "RELEASE_NOTES.md")
 
 // Helper active pattern for project types
 let (|Fsproj|Csproj|Vbproj|) (projFileName:string) = 
@@ -82,116 +55,116 @@ let (|Fsproj|Csproj|Vbproj|) (projFileName:string) =
     | _                           -> failwith (sprintf "Project file %s not supported. Unknown project type." projFileName)
 
 // Generate assembly info files with the right version & up-to-date information
-Target "AssemblyInfo" (fun _ ->
-    let getAssemblyInfoAttributes projectName =
-        [ Attribute.Title (projectName)
-          Attribute.Product project
-          Attribute.Description summary
-          Attribute.Company company
-          Attribute.Copyright copyright
-          Attribute.Version release.AssemblyVersion
-          Attribute.FileVersion release.AssemblyVersion ]
-
-    let getProjectDetails projectPath =
-        let projectName = System.IO.Path.GetFileNameWithoutExtension(projectPath)
-        ( projectPath, 
-          projectName,
-          System.IO.Path.GetDirectoryName(projectPath),
-          (getAssemblyInfoAttributes projectName)
-        )
-
-    !! "src/**/*.??proj"
-    |> Seq.map getProjectDetails
-    |> Seq.iter (fun (projFileName, projectName, folderName, attributes) ->
-        match projFileName with
-        | Fsproj -> CreateFSharpAssemblyInfo (folderName @@ "AssemblyInfo.fs") attributes
-        | Csproj -> CreateCSharpAssemblyInfo ((folderName @@ "Properties") @@ "AssemblyInfo.cs") attributes
-        | Vbproj -> CreateVisualBasicAssemblyInfo ((folderName @@ "My Project") @@ "AssemblyInfo.vb") attributes
-        )
+Target.create "AssemblyInfo" (fun _ ->
+  let fileName = project + "/AssemblyInfo.fs"
+  AssemblyInfoFile.createFSharp fileName
+    [ 
+      AssemblyInfo.Title project
+      AssemblyInfo.Product project
+      AssemblyInfo.Description summary
+      AssemblyInfo.Company company
+      AssemblyInfo.Copyright copyright
+      AssemblyInfo.Version release.AssemblyVersion
+      AssemblyInfo.FileVersion release.AssemblyVersion
+    ]
 )
 
-// Copies binaries from default VS location to expected bin folder
-// But keeps a subdirectory structure for each project in the 
-// src folder to support multiple project outputs
-Target "CopyBinaries" (fun _ ->
-    !! "src/**/*.??proj"
-    |>  Seq.map (fun f -> ((System.IO.Path.GetDirectoryName f) @@ "bin/Release", "bin" @@ (System.IO.Path.GetFileNameWithoutExtension f)))
-    |>  Seq.iter (fun (fromDir, toDir) -> CopyDir toDir fromDir (fun _ -> true))
-)
+// --------------------------------------------------------------------------------------
+// Setting up VS for building with FAKE
+let commonBuild solution =
+  let packArgs (defaults:MSBuild.CliArguments) = 
+    { defaults with
+        NoWarn = Some(["NU5100"])
+        Properties = 
+        [
+          "Version", release.NugetVersion
+          "ReleaseNotes", String.Join(Environment.NewLine, release.Notes)
+        ] 
+    }
+  solution
+  |> DotNet.build (fun buildOp -> 
+    { buildOp with 
+          MSBuildParams = packArgs buildOp.MSBuildParams
+    })
+
+
+let currentTimeFileFormat () = DateTime.Now.ToString("yyyy-dd-M--HH-mm-ss")
 
 // --------------------------------------------------------------------------------------
 // Clean build results
 
-Target "Clean" (fun _ ->
-    CleanDirs ["bin"; "temp"]
+Target.create "Clean" (fun _ ->
+    Shell.cleanDirs ["bin"; "temp"; "src" ++ "XrmContext" ++ "bin"]
 )
 
 // --------------------------------------------------------------------------------------
 // Build library & test project
-
-Target "Build" (fun _ ->
+Target.create "Build" (fun _ ->
     !! solutionFile
-    |> MSBuildRelease "" "Rebuild"
-    |> ignore
+    |> Seq.head
+    |> commonBuild
 )
 
 
 // --------------------------------------------------------------------------------------
 // Build a NuGet package
-
-Target "NuGet" (fun _ ->
-  NuGetHelper.NuGet (fun p -> 
-    { p with
-        Title = project
-        Authors = authors
-        Project = fullProjectName
-        Summary = summary
-        Description = description
-        Copyright = copyright
-        Tags = tags
-        NoDefaultExcludes = true
-        AccessKey = getBuildParamOrDefault "delegateas-nugetkey" ""
-        Dependencies = [ ]
-        References = [ ] 
-        OutputPath = "bin"
-        Version = release.NugetVersion
-        ReleaseNotes = toLines release.Notes }) 
-    (@"nuget/" + fullProjectName + ".nuspec"))
+Target.create "NuGet" (fun _ ->
+  let packArgs (defaults:MSBuild.CliArguments) = 
+    { defaults with
+        NoWarn = Some(["NU5100"])
+        Properties = 
+        [
+          "Version", release.NugetVersion
+          "ReleaseNotes", String.Join(Environment.NewLine, release.Notes)
+        ] 
+    }
+  DotNet.pack (fun def -> 
+    { def with
+        NoBuild = true
+        MSBuildParams = packArgs def.MSBuildParams
+        OutputPath = Some("bin")
+        
+    }) project)
               
 
-Target "PublishNuget" (fun _ ->
-    Paket.Push(fun p -> 
-        { p with
-            ApiKey = getBuildParamOrDefault "delegateas-nugetkey" ""
-            WorkingDir = "bin" })
-)
+Target.create "PublishNuGet" (fun _ -> 
+  let setNugetPushParams (defaults:NuGetPushParams) =
+    { defaults with
+        ApiKey = Fake.Core.Environment.environVarOrDefault "delegateas-nugetkey" "" |> Some
+        Source = Some "https://api.nuget.org/v3/index.json"
+    }
+  let setParams (defaults:DotNet.NuGetPushOptions) =
+      { defaults with
+          PushParams = setNugetPushParams defaults.PushParams
+       }
+  let nugetPacakge = !!("bin/"+project+".*.nupkg") |> Seq.head
+  DotNet.nugetPush setParams nugetPacakge)
 
 
 // --------------------------------------------------------------------------------------
 // Generate the documentation
-Target "CleanDocs" DoNothing
-Target "GenerateReferenceDocs" DoNothing
-Target "GenerateHelp" DoNothing
-Target "GenerateHelpDebug" DoNothing
-Target "KeepRunning" DoNothing
-Target "GenerateDocs" DoNothing
-Target "AddLangDocs" DoNothing
+Target.create "CleanDocs" ignore
+Target.create "GenerateReferenceDocs" ignore
+Target.create "GenerateHelp" ignore
+Target.create "GenerateHelpDebug" ignore
+Target.create "KeepRunning" ignore
+Target.create "GenerateDocs" ignore
+Target.create "AddLangDocs" ignore
 // --------------------------------------------------------------------------------------
 // Release Scripts
 
-Target "ReleaseDocs" DoNothing
-Target "Release" DoNothing
-Target "BuildPackage" DoNothing
+Target.create "ReleaseDocs" ignore
+Target.create "Release" ignore
+Target.create "BuildPackage" ignore
 
 // --------------------------------------------------------------------------------------
 // Run all targets by default. Invoke 'build <Target>' to override
 
-Target "All" DoNothing
+Target.create "All" ignore
 
 "Clean"
   ==> "AssemblyInfo"
   ==> "Build"
-  ==> "CopyBinaries"
   ==> "NuGet"
   ==> "BuildPackage"
   ==> "All"
@@ -199,4 +172,4 @@ Target "All" DoNothing
 "BuildPackage"
   ==> "PublishNuget"
 
-RunTargetOrDefault "Build"
+Target.runOrDefault "Build"
