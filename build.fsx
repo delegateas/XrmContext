@@ -13,6 +13,8 @@ open System
 open System.IO
 
 
+Environment.CurrentDirectory <- __SOURCE_DIRECTORY__
+let (++) x y = Path.Combine(x,y)
 // --------------------------------------------------------------------------------------
 // START TODO: Provide project-specific details below
 // --------------------------------------------------------------------------------------
@@ -25,7 +27,8 @@ open System.IO
 
 // The name of the project
 // (used by attributes in AssemblyInfo, name of a NuGet package and directory in 'src')
-let project = "src/XrmContext"
+let project = "XrmContext"
+let projectPath = "src" ++ project
 
 // Short summary of the project
 // (used as description in AssemblyInfo and as a short summary for NuGet package)
@@ -41,8 +44,6 @@ let solutionFile  = "XrmContext.sln"
 // END TODO: The rest of the file includes standard build steps
 // --------------------------------------------------------------------------------------
 
-Environment.CurrentDirectory <- __SOURCE_DIRECTORY__
-let (++) x y = Path.Combine(x,y)
 // Read additional information from the release notes document
 let release = ReleaseNotes.parse (File.ReadAllLines "RELEASE_NOTES.md")
 
@@ -56,7 +57,7 @@ let (|Fsproj|Csproj|Vbproj|) (projFileName:string) =
 
 // Generate assembly info files with the right version & up-to-date information
 Target.create "AssemblyInfo" (fun _ ->
-  let fileName = project + "/AssemblyInfo.fs"
+  let fileName = projectPath + "/AssemblyInfo.fs"
   AssemblyInfoFile.createFSharp fileName
     [ 
       AssemblyInfo.Title project
@@ -124,7 +125,7 @@ Target.create "NuGet" (fun _ ->
         MSBuildParams = packArgs def.MSBuildParams
         OutputPath = Some("bin")
         
-    }) project)
+    }) projectPath)
               
 
 Target.create "PublishNuGet" (fun _ -> 
