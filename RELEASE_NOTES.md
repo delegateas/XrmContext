@@ -1,4 +1,7 @@
 # Release Notes
+### 1.8.1 - December 02 2020
+* Fixed error when multioptionset had no options
+
 ### 1.8.0 - September 07 2020
 * Added option for ignore Object Type Codes
 * Ordered output from option sets
