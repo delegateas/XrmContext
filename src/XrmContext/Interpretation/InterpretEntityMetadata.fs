@@ -54,9 +54,9 @@ let getDescription displayName (descriptionLabel:Label) =
   |> List.choose id |> fun l -> if List.isEmpty l then None else Some l
 
 
-let interpretVirtualAttribute (a:AttributeMetadata) (options:XrmOptionSet option) =
-  match a with
-  | :? MultiSelectPicklistAttributeMetadata -> Some (OptionSetCollection options.Value.displayName)
+let interpretVirtualAttribute (a:AttributeMetadata) (options:XrmOptionSet option) hasOptions =
+  match a, hasOptions with
+  | :? MultiSelectPicklistAttributeMetadata, true -> Some (OptionSetCollection options.Value.displayName)
   | _ -> None
 
 let interpretNormalAttribute aType (options:XrmOptionSet option) hasOptions  =
@@ -87,7 +87,7 @@ let interpretAttribute deprecatedPrefix labelmapping entityNames (e:EntityMetada
       
       let vTypeOption = 
         match aType with
-        | AttributeTypeCode.Virtual -> interpretVirtualAttribute a options
+        | AttributeTypeCode.Virtual -> interpretVirtualAttribute a options hasOptions
         | _ -> interpretNormalAttribute aType options hasOptions
 
       match vTypeOption with
