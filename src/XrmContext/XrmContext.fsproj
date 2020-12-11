@@ -5,15 +5,16 @@
   </PropertyGroup>
   <PropertyGroup>
     <PackageProjectUrl>http://delegateas.github.io/</PackageProjectUrl>
+    <PackageTags>dynamics-365 dynamics-crm early-bound developer-tools developer-experience</PackageTags>
+    <PackageIcon>delegate_xrmcontext_logo.png</PackageIcon>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageId>Delegate.XrmContext</PackageId>
     <Authors>Delegate A/S</Authors>
     <Company>Delegate</Company>
     <Description>Tool to generate early-bound .NET classes and enumerations for MS Dynamics 365/CRM server-side coding.</Description>
-    <PackageTags>dynamics-365 dynamics-crm early-bound developer-tools developer-experience</PackageTags>
     <Copyright>Copyright (c) Delegate A/S 2017</Copyright>
-    <PackageIcon>delegate_xrmcontext_logo.png</PackageIcon>
     <RepositoryUrl>https://github.com/delegateas/XrmContext</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <OutputType>Exe</OutputType>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
