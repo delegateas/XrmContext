@@ -52,7 +52,10 @@ let MakeEntityAttribute usedProps (attribute:XrmAttribute) =
   let updatedUsedProps = usedProps.Add validName
   let var = Variable validName returnType
   var.CustomAttributes.Add(EntityAttributeCustomAttribute attribute.logicalName) |> ignore
-    
+  if Option.isSome attribute.displayName then
+    var.CustomAttributes.Add(EntityAttributeDisplayNameAttribute (Option.get attribute.displayName)) |> ignore
+  if Option.isSome attribute.maxLength then
+    var.CustomAttributes.Add(EntityAttributeMaxLengthAttribute (Option.get attribute.maxLength)) |> ignore
 
   // Comment summary
   match attribute.description with
@@ -396,6 +399,8 @@ let CreateStandardCodeUnit ns =
   globalNs.Imports.Add(CodeNamespaceImport("System.Diagnostics"))
   globalNs.Imports.Add(CodeNamespaceImport("System.Collections.Generic"))
   globalNs.Imports.Add(CodeNamespaceImport("System.Runtime.Serialization"))
+  globalNs.Imports.Add(CodeNamespaceImport("System.ComponentModel"))
+  globalNs.Imports.Add(CodeNamespaceImport("System.ComponentModel.DataAnnotations"))
   globalNs.Imports.Add(CodeNamespaceImport("Microsoft.Xrm.Sdk"))
   globalNs.Imports.Add(CodeNamespaceImport("Microsoft.Xrm.Sdk.Client"))
   globalNs.Imports.Add(CodeNamespaceImport("DG.XrmContext"))

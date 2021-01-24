@@ -97,6 +97,11 @@ let interpretAttribute deprecatedPrefix labelmapping entityNames (e:EntityMetada
         let displayName = getLabelOption a.DisplayName
         let desc = getDescription displayName a.Description
 
+        let maxLength =
+          match a with
+          | :? StringAttributeMetadata as sam -> Option.ofNullable sam.MaxLength
+          | _ -> None
+
         let isDeprecated = 
           match displayName, deprecatedPrefix with
           | Some x, Some prefix -> x.StartsWith(prefix)
@@ -105,7 +110,9 @@ let interpretAttribute deprecatedPrefix labelmapping entityNames (e:EntityMetada
         options, Some {
         XrmAttribute.schemaName = a.SchemaName
         logicalName = a.LogicalName
+        displayName = displayName
         varType = vType
+        maxLength = maxLength
         canSet = canSet
         canGet = a.IsValidForRead.GetValueOrDefault() || canSet
         description = desc

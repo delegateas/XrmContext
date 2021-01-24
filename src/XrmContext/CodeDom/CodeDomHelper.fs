@@ -14,6 +14,7 @@ open Microsoft.Xrm.Sdk.Client
   
 open Utility
 open IntermediateRepresentation
+open System.ComponentModel
 
 let baseReservedProperties =
   typeof<Entity>.GetProperties() |> Array.map (fun x -> x.Name) |> Set.ofArray
@@ -161,6 +162,14 @@ let EntityCustomAttribute logicalName =
 let EntityAttributeCustomAttribute logicalName = 
   CodeAttributeDeclaration(AttributeName typeof<AttributeLogicalNameAttribute>, 
     CodeAttributeArgument(StringLiteral(logicalName)))
+
+let EntityAttributeDisplayNameAttribute displayName =
+  CodeAttributeDeclaration(AttributeName typeof<DisplayNameAttribute>,
+    CodeAttributeArgument(StringLiteral(displayName)))
+    
+let EntityAttributeMaxLengthAttribute maxLength =
+  CodeAttributeDeclaration("MaxLength",
+    CodeAttributeArgument(StringLiteral(maxLength)))
 
 let RelationshipCustomAttribute schemaName entityRole = 
   let attr = 
