@@ -51,11 +51,13 @@ let MakeEntityAttribute usedProps (attribute:XrmAttribute) =
   let validName = getValidName usedProps name
   let updatedUsedProps = usedProps.Add validName
   let var = Variable validName returnType
-  var.CustomAttributes.Add(EntityAttributeCustomAttribute attribute.logicalName) |> ignore
+  var.CustomAttributes.Add(EntityAttributeLogicalNameAttribute attribute.logicalName) |> ignore
   if Option.isSome attribute.displayName then
     var.CustomAttributes.Add(EntityAttributeDisplayNameAttribute (Option.get attribute.displayName)) |> ignore
   if Option.isSome attribute.maxLength then
     var.CustomAttributes.Add(EntityAttributeMaxLengthAttribute (Option.get attribute.maxLength)) |> ignore
+  if Option.isSome attribute.minValue && Option.isSome attribute.minValue then
+    var.CustomAttributes.Add(EntityAttributeCustomAttributeTwoArgs "Range" (Option.get attribute.minValue, Option.get attribute.maxValue)) |> ignore
 
   // Comment summary
   match attribute.description with
@@ -125,7 +127,7 @@ let MakeEntityRelationship (usedProps:Set<string>) (relationship:XrmRelationship
 
 
   if relationship.referencing then
-    var.CustomAttributes.Add(EntityAttributeCustomAttribute relationship.attributeName) |> ignore
+    var.CustomAttributes.Add(EntityAttributeLogicalNameAttribute relationship.attributeName) |> ignore
 
   if relationship.useEntityRole then
     var.CustomAttributes.Add(RelationshipCustomAttribute relationship.schemaName (Some entityRole)) |> ignore
@@ -220,7 +222,7 @@ let MakeEntityIdAttributes (attr: XrmAttribute) =
     
   let baseId = Variable "Id" (guidType())
   baseId.Attributes <- MemberAttributes.Public ||| MemberAttributes.Override
-  baseId.CustomAttributes.Add(EntityAttributeCustomAttribute attr.logicalName) |> ignore
+  baseId.CustomAttributes.Add(EntityAttributeLogicalNameAttribute attr.logicalName) |> ignore
 
   baseId.HasGet <- true
   baseId.GetStatements.Add(Return(BaseProp "Id")) |> ignore

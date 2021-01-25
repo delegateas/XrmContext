@@ -76,47 +76,54 @@ let interpretAttribute deprecatedPrefix labelmapping entityNames (e:EntityMetada
   if not canGet ||
     IsWrongYomi a.SchemaName ||
     a.AttributeOf <> null then None, None
-    else
+  else
 
-      let options, hasOptions =
+    let options, hasOptions =
+      match a with
+      | :? EnumAttributeMetadata as eam -> 
+        let options = interpretOptionSet entityNames (Some e) eam labelmapping
+        options, options.IsSome && options.Value.options.Length > 0
+      | _ -> None, false
+
+    let vTypeOption = 
+      match aType with
+      | AttributeTypeCode.Virtual -> interpretVirtualAttribute a options hasOptions
+      | _ -> interpretNormalAttribute aType options hasOptions
+
+    match vTypeOption with
+    | None -> None, None
+    | Some vType ->
+
+      let displayName = getLabelOption a.DisplayName
+      let desc = getDescription displayName a.Description
+
+      let maxLength =
         match a with
-        | :? EnumAttributeMetadata as eam -> 
-          let options = interpretOptionSet entityNames (Some e) eam labelmapping
-          options, options.IsSome && options.Value.options.Length > 0
-        | _ -> None, false
-      
-      let vTypeOption = 
-        match aType with
-        | AttributeTypeCode.Virtual -> interpretVirtualAttribute a options hasOptions
-        | _ -> interpretNormalAttribute aType options hasOptions
+        | :? StringAttributeMetadata as sam -> Option.ofNullable sam.MaxLength
+        | _ -> None
 
-      match vTypeOption with
-      | None -> None, None
-      | Some vType ->
+      let minValue, maxValue =
+        match a with
+        | :? IntegerAttributeMetadata as iam -> Option.ofNullable iam.MinValue, Option.ofNullable iam.MaxValue
+        | _ -> None, None
 
-        let displayName = getLabelOption a.DisplayName
-        let desc = getDescription displayName a.Description
+      let isDeprecated = 
+        match displayName, deprecatedPrefix with
+        | Some x, Some prefix -> x.StartsWith(prefix)
+        | _ -> false
 
-        let maxLength =
-          match a with
-          | :? StringAttributeMetadata as sam -> Option.ofNullable sam.MaxLength
-          | _ -> None
-
-        let isDeprecated = 
-          match displayName, deprecatedPrefix with
-          | Some x, Some prefix -> x.StartsWith(prefix)
-          | _ -> false
-
-        options, Some {
-        XrmAttribute.schemaName = a.SchemaName
-        logicalName = a.LogicalName
-        displayName = displayName
-        varType = vType
-        maxLength = maxLength
-        canSet = canSet
-        canGet = a.IsValidForRead.GetValueOrDefault() || canSet
-        description = desc
-        isDeprecated = isDeprecated }    
+      options, Some {
+      XrmAttribute.schemaName = a.SchemaName
+      logicalName = a.LogicalName
+      displayName = displayName
+      varType = vType
+      maxLength = maxLength
+      minValue = minValue
+      maxValue = maxValue
+      canSet = canSet
+      canGet = a.IsValidForRead.GetValueOrDefault() || canSet
+      description = desc
+      isDeprecated = isDeprecated }
 
 
 let interpretRelationship (entityMap:Map<string,EntityMetadata>) referencing (rel:OneToManyRelationshipMetadata) =

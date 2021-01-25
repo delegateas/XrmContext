@@ -30,6 +30,8 @@ type XrmAttribute = {
   displayName: string option
   varType: XrmAttributeType
   maxLength: int option
+  minValue: int option
+  maxValue: int option
   canSet: bool
   canGet: bool
   description: string list option
