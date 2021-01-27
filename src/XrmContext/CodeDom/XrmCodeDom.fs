@@ -15,6 +15,7 @@ open Microsoft.Xrm.Sdk.Client
 open Utility
 open IntermediateRepresentation
 open CodeDomHelper
+open System.ComponentModel
 
 let getVarDefFromAttribute attribute =
   match attribute.varType with
@@ -52,12 +53,13 @@ let MakeEntityAttribute usedProps (attribute:XrmAttribute) =
   let updatedUsedProps = usedProps.Add validName
   let var = Variable validName returnType
   var.CustomAttributes.Add(EntityAttributeLogicalNameAttribute attribute.logicalName) |> ignore
-  if Option.isSome attribute.displayName then
-    var.CustomAttributes.Add(EntityAttributeDisplayNameAttribute (Option.get attribute.displayName)) |> ignore
-  if Option.isSome attribute.maxLength then
-    var.CustomAttributes.Add(EntityAttributeMaxLengthAttribute (Option.get attribute.maxLength)) |> ignore
-  if Option.isSome attribute.minValue && Option.isSome attribute.minValue then
-    var.CustomAttributes.Add(EntityAttributeCustomAttributeTwoArgs "Range" (Option.get attribute.minValue, Option.get attribute.maxValue)) |> ignore
+  if attribute.displayName.IsSome then
+    var.CustomAttributes.Add(CodeDomHelper.EntityAttributeCustomAttribute(AttributeName typeof<DisplayNameAttribute>, attribute.displayName.Value)) |> ignore
+  if attribute.maxLength.IsSome then
+    var.CustomAttributes.Add(CodeDomHelper.EntityAttributeCustomAttribute("MaxLength", attribute.maxLength.Value)) |> ignore
+  if attribute.minValue.IsSome && attribute.minValue.IsSome then
+    var.CustomAttributes.Add(
+      CodeDomHelper.EntityAttributeCustomAttribute("Range", Option.get attribute.minValue, Option.get attribute.maxValue)) |> ignore
 
   // Comment summary
   match attribute.description with

@@ -155,30 +155,18 @@ let EntityConstructors () =
 
 
 
+type CodeDomHelper private () =
+  static member EntityAttributeCustomAttribute(attrName: string, [<ParamArray>] args: Object[]) =
+    CodeAttributeDeclaration(attrName,
+      [| for arg in args do yield CodeAttributeArgument(CodePrimitiveExpression(arg)) |])
+
 let EntityCustomAttribute logicalName = 
   CodeAttributeDeclaration(AttributeName typeof<EntityLogicalNameAttribute>, 
     CodeAttributeArgument(StringLiteral(logicalName)))
 
-let EntityAttributeCustomAttribute (attrName: string) value =
-  CodeAttributeDeclaration(attrName,
-    CodeAttributeArgument(StringLiteral(value)))
-
-let EntityAttributeCustomAttributeTwoArgs (attrName: string) args =
-  CodeAttributeDeclaration(attrName,
-    CodeAttributeArgument(StringLiteral(fst args)),
-    CodeAttributeArgument(StringLiteral(snd args)))
-
 let EntityAttributeLogicalNameAttribute logicalName = 
   CodeAttributeDeclaration(AttributeName typeof<AttributeLogicalNameAttribute>, 
     CodeAttributeArgument(StringLiteral(logicalName)))
-
-let EntityAttributeDisplayNameAttribute displayName =
-  CodeAttributeDeclaration(AttributeName typeof<DisplayNameAttribute>,
-    CodeAttributeArgument(StringLiteral(displayName)))
-    
-let EntityAttributeMaxLengthAttribute maxLength =
-  CodeAttributeDeclaration("MaxLength",
-    CodeAttributeArgument(StringLiteral(maxLength)))
 
 let RelationshipCustomAttribute schemaName entityRole = 
   let attr = 
