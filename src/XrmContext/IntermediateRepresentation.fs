@@ -10,7 +10,6 @@ type XrmOption = {
   value: int
   displayName: string
   index: int
-  externalValue: string
   description: string
   color: string
 }

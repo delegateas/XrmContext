@@ -269,7 +269,6 @@ let MakeEntityOptionSet (optSet: XrmOptionSet) =
       CodeAttributeDeclaration("OptionSetMetadata",
         [| CodeAttributeArgument(CodePrimitiveExpression(option.displayName))
            CodeAttributeArgument("Index", CodePrimitiveExpression(option.index))
-           if option.externalValue <> null then CodeAttributeArgument("ExternalValue", CodePrimitiveExpression(option.externalValue))
            if option.description <> null then CodeAttributeArgument("Description", CodePrimitiveExpression(option.description))
            if option.color <> null then CodeAttributeArgument("Color", CodePrimitiveExpression(option.color)) |])) |> ignore
     enum.Members.Add(field) |> ignore)

@@ -51,7 +51,6 @@ let getOptionsFromOptionSetMetadata (osm:OptionSetMetadata) labelMapping =
       { label = getLabelString opt.Label labelMapping
         value = opt.Value.GetValueOrDefault()
         displayName = getUnsanitizedLabelString opt.Label labelMapping
-        externalValue = opt.ExternalValue
         index = idx
         description = description
         color = opt.Color })
@@ -99,28 +98,5 @@ let interpretOptionSet entityNames (entity:EntityMetadata option) (enumAttribute
         osType = getOptionSetType optionSet
         options = options 
         isGlobal = optionSet.IsGlobal.Value} |> Some
-      
-  | :? BooleanOptionSetMetadata as bosm ->
-    let options =
-      [|  { label = getLabelString bosm.TrueOption.Label labelmappings
-            value = 1
-            displayName = getUnsanitizedLabelString bosm.DisplayName labelmappings
-            externalValue = null
-            index = 0
-            description = getLabelString bosm.Description labelmappings
-            color = null }
-          { label = getLabelString bosm.FalseOption.Label labelmappings
-            value = 0
-            displayName = getUnsanitizedLabelString bosm.DisplayName labelmappings
-            externalValue = null
-            index = 1
-            description = getLabelString bosm.Description labelmappings
-            color = null } |]
-
-    { logicalName = optionSet.Name
-      displayName = displayName
-      osType = XrmOptionSetType.Boolean
-      options = options 
-      isGlobal = optionSet.IsGlobal.Value} |> Some
 
   | _ -> None
