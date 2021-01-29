@@ -53,13 +53,18 @@ let MakeEntityAttribute usedProps (attribute:XrmAttribute) =
   let updatedUsedProps = usedProps.Add validName
   let var = Variable validName returnType
   var.CustomAttributes.Add(EntityAttributeLogicalNameAttribute attribute.logicalName) |> ignore
+
   if attribute.displayName.IsSome then
-    var.CustomAttributes.Add(CodeDomHelper.EntityAttributeCustomAttribute(AttributeName typeof<DisplayNameAttribute>, attribute.displayName.Value)) |> ignore
+    var.CustomAttributes.Add(
+      EntityAttributeCustomAttribute (AttributeName typeof<DisplayNameAttribute>) [|attribute.displayName.Value|]) |> ignore
+  
   if attribute.maxLength.IsSome then
-    var.CustomAttributes.Add(CodeDomHelper.EntityAttributeCustomAttribute("MaxLength", attribute.maxLength.Value)) |> ignore
+    var.CustomAttributes.Add(
+      EntityAttributeCustomAttribute "MaxLength" [|attribute.maxLength.Value|]) |> ignore
+
   if attribute.minValue.IsSome && attribute.minValue.IsSome then
     var.CustomAttributes.Add(
-      CodeDomHelper.EntityAttributeCustomAttribute("Range", Option.get attribute.minValue, Option.get attribute.maxValue)) |> ignore
+      EntityAttributeCustomAttribute "Range" [|Option.get attribute.minValue; Option.get attribute.maxValue|]) |> ignore
 
   // Comment summary
   match attribute.description with

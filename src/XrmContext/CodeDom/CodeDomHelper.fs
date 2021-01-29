@@ -153,12 +153,9 @@ let EntityConstructors () =
     
   [|con1 :> CodeTypeMember; con2 :> CodeTypeMember|]
 
-
-
-type CodeDomHelper private () =
-  static member EntityAttributeCustomAttribute(attrName: string, [<ParamArray>] args: obj[]) =
-    CodeAttributeDeclaration(attrName,
-      [| for arg in args do yield CodeAttributeArgument(CodePrimitiveExpression(arg)) |])
+let EntityAttributeCustomAttribute (attrName: string) ([<ParamArray>] args: obj[]) = 
+  CodeAttributeDeclaration(attrName,
+    args |> Array.map (fun arg -> CodeAttributeArgument(CodePrimitiveExpression(arg))))
 
 let EntityCustomAttribute logicalName = 
   CodeAttributeDeclaration(AttributeName typeof<EntityLogicalNameAttribute>, 
