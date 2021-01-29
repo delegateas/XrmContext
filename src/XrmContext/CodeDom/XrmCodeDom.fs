@@ -260,6 +260,13 @@ let MakeEntityOptionSet (optSet: XrmOptionSet) =
     let field = Field option.label option.value
     field.CustomAttributes.Add(
       CodeAttributeDeclaration(AttributeName typeof<EnumMemberAttribute>)) |> ignore
+    field.CustomAttributes.Add(
+      CodeAttributeDeclaration("OptionSetMetadata",
+        [| CodeAttributeArgument(CodePrimitiveExpression(option.displayName))
+           CodeAttributeArgument("Index", CodePrimitiveExpression(option.index))
+           if option.externalValue <> null then CodeAttributeArgument("ExternalValue", CodePrimitiveExpression(option.externalValue))
+           if option.description <> null then CodeAttributeArgument("Description", CodePrimitiveExpression(option.description))
+           if option.color <> null then CodeAttributeArgument("Color", CodePrimitiveExpression(option.color)) |])) |> ignore
     enum.Members.Add(field) |> ignore)
 
   enum
@@ -494,6 +501,7 @@ let MakeEnumsCodeUnit ns (enumCodeTypeDeclerations: CodeTypeDeclaration list) =
   let globalNs = CodeNamespace()
   globalNs.Imports.Add(CodeNamespaceImport("System.Runtime.Serialization"))
   globalNs.Imports.Add(CodeNamespaceImport("Microsoft.Xrm.Sdk.Client"))
+  globalNs.Imports.Add(CodeNamespaceImport("DG.XrmContext"))
   cu.Namespaces.Add(globalNs) |> ignore
 
   cu.AssemblyCustomAttributes.Add(

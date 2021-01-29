@@ -6,8 +6,13 @@ open System
 type XrmOptionSetType = Picklist | State | Status | Boolean
 
 type XrmOption = {
-  label: string 
+  label: string
   value: int
+  displayName: string
+  index: int
+  externalValue: string
+  description: string
+  color: string
 }
 
 type XrmOptionSet = {

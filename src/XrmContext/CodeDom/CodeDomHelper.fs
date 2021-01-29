@@ -156,7 +156,7 @@ let EntityConstructors () =
 
 
 type CodeDomHelper private () =
-  static member EntityAttributeCustomAttribute(attrName: string, [<ParamArray>] args: Object[]) =
+  static member EntityAttributeCustomAttribute(attrName: string, [<ParamArray>] args: obj[]) =
     CodeAttributeDeclaration(attrName,
       [| for arg in args do yield CodeAttributeArgument(CodePrimitiveExpression(arg)) |])
 
