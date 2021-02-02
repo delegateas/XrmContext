@@ -406,16 +406,13 @@ namespace DG.XrmContext
     {
         public string Name { get; private set; }
         public int Index { get; set; }
-        public int ExternalValue { get; set; }
         public string Description { get; set; }
         public string Color { get; set; }
 
-        public OptionSetMetadataAttribute(string name, string description = null, string color = null) : this(name, int.MinValue, int.MinValue, description, color) { }
-        public OptionSetMetadataAttribute(string name, int index, int externalValue, string description = null, string color = null)
+        public OptionSetMetadataAttribute(string name, int index, string description = null, string color = null)
         {
             Name = name;
             Index = index;
-            ExternalValue = externalValue;
             Description = description;
             Color = color;
         }
