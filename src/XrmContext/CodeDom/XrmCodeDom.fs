@@ -15,6 +15,7 @@ open Microsoft.Xrm.Sdk.Client
 open Utility
 open IntermediateRepresentation
 open CodeDomHelper
+open System.ComponentModel
 
 let getVarDefFromAttribute attribute =
   match attribute.varType with
@@ -51,8 +52,19 @@ let MakeEntityAttribute usedProps (attribute:XrmAttribute) =
   let validName = getValidName usedProps name
   let updatedUsedProps = usedProps.Add validName
   let var = Variable validName returnType
-  var.CustomAttributes.Add(EntityAttributeCustomAttribute attribute.logicalName) |> ignore
-    
+  var.CustomAttributes.Add(EntityAttributeLogicalNameAttribute attribute.logicalName) |> ignore
+
+  if attribute.displayName.IsSome then
+    var.CustomAttributes.Add(
+      EntityAttributeCustomAttribute (AttributeName typeof<DisplayNameAttribute>) [|attribute.displayName.Value|]) |> ignore
+  
+  if attribute.maxLength.IsSome then
+    var.CustomAttributes.Add(
+      EntityAttributeCustomAttribute "MaxLength" [|attribute.maxLength.Value|]) |> ignore
+
+  if attribute.minValue.IsSome && attribute.minValue.IsSome then
+    var.CustomAttributes.Add(
+      EntityAttributeCustomAttribute "Range" [|Option.get attribute.minValue; Option.get attribute.maxValue|]) |> ignore
 
   // Comment summary
   match attribute.description with
@@ -122,7 +134,7 @@ let MakeEntityRelationship (usedProps:Set<string>) (relationship:XrmRelationship
 
 
   if relationship.referencing then
-    var.CustomAttributes.Add(EntityAttributeCustomAttribute relationship.attributeName) |> ignore
+    var.CustomAttributes.Add(EntityAttributeLogicalNameAttribute relationship.attributeName) |> ignore
 
   if relationship.useEntityRole then
     var.CustomAttributes.Add(RelationshipCustomAttribute relationship.schemaName (Some entityRole)) |> ignore
@@ -217,7 +229,7 @@ let MakeEntityIdAttributes (attr: XrmAttribute) =
     
   let baseId = Variable "Id" (guidType())
   baseId.Attributes <- MemberAttributes.Public ||| MemberAttributes.Override
-  baseId.CustomAttributes.Add(EntityAttributeCustomAttribute attr.logicalName) |> ignore
+  baseId.CustomAttributes.Add(EntityAttributeLogicalNameAttribute attr.logicalName) |> ignore
 
   baseId.HasGet <- true
   baseId.GetStatements.Add(Return(BaseProp "Id")) |> ignore
@@ -253,6 +265,12 @@ let MakeEntityOptionSet (optSet: XrmOptionSet) =
     let field = Field option.label option.value
     field.CustomAttributes.Add(
       CodeAttributeDeclaration(AttributeName typeof<EnumMemberAttribute>)) |> ignore
+    field.CustomAttributes.Add(
+      CodeAttributeDeclaration("OptionSetMetadata",
+        [| CodeAttributeArgument(CodePrimitiveExpression(option.displayName))
+           CodeAttributeArgument("Index", CodePrimitiveExpression(option.index))
+           if option.description <> null then CodeAttributeArgument("Description", CodePrimitiveExpression(option.description))
+           if option.color <> null then CodeAttributeArgument("Color", CodePrimitiveExpression(option.color)) |])) |> ignore
     enum.Members.Add(field) |> ignore)
 
   enum
@@ -396,6 +414,8 @@ let CreateStandardCodeUnit ns =
   globalNs.Imports.Add(CodeNamespaceImport("System.Diagnostics"))
   globalNs.Imports.Add(CodeNamespaceImport("System.Collections.Generic"))
   globalNs.Imports.Add(CodeNamespaceImport("System.Runtime.Serialization"))
+  globalNs.Imports.Add(CodeNamespaceImport("System.ComponentModel"))
+  globalNs.Imports.Add(CodeNamespaceImport("System.ComponentModel.DataAnnotations"))
   globalNs.Imports.Add(CodeNamespaceImport("Microsoft.Xrm.Sdk"))
   globalNs.Imports.Add(CodeNamespaceImport("Microsoft.Xrm.Sdk.Client"))
   globalNs.Imports.Add(CodeNamespaceImport("DG.XrmContext"))
@@ -485,6 +505,7 @@ let MakeEnumsCodeUnit ns (enumCodeTypeDeclerations: CodeTypeDeclaration list) =
   let globalNs = CodeNamespace()
   globalNs.Imports.Add(CodeNamespaceImport("System.Runtime.Serialization"))
   globalNs.Imports.Add(CodeNamespaceImport("Microsoft.Xrm.Sdk.Client"))
+  globalNs.Imports.Add(CodeNamespaceImport("DG.XrmContext"))
   cu.Namespaces.Add(globalNs) |> ignore
 
   cu.AssemblyCustomAttributes.Add(

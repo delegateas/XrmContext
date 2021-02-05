@@ -14,6 +14,7 @@ open Microsoft.Xrm.Sdk.Client
   
 open Utility
 open IntermediateRepresentation
+open System.ComponentModel
 
 let baseReservedProperties =
   typeof<Entity>.GetProperties() |> Array.map (fun x -> x.Name) |> Set.ofArray
@@ -152,13 +153,15 @@ let EntityConstructors () =
     
   [|con1 :> CodeTypeMember; con2 :> CodeTypeMember|]
 
-
+let EntityAttributeCustomAttribute (attrName: string) ([<ParamArray>] args: obj[]) = 
+  CodeAttributeDeclaration(attrName,
+    args |> Array.map (fun arg -> CodeAttributeArgument(CodePrimitiveExpression(arg))))
 
 let EntityCustomAttribute logicalName = 
   CodeAttributeDeclaration(AttributeName typeof<EntityLogicalNameAttribute>, 
     CodeAttributeArgument(StringLiteral(logicalName)))
 
-let EntityAttributeCustomAttribute logicalName = 
+let EntityAttributeLogicalNameAttribute logicalName = 
   CodeAttributeDeclaration(AttributeName typeof<AttributeLogicalNameAttribute>, 
     CodeAttributeArgument(StringLiteral(logicalName)))
 

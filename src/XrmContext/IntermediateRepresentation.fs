@@ -6,8 +6,12 @@ open System
 type XrmOptionSetType = Picklist | State | Status | Boolean
 
 type XrmOption = {
-  label: string 
+  label: string
   value: int
+  displayName: string
+  index: int
+  description: string
+  color: string
 }
 
 type XrmOptionSet = {
@@ -27,7 +31,11 @@ type XrmAttributeType =
 type XrmAttribute = {
   schemaName: string
   logicalName: string
+  displayName: string option
   varType: XrmAttributeType
+  maxLength: int option
+  minValue: int option
+  maxValue: int option
   canSet: bool
   canGet: bool
   description: string list option

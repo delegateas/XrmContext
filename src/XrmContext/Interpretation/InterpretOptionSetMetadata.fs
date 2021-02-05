@@ -15,6 +15,12 @@ let getLabelString (label:Label) (labelmapping:(string*string)[] option) =
     |> Utility.applyLabelMappings labelmapping
     |> Utility.sanitizeString 
   with _ -> emptyLabel
+  
+let getUnsanitizedLabelString (label:Label) (labelmapping:(string*string)[] option) =
+  try
+    label.UserLocalizedLabel.Label 
+    |> Utility.applyLabelMappings labelmapping
+  with _ -> emptyLabel
 
 let getMetadataString (metadata:OptionSetMetadataBase) labelMapping =
   getLabelString metadata.DisplayName labelMapping
@@ -36,9 +42,18 @@ let getOptionsFromOptionSetMetadata (osm:OptionSetMetadata) labelMapping =
 
   let options =
     osm.Options
-    |> Seq.map (fun opt ->
+    |> Seq.indexed
+    |> Seq.map (fun (idx, opt) ->
+      let description =
+        match getLabelString opt.Description labelMapping with
+        | "_EmptyString" -> null
+        | s -> s
       { label = getLabelString opt.Label labelMapping
-        value = opt.Value.GetValueOrDefault() }) 
+        value = opt.Value.GetValueOrDefault()
+        displayName = getUnsanitizedLabelString opt.Label labelMapping
+        index = idx
+        description = description
+        color = opt.Color })
     
   options
   |> Seq.fold (fun (acc:Map<string,XrmOption list>) op ->
@@ -83,18 +98,5 @@ let interpretOptionSet entityNames (entity:EntityMetadata option) (enumAttribute
         osType = getOptionSetType optionSet
         options = options 
         isGlobal = optionSet.IsGlobal.Value} |> Some
-      
-  | :? BooleanOptionSetMetadata as bosm ->
-    let options =
-      [|  { label = getLabelString bosm.TrueOption.Label labelmappings
-            value = 1 }
-          { label = getLabelString bosm.FalseOption.Label labelmappings
-            value = 0 } |]
-
-    { logicalName = optionSet.Name
-      displayName = displayName
-      osType = XrmOptionSetType.Boolean
-      options = options 
-      isGlobal = optionSet.IsGlobal.Value} |> Some
 
   | _ -> None
