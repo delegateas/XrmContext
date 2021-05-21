@@ -1,4 +1,11 @@
 # Release Notes
+### 2.0.1 - 21 May 2021
+* Added shortcut for primary name field so you don't have to know it
+* Added relationship schema name to intersect entities
+
+### 2.0.0 - 05 January 2020
+* Added new dependency to System.Componentmodel.DataAnnotations
+
 ### 1.8.1 - December 02 2020
 * Fixed error when multioptionset had no options
 
