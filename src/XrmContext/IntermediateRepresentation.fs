@@ -22,8 +22,8 @@ type XrmOptionSet = {
   isGlobal: bool
 }
 
-type XrmAttributeType = 
-  | Default of Type 
+type XrmAttributeType =
+  | Default of Type
   | OptionSet of string
   | OptionSetCollection of string
   | PartyList
@@ -66,11 +66,12 @@ type XrmEntity = {
   primaryIdAttribute: string
   stateAttribute: XrmOptionSet option
   statusAttribute: XrmOptionSet option
-  attr_vars: XrmAttribute list 
+  attr_vars: XrmAttribute list
   rel_vars: XrmRelationship list
   opt_sets: XrmOptionSet list
   alt_keys: XrmAlternateKey list
   interfaces: string list option
+  isIntersect: bool
 }
 
 type XrmIntersect = string * XrmAttribute list

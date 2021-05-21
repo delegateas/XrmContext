@@ -256,6 +256,8 @@ let interpretEntity entityNames entityMap entityToIntersects deprecatedPrefix la
 
   let desc = getDescription (getLabelOption metadata.DisplayName) metadata.Description
 
+  let isIntersect = Option.ofNullable metadata.IsIntersect ?| false
+
   // Return the entity representation
   { typecode = if includeEntityTypeCode then metadata.ObjectTypeCode.GetValueOrDefault() |> Some else None
     description = desc
@@ -270,4 +272,5 @@ let interpretEntity entityNames entityMap entityToIntersects deprecatedPrefix la
     primaryNameAttribute = metadata.PrimaryNameAttribute
     primaryIdAttribute = metadata.PrimaryIdAttribute
     interfaces = Map.tryFind metadata.LogicalName entityToIntersects
+    isIntersect = isIntersect
   }
