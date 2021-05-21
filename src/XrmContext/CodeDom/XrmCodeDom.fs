@@ -47,7 +47,7 @@ let getVarDefFromAttribute attribute =
 (** Entity Attribute *)
 let MakeEntityAttribute usedProps (attribute:XrmAttribute) =
   let funcName, varType, returnType = getVarDefFromAttribute attribute
-    
+
   let name = CrmNameHelper.attributeMap.TryFind attribute.logicalName ?| attribute.schemaName
   let validName = getValidName usedProps name
   let updatedUsedProps = usedProps.Add validName
@@ -339,7 +339,6 @@ let MakeEntity (entity: XrmEntity) =
     entity.attr_vars 
     |> List.partition (fun x -> x.logicalName = entity.primaryIdAttribute)
 
-
   // Id attributes
   idAttrs |> List.tryHead |> function
   | Some attr -> 
@@ -347,7 +346,12 @@ let MakeEntity (entity: XrmEntity) =
       cl.Members.AddRange(MakeEntityIdAttributes attr)
   | None -> ()
 
-    
+  let primaryFieldAttr = List.tryFind (fun (x: XrmAttribute) -> x.logicalName = entity.primaryNameAttribute) remainingAttrs
+  let remainingAttrs =
+    match primaryFieldAttr with
+    | Some attr -> { attr with schemaName = "PrimaryNameField" }::remainingAttrs
+    | None -> remainingAttrs
+
   // Add attributes, relationships and alternative keys
   let addMembers (props,members:CodeTypeMember list) = 
     members |> Array.ofList |> Array.sortBy (fun m -> m.Name) |> cl.Members.AddRange; props
