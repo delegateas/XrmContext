@@ -349,7 +349,7 @@ let MakeEntity (entity: XrmEntity) =
   let primaryFieldAttr = List.tryFind (fun (x: XrmAttribute) -> x.logicalName = entity.primaryNameAttribute) remainingAttrs
   let remainingAttrs =
     match primaryFieldAttr with
-    | Some attr -> { attr with schemaName = "PrimaryField" }::remainingAttrs
+    | Some attr -> { attr with schemaName = "PrimaryNameField" }::remainingAttrs
     | None -> remainingAttrs
 
   // Add attributes, relationships and alternative keys
