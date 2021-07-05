@@ -265,12 +265,14 @@ let MakeEntityOptionSet (optSet: XrmOptionSet) =
     let field = Field option.label option.value
     field.CustomAttributes.Add(
       CodeAttributeDeclaration(AttributeName typeof<EnumMemberAttribute>)) |> ignore
+    option.localization |> Map.iter (fun lcid localization -> 
     field.CustomAttributes.Add(
       CodeAttributeDeclaration("OptionSetMetadata",
-        [| CodeAttributeArgument(CodePrimitiveExpression(option.displayName))
+        [| CodeAttributeArgument(CodePrimitiveExpression(localization.displayName))
            CodeAttributeArgument("Index", CodePrimitiveExpression(option.index))
-           if option.description <> null then CodeAttributeArgument("Description", CodePrimitiveExpression(option.description))
-           if option.color <> null then CodeAttributeArgument("Color", CodePrimitiveExpression(option.color)) |])) |> ignore
+           CodeAttributeArgument("Lcid", CodePrimitiveExpression(lcid))
+           if localization.description <> null then CodeAttributeArgument("Description", CodePrimitiveExpression(localization.description))
+           if option.color <> null then CodeAttributeArgument("Color", CodePrimitiveExpression(option.color)) |])) |> ignore)
     enum.Members.Add(field) |> ignore)
 
   enum
