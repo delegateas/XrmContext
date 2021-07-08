@@ -67,6 +67,10 @@ type Args private () =
       description = "Set to false to prevent generation of an Entity Type Code constant in each entity definition. Default is true."
       required=false }
 
+    { command = "localizations";
+      altCommands=["l"]
+      description="Comma seperated list of LCIDs to include as OptionSetMetadataAttribute the, default is to use UserLocalizedLabel."
+      required=false }
     ]
 
   static member connectionArgs = [

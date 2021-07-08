@@ -60,6 +60,8 @@ let getGenerationSettings parsedArgs =
 
     name, intersects)
 
+  let localizations = getListArg parsedArgs "localizations" (fun f -> Int32.Parse(f))
+
   let nsSanitizer ns =
     if String.IsNullOrWhiteSpace ns then String.Empty
     else ns.Split('.') |> Array.map sanitizeString |> String.concat "."
@@ -70,6 +72,7 @@ let getGenerationSettings parsedArgs =
     deprecatedPrefix = Map.tryFind "deprecatedPrefix" parsedArgs
     sdkVersion = getArg parsedArgs "sdkVersion" parseVersion
     intersections = intersections
+    localizations = localizations
     labelMapping = labelMapping
     oneFile = getArg parsedArgs "oneFile" parseBoolish ?| true
     includeEntityTypeCode = getArg parsedArgs "includeEntityTypeCode" parseBoolish ?| true

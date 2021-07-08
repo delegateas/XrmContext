@@ -35,6 +35,7 @@ type XcGenerationSettings = {
   sdkVersion: Version option
   intersections: EntityIntersect[] option
   labelMapping: (string * string)[] option
+  localizations: int[] option
   oneFile: bool
   includeEntityTypeCode: bool
 }
