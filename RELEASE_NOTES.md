@@ -1,4 +1,7 @@
 # Release Notes
+### 2.0.2 - 08 July 2021
+* Added support for multiple locale optionset labels (@sjkp)
+
 ### 2.0.1 - 21 May 2021
 * Added shortcut for primary name field so you don't have to know it
 * Added relationship schema name to intersect entities
