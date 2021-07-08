@@ -5,13 +5,17 @@ open System
 
 type XrmOptionSetType = Picklist | State | Status | Boolean
 
-type XrmOption = {
-  label: string
-  value: int
+type XrmOptionLocalized = {  
   displayName: string
-  index: int
   description: string
+}
+
+type XrmOption = {
+  value: int
+  label: string
+  index: int  
   color: string
+  localization: Map<int,XrmOptionLocalized>
 }
 
 type XrmOptionSet = {

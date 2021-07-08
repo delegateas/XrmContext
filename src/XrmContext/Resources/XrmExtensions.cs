@@ -401,21 +401,23 @@ namespace DG.XrmContext
         }
     }
 
-    [AttributeUsage(AttributeTargets.Field)]
+    [AttributeUsage(AttributeTargets.Field, AllowMultiple = true)]
     public class OptionSetMetadataAttribute : Attribute
     {
         public string Name { get; private set; }
         public int Index { get; set; }
         public string Description { get; set; }
         public string Color { get; set; }
+        public int Lcid { get; set; }
 
-        public OptionSetMetadataAttribute(string name, string description = null, string color = null) : this(name, int.MinValue, description, color) { }
-        public OptionSetMetadataAttribute(string name, int index, string description = null, string color = null)
+        public OptionSetMetadataAttribute(string name, int lcid = 1033, string description = null, string color = null) : this(name, int.MinValue,lcid, description, color) { }
+        public OptionSetMetadataAttribute(string name, int index, int lcid, string description = null, string color = null)
         {
             Name = name;
             Index = index;
             Description = description;
             Color = color;
+            Lcid = lcid;
         }
     }
 }

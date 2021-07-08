@@ -8,13 +8,30 @@ open Microsoft.Xrm.Sdk.Metadata
 open Utility
 open IntermediateRepresentation
 
+let getDescription (opt : OptionMetadata, lcid: int) = 
+   let desc = opt.Description.LocalizedLabels |> Seq.filter (fun f -> f.LanguageCode = lcid)
+   match desc with
+   | s when Seq.isEmpty s -> null
+   | _ -> (desc |> Seq.head).Label
+
+
+let getLocalized (opt: OptionMetadata) (labelmapping:(string*string)[] option) (localizations: int[] option) =    
+  match localizations with 
+  | None -> Seq.ofList [opt.Label.UserLocalizedLabel]
+  | _ -> opt.Label.LocalizedLabels |> Seq.filter (fun f -> Array.contains f.LanguageCode localizations.Value)
+  
+  |> Seq.map(fun f -> f.LanguageCode, {displayName = f.Label |> Utility.applyLabelMappings labelmapping; description = getDescription(opt, f.LanguageCode)}) 
+  |> Map
 
 let getLabelString (label:Label) (labelmapping:(string*string)[] option) =
+  let l = label.UserLocalizedLabel.Label 
   try
-    label.UserLocalizedLabel.Label 
-    |> Utility.applyLabelMappings labelmapping
-    |> Utility.sanitizeString 
-  with _ -> emptyLabel
+      l
+      |> Utility.applyLabelMappings labelmapping
+      |> Utility.sanitizeString 
+    with _ -> emptyLabel
+
+
   
 let getUnsanitizedLabelString (label:Label) (labelmapping:(string*string)[] option) =
   try
@@ -36,7 +53,7 @@ let getOptionSetType (optionSet:OptionSetMetadataBase) =
   | OptionSetType.Boolean  -> XrmOptionSetType.Boolean
   | _ -> XrmOptionSetType.Picklist
 
-let getOptionsFromOptionSetMetadata (osm:OptionSetMetadata) labelMapping =
+let getOptionsFromOptionSetMetadata (osm:OptionSetMetadata) labelMapping localizations =
   if osm.Options.Count = 0 then None
   else
 
@@ -44,15 +61,14 @@ let getOptionsFromOptionSetMetadata (osm:OptionSetMetadata) labelMapping =
     osm.Options
     |> Seq.indexed
     |> Seq.map (fun (idx, opt) ->
-      let description =
-        match getLabelString opt.Description labelMapping with
-        | "_EmptyString" -> null
-        | s -> s
+      //let description =
+      //  match getLabelString opt.Description labelMapping with
+      //  | "_EmptyString" -> null
+      //  | s -> s
       { label = getLabelString opt.Label labelMapping
-        value = opt.Value.GetValueOrDefault()
-        displayName = getUnsanitizedLabelString opt.Label labelMapping
+        value = opt.Value.GetValueOrDefault()        
         index = idx
-        description = description
+        localization = getLocalized opt labelMapping localizations
         color = opt.Color })
     
   options
@@ -70,7 +86,7 @@ let getOptionsFromOptionSetMetadata (osm:OptionSetMetadata) labelMapping =
 
 
 /// Interprets CRM OptionSetMetadata into intermediate type
-let interpretOptionSet entityNames (entity:EntityMetadata option) (enumAttribute:EnumAttributeMetadata) (labelmappings:(string*string)[] option)=
+let interpretOptionSet entityNames (entity:EntityMetadata option) (enumAttribute:EnumAttributeMetadata) (labelmappings:(string*string)[] option) (localizations: int[] option)=
   let optionSet = enumAttribute.OptionSet :> OptionSetMetadataBase
   if optionSet = null then None
   else
@@ -90,7 +106,7 @@ let interpretOptionSet entityNames (entity:EntityMetadata option) (enumAttribute
 
   match optionSet with
   | :? OptionSetMetadata as osm ->
-    match getOptionsFromOptionSetMetadata osm labelmappings with
+    match getOptionsFromOptionSetMetadata osm labelmappings localizations with
     | None -> None
     | Some options -> 
       { logicalName = optionSet.Name
