@@ -123,6 +123,12 @@ type Args private () =
       altCommands=[]
       description="Connection string used for authentication"
       required=false }
+    {
+        command="prompt"
+        altCommands=[]
+        description="When should the authentication prompt be shown to the user (Auto (default), Always, RefreshSession, Never, SelectAccount)"
+        required=false
+    }
   ]
 
   (** Special arguments, which make the program act differently than normal *)

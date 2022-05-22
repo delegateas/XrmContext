@@ -4,6 +4,7 @@ open System
 open Microsoft.Xrm.Sdk.Client
 open Microsoft.Xrm.Sdk.Metadata
 open System.Runtime.Serialization
+open Microsoft.IdentityModel.Clients.ActiveDirectory
 
 type Version = int * int * int * int
 type EntityIntersect = string * string[]
@@ -12,7 +13,7 @@ type ConnectionType =
   | Proxy
   | OAuth
   | ClientSecret
-  | ConnectionString
+  | ConnectionString   
 
 type XrmAuthentication = {
   url: Uri
@@ -25,6 +26,7 @@ type XrmAuthentication = {
   returnUrl: string option
   clientSecret: string option
   connectionString: string option
+  prompt: PromptBehavior option
 }
 
 type XcGenerationSettings = {
