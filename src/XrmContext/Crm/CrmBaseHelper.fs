@@ -10,6 +10,7 @@ open Microsoft.Xrm.Sdk.Messages
 open Microsoft.Xrm.Sdk.Query
 open Microsoft.Xrm.Sdk.Metadata
 open Microsoft.Crm.Sdk.Messages
+open Microsoft.IdentityModel.Clients.ActiveDirectory
 
 
 // Execute request
@@ -210,6 +211,7 @@ let proxyHelper xrmAuth () =
   let clientId = xrmAuth.clientId ?| ""
   let returnUrl = xrmAuth.returnUrl ?| ""
   let clientSecret = xrmAuth.clientSecret ?| ""
+  let prompt = xrmAuth.prompt ?| PromptBehavior.Auto
 
   let proxyInstance = 
     match method with
@@ -217,7 +219,7 @@ let proxyHelper xrmAuth () =
       let manager = CrmAuth.getServiceManagement xrmAuth.url
       let authToken = CrmAuth.authenticate manager ap username password domain
       CrmAuth.getOrganizationServiceProxy manager authToken
-    | OAuth -> CrmAuth.getCrmServiceClient username password xrmAuth.url clientId returnUrl 
+    | OAuth -> CrmAuth.getCrmServiceClient username password xrmAuth.url clientId returnUrl prompt
     | ClientSecret -> CrmAuth.getCrmServiceClientClientSecret xrmAuth.url clientId clientSecret
     | ConnectionString -> CrmAuth.getCrmServiceClientConnectionString xrmAuth.connectionString
   proxyInstance

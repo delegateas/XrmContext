@@ -6,6 +6,7 @@ open Microsoft.Xrm.Sdk.Client
 open Microsoft.Xrm.Tooling.Connector
 open System
 open System.IO
+open Microsoft.IdentityModel.Clients.ActiveDirectory
 
 
 // Get credentials based on provider, username, password and domain
@@ -53,13 +54,13 @@ let ensureClientIsReady (client: CrmServiceClient) =
     in failwith s
   | true -> client
 
-let internal getCrmServiceClient userName password (orgUrl:Uri) mfaAppId mfaReturnUrl =
+let internal getCrmServiceClient userName password (orgUrl:Uri) mfaAppId mfaReturnUrl promptBehavior =
   let mutable orgName = ""
   let mutable region = ""
   let mutable isOnPrem = false
   Utilities.GetOrgnameAndOnlineRegionFromServiceUri(orgUrl, &region, &orgName, &isOnPrem)
   let cacheFileLocation = System.IO.Path.Combine(System.IO.Path.GetTempPath(), orgName, "oauth-cache.txt")
-  new CrmServiceClient(userName, CrmServiceClient.MakeSecureString(password), region, orgName, false, null, null, mfaAppId, Uri(mfaReturnUrl), cacheFileLocation, null)
+  new CrmServiceClient(userName, CrmServiceClient.MakeSecureString(password), region, orgName, false, null, null, mfaAppId, Uri(mfaReturnUrl), cacheFileLocation, null, promptBehavior)
   |> ensureClientIsReady
   |> fun x -> x :> IOrganizationService
 

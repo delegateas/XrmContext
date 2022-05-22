@@ -3,6 +3,7 @@ open Microsoft.Xrm.Sdk.Client
 open DG.XrmContext
 open Utility
 open CommandLineHelper
+open Microsoft.IdentityModel.Clients.ActiveDirectory
 
 let getXrmAuth parsedArgs = 
   let ap = 
@@ -18,6 +19,17 @@ let getXrmAuth parsedArgs =
       | _ -> ConnectionType.Proxy 
     )
 
+  let prompt = 
+    getArg parsedArgs "prompt" (fun prompt -> 
+    match prompt with 
+    | "Always" -> PromptBehavior.Always
+    | "Never" -> PromptBehavior.Never
+    | "Auto" -> PromptBehavior.Auto
+    | "RefreshSession" -> PromptBehavior.RefreshSession
+    | "SelectAccount" -> PromptBehavior.SelectAccount
+    | _ -> PromptBehavior.Auto
+    )
+
   { XrmAuthentication.url = Uri(Map.find "url" parsedArgs)
     method = method
     username = Map.tryFind "username" parsedArgs
@@ -28,6 +40,7 @@ let getXrmAuth parsedArgs =
     clientSecret = Map.tryFind "mfaClientSecret" parsedArgs
     connectionString = Map.tryFind "connectionString" parsedArgs
     ap = ap 
+    prompt = prompt
   }
 
 let getRetrieveSettings parsedArgs =
