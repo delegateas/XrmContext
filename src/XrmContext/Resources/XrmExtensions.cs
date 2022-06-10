@@ -63,6 +63,7 @@ namespace DG.XrmContext
             }
         }
 
+        //VERSIONCHECK 9.0.0.0
         protected IEnumerable<T> GetOptionSetCollectionValue<T>(string attributeName) where T : struct, IComparable, IConvertible, IFormattable
         {
             var optionSetCollection = GetAttributeValue<OptionSetValueCollection>(attributeName);
@@ -89,6 +90,7 @@ namespace DG.XrmContext
                 SetAttributeValue(attributeName, null);
             }
         }
+        //ENDVERSIONCHECK
 
         protected decimal? GetMoneyValue(string attributeName)
         {
@@ -146,7 +148,6 @@ namespace DG.XrmContext
             SetAttributeValue(primaryIdAttribute, guid);
         }
 
-
         protected KeyValuePair<string, object>[] DeltaAttributes;
 
         public void TagForDelta()
@@ -168,7 +169,6 @@ namespace DG.XrmContext
             if (guid != Guid.Empty) Id = guid;
         }
 
-
         //VERSIONCHECK 7.1.0.0
         protected static T Retrieve_AltKey<T>(IOrganizationService service, KeyAttributeCollection keys, params Expression<Func<T, object>>[] attributes) where T : Entity
         {
@@ -185,6 +185,7 @@ namespace DG.XrmContext
             }
         }
         //ENDVERSIONCHECK
+
         public static string GetColumnName<T>(Expression<Func<T, object>> lambda) where T : Entity
         {
             MemberExpression body = lambda.Body as MemberExpression;
