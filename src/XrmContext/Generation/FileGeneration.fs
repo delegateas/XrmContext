@@ -105,8 +105,17 @@ let createMultiFileCodeDom (state: InterpretedState) =
 
   printfn "Done!"
 
+// Replace namespace in all lines
+let replaceNamespace ns (lines:string seq) =
+  if String.IsNullOrWhiteSpace ns then
+    lines
+  else 
+    lines
+    |> Seq.map (fun line -> line.Replace("DG.XrmContext", ns))
+
 // Create resource files
-let createResourceFiles out sdkVersion =
+let createResourceFiles out sdkVersion ns =
   getResourceLines "XrmExtensions.cs"
   |> removeUnsupportedLines sdkVersion
+  |> replaceNamespace ns
   |> fun lines -> File.WriteAllLines(Path.Combine(out, "XrmExtensions.cs"), lines)

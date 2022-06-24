@@ -426,7 +426,11 @@ let CreateStandardCodeUnit ns =
   globalNs.Imports.Add(CodeNamespaceImport("System.ComponentModel.DataAnnotations"))
   globalNs.Imports.Add(CodeNamespaceImport("Microsoft.Xrm.Sdk"))
   globalNs.Imports.Add(CodeNamespaceImport("Microsoft.Xrm.Sdk.Client"))
-  globalNs.Imports.Add(CodeNamespaceImport("DG.XrmContext"))
+  
+  // Import XrmExtensions.cs
+  if String.IsNullOrWhiteSpace ns then
+    globalNs.Imports.Add(CodeNamespaceImport("DG.XrmContext"))
+  
   cu.Namespaces.Add(globalNs) |> ignore
 
   let ns = CodeNamespace(ns)

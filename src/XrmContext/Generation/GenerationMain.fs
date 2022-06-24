@@ -30,4 +30,4 @@ let generateFromRaw gSettings (rawState: RawState) =
   let interpretedData = interpretCrmData gSettings out sdkVersion rawState
   if gSettings.oneFile then createSingleFileCodeDom interpretedData else createMultiFileCodeDom interpretedData
 
-  createResourceFiles out sdkVersion
+  createResourceFiles out sdkVersion interpretedData.ns
