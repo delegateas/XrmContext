@@ -1,6 +1,7 @@
 # Release Notes
 ### 3.0.0 - 10 June 2022
 * Added XrmExtensions to generated namespace
+* Removed OptionSetCollections generation when version < 9
 
 ### 2.0.2 - 08 July 2021
 * Added support for multiple locale optionset labels (@sjkp)
