@@ -20,13 +20,13 @@ let getLocalized (opt: OptionMetadata) (labelmapping:(string*string)[] option) (
   | None -> Seq.ofList [opt.Label.UserLocalizedLabel]
   | _ -> opt.Label.LocalizedLabels |> Seq.filter (fun f -> Array.contains f.LanguageCode localizations.Value)
   
+  |> Seq.filter(fun f -> f <> null)
   |> Seq.map(fun f -> f.LanguageCode, {displayName = f.Label |> Utility.applyLabelMappings labelmapping; description = getDescription(opt, f.LanguageCode)}) 
   |> Map
 
 let getLabelString (label:Label) (labelmapping:(string*string)[] option) =
-  let l = label.UserLocalizedLabel.Label 
   try
-      l
+      label.UserLocalizedLabel.Label
       |> Utility.applyLabelMappings labelmapping
       |> Utility.sanitizeString 
     with _ -> emptyLabel
@@ -56,7 +56,7 @@ let getOptionSetType (optionSet:OptionSetMetadataBase) =
 let getOptionsFromOptionSetMetadata (osm:OptionSetMetadata) labelMapping localizations =
   if osm.Options.Count = 0 then None
   else
-
+  
   let options =
     osm.Options
     |> Seq.indexed
