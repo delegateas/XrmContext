@@ -203,7 +203,12 @@ let interpretEntity entityNames entityMap entityToIntersects deprecatedPrefix la
 
   // Attributes and option sets
   let opt_sets, attr_vars = 
-    metadata.Attributes 
+    let filteredAttrs =
+      if sdkVersion .>= (9,0,0,0)
+      then metadata.Attributes
+      else metadata.Attributes |> Array.filter(fun attr -> attr.AttributeType.GetValueOrDefault() <> AttributeTypeCode.Virtual)
+    
+    filteredAttrs
     |> Array.map (interpretAttribute deprecatedPrefix labelmapping localizations entityNames metadata)
     |> Array.unzip
 
