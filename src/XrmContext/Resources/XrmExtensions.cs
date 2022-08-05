@@ -15,7 +15,7 @@ namespace DG.XrmContext
 
     public enum EmptyEnum { }
 
-    public abstract partial class ExtendedEntity<State, Status> : Entity
+    public abstract partial class ExtendedEntity<State, Status> : Microsoft.Xrm.Sdk.Entity
         where State : struct, IComparable, IConvertible, IFormattable
         where Status : struct, IComparable, IConvertible, IFormattable
     {
@@ -117,7 +117,7 @@ namespace DG.XrmContext
             }
         }
 
-        protected IEnumerable<T> GetEntityCollection<T>(string attributeName) where T : Entity
+        protected IEnumerable<T> GetEntityCollection<T>(string attributeName) where T : Microsoft.Xrm.Sdk.Entity
         {
             var collection = GetAttributeValue<EntityCollection>(attributeName);
             if (collection != null && collection.Entities != null)
@@ -130,11 +130,11 @@ namespace DG.XrmContext
             }
         }
 
-        protected void SetEntityCollection<T>(string attributeName, IEnumerable<T> entities) where T : Entity
+        protected void SetEntityCollection<T>(string attributeName, IEnumerable<T> entities) where T : Microsoft.Xrm.Sdk.Entity
         {
             if (entities != null)
             {
-                SetAttributeValue(attributeName, new EntityCollection(new List<Entity>(entities)));
+                SetAttributeValue(attributeName, new EntityCollection(new List<Microsoft.Xrm.Sdk.Entity>(entities)));
             }
             else
             {
@@ -170,7 +170,7 @@ namespace DG.XrmContext
         }
 
         //VERSIONCHECK 7.1.0.0
-        protected static T Retrieve_AltKey<T>(IOrganizationService service, KeyAttributeCollection keys, params Expression<Func<T, object>>[] attributes) where T : Entity
+        protected static T Retrieve_AltKey<T>(IOrganizationService service, KeyAttributeCollection keys, params Expression<Func<T, object>>[] attributes) where T : Microsoft.Xrm.Sdk.Entity
         {
             var req = new RetrieveRequest();
             req.Target = new EntityReference(Activator.CreateInstance<T>().LogicalName, keys);
@@ -186,7 +186,7 @@ namespace DG.XrmContext
         }
         //ENDVERSIONCHECK
 
-        public static string GetColumnName<T>(Expression<Func<T, object>> lambda) where T : Entity
+        public static string GetColumnName<T>(Expression<Func<T, object>> lambda) where T : Microsoft.Xrm.Sdk.Entity
         {
             MemberExpression body = lambda.Body as MemberExpression;
 
@@ -209,7 +209,7 @@ namespace DG.XrmContext
             return body.Member.Name;
         }
 
-        public static T Retrieve<T>(IOrganizationService service, Guid id, params Expression<Func<T, object>>[] attributes) where T : Entity
+        public static T Retrieve<T>(IOrganizationService service, Guid id, params Expression<Func<T, object>>[] attributes) where T : Microsoft.Xrm.Sdk.Entity
         {
             return service.Retrieve(id, attributes);
         }
@@ -279,7 +279,7 @@ namespace DG.XrmContext
         string RowVersion { get; set; }
         bool Contains(string attributeName);
         T GetAttributeValue<T>(string attributeLogicalName);
-        T ToEntity<T>() where T : Entity;
+        T ToEntity<T>() where T : Microsoft.Xrm.Sdk.Entity;
         EntityReference ToEntityReference();
         //VERSIONCHECK 7.1.0.0
         KeyAttributeCollection KeyAttributes { get; set; }
@@ -291,13 +291,13 @@ namespace DG.XrmContext
 
         public ExtendedOrganizationServiceContext(IOrganizationService service) : base(service) { }
 
-        public U Load<T, U>(T entity, Expression<Func<T, U>> loaderFunc) where T : Entity
+        public U Load<T, U>(T entity, Expression<Func<T, U>> loaderFunc) where T : Microsoft.Xrm.Sdk.Entity
         {
             LoadProperty(entity, XrmExtensions.GetAttributeLogicalName(loaderFunc));
             return loaderFunc.Compile().Invoke(entity);
         }
 
-        public IEnumerable<U> LoadEnumeration<T, U>(T entity, Expression<Func<T, IEnumerable<U>>> loaderFunc) where T : Entity
+        public IEnumerable<U> LoadEnumeration<T, U>(T entity, Expression<Func<T, IEnumerable<U>>> loaderFunc) where T : Microsoft.Xrm.Sdk.Entity
         {
             return Load(entity, loaderFunc) ?? new List<U>();
         }
@@ -307,13 +307,13 @@ namespace DG.XrmContext
     public static class XrmExtensions
     {
 
-        public static T Retrieve<T>(this IOrganizationService service, Guid id, params Expression<Func<T, object>>[] attributes) where T : Entity
+        public static T Retrieve<T>(this IOrganizationService service, Guid id, params Expression<Func<T, object>>[] attributes) where T : Microsoft.Xrm.Sdk.Entity
         {
             return service.Retrieve(Activator.CreateInstance<T>().LogicalName, id, GetColumnSet(attributes)).ToEntity<T>();
         }
 
         //VERSIONCHECK 7.1.0.0
-        public static UpsertResponse Upsert(this IOrganizationService service, Entity entity)
+        public static UpsertResponse Upsert(this IOrganizationService service, Microsoft.Xrm.Sdk.Entity entity)
         {
             var req = new UpsertRequest() { Target = entity };
             var resp = service.Execute(req) as UpsertResponse;
@@ -389,13 +389,13 @@ namespace DG.XrmContext
             return attributelogicalName.LogicalName;
         }
 
-        public static bool ContainsAttributes<T>(this T entity, params Expression<Func<T, object>>[] attrGetters) where T : Entity
+        public static bool ContainsAttributes<T>(this T entity, params Expression<Func<T, object>>[] attrGetters) where T : Microsoft.Xrm.Sdk.Entity
         {
             if (attrGetters == null) return true;
             return attrGetters.Select(a => GetAttributeLogicalName(a).ToLower()).All(a => entity.Contains(a));
         }
 
-        public static bool RemoveAttributes<T>(this T entity, params Expression<Func<T, object>>[] attrGetters) where T : Entity
+        public static bool RemoveAttributes<T>(this T entity, params Expression<Func<T, object>>[] attrGetters) where T : Microsoft.Xrm.Sdk.Entity
         {
             if (attrGetters == null) return false;
             return attrGetters.Select(a => GetAttributeLogicalName(a).ToLower()).Any(a => entity.Attributes.Remove(a));
