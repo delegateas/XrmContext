@@ -122,7 +122,7 @@ namespace DG.XrmContext
             var collection = GetAttributeValue<EntityCollection>(attributeName);
             if (collection != null && collection.Entities != null)
             {
-                return collection.Entities.Select(x => x as T);
+                return collection.Entities.Select(x => x.ToEntity<T>());
             }
             else
             {
