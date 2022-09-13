@@ -517,7 +517,11 @@ let MakeEnumsCodeUnit ns (enumCodeTypeDeclerations: CodeTypeDeclaration list) =
   let globalNs = CodeNamespace()
   globalNs.Imports.Add(CodeNamespaceImport("System.Runtime.Serialization"))
   globalNs.Imports.Add(CodeNamespaceImport("Microsoft.Xrm.Sdk.Client"))
-  globalNs.Imports.Add(CodeNamespaceImport("DG.XrmContext"))
+
+  // Import XrmExtensions.cs
+  if String.IsNullOrWhiteSpace ns then
+    globalNs.Imports.Add(CodeNamespaceImport("DG.XrmContext"))
+
   cu.Namespaces.Add(globalNs) |> ignore
 
   cu.AssemblyCustomAttributes.Add(
