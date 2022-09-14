@@ -1,4 +1,10 @@
 # Release Notes
+### 3.0.1 - 16 September 2022
+* Enforced F# version 4.7.2
+* Fixed naming conflict when generating typings for `Entity`
+* Fixed issue when using `GetAttribute` for columns that returned `EntityCollection`
+* Fixed namespace issue introduced in v3.0.0 when using the _onefile_ option
+
 ### 3.0.0 - 10 June 2022
 * Added XrmExtensions to generated namespace
 * Removed OptionSetCollections generation when version < 9
