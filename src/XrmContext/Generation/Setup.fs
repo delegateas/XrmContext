@@ -47,13 +47,12 @@ let intersectEntities (entities: XrmEntity[]) (intersections: EntityIntersect[])
     name, commonAttributes
   )
 
-
 /// Interprets the raw CRM data into an intermediate state used for further generation
 let interpretCrmData (gSettings: XcGenerationSettings) out sdkVersion (rawState: RawState) =
   printf "Interpreting data..."
   let publicEntities =  
     rawState.metadata
-    |> Array.filter(fun x-> not x.IsPrivate.Value)
+    |> Array.filter(fun x-> not x.IsPrivate)
 
   let entityMap = 
     publicEntities

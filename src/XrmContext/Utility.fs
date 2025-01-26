@@ -18,6 +18,8 @@ let (?>>?) m c = Option.bind (fun x -> match c x with | true -> Some x | false -
 /// Option default argument
 let (?|) = defaultArg
 
+let (?>) (m: Nullable<'a>) d = if m.HasValue then m.Value else d
+
 let stringToOption s =
   match String.IsNullOrWhiteSpace(s) with
   | true  -> None

@@ -150,10 +150,17 @@ type Args private () =
       description="Flag to indicate that a dummy configuration file should be generated."
       required=false }
 
+  static member solutionFileFlag = 
+    { command="solution"
+      altCommands=[]
+      description="Flag to indicate to retrieve the metadata from solution source code"
+      required=false }
+
   static member flagArgs = [
     Args.saveFlag
     Args.loadFlag
     Args.genConfigFlag
+    Args.solutionFileFlag
   ] 
 
   static member useConfig = 

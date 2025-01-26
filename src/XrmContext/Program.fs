@@ -121,6 +121,11 @@ let connectGen parsedArgs =
     getRetrieveSettings parsedArgs, 
     getGenerationSettings parsedArgs)
 
+let genFromSolutionFile parsedArgs =
+  XrmContext.GenerateFromSolutionSource(
+    getXrmAuth parsedArgs,
+    getRetrieveSettings parsedArgs,
+    getGenerationSettings parsedArgs)
 
 // Main executable function
 let executeWithArgs argv =
@@ -135,6 +140,9 @@ let executeWithArgs argv =
 
   | Some flagArg when flagArg = Args.saveFlag ->
     parsedArgs |> checkArgs Args.connectionArgs |> dataSave
+
+  | Some flagArg when flagArg = Args.solutionFileFlag ->
+    parsedArgs |> checkArgs Args.connectionArgs |> genFromSolutionFile
 
   | _ -> 
     parsedArgs |> checkArgs Args.fullArgList |> connectGen

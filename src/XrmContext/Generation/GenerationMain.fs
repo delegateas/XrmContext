@@ -7,6 +7,7 @@ open CrmBaseHelper
 open DataRetrieval
 open FileGeneration
 open Setup
+open System.IO
 
 /// Retrieve data from CRM and setup raw state
 let retrieveRawState xrmAuth (rSettings: XcRetrievalSettings) =
@@ -18,6 +19,11 @@ let retrieveRawState xrmAuth (rSettings: XcRetrievalSettings) =
   // Retrieve data from CRM
   retrieveCrmData entities mainProxy
 
+let retrieveRawFromSolutionFile (sSettings: SolutionFileSettings) (rSettings: XcRetrievalSettings) =
+  let solutions = Directory.GetDirectories(sSettings.solutionFolderPath)
+  let entities = getFullEntityListFromFiles solutions rSettings.entities rSettings.solutions
+
+  retrieveCrmDataFromFiles entities sSettings.solutionFolderPath
 
 /// Main generator function
 let generateFromRaw gSettings (rawState: RawState) =

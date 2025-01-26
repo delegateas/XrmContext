@@ -60,6 +60,18 @@ type XrmContext private () =
     with ex -> getExceptionTrace ex |> failwithf "\nUnable to generate context files: %s"
     #endif
 
+  static member GenerateFromSolutionSource(xrmAuth, rSettings, gSettings) =
+    #if !DEBUG 
+    try
+    #endif 
+      
+      retrieveRawFromSolutionFile xrmAuth rSettings
+      |> generateFromRaw gSettings
+      printfn "\nSuccessfully generated the C# context files."
+
+    #if !DEBUG
+    with ex -> getExceptionTrace ex |> failwithf "\nUnable to generate context files: %s"
+    #endif
 
 
   static member SaveMetadataToFile(xrmAuth, rSettings, ?filePath) =

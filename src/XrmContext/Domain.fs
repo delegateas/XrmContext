@@ -47,7 +47,134 @@ type XcRetrievalSettings = {
   solutions: string[] option
 }
 
+type SolutionFileSettings = {
+  solutionFolderPath: string
+}
 
+type LocalizedLabel = {
+  Label: string
+  LanguageCode: int
+}
+
+type LabelGroup = {
+  UserLocalizedLabel: LocalizedLabel
+  LocalizedLabels: LocalizedLabel array
+}
+
+
+type RawAttributeFields = {
+  SchemaName: string
+  LogicalName: string
+  DisplayName: LabelGroup
+  Description: LabelGroup
+  AttributeType: AttributeTypeCode
+  IsValidForCreate: bool
+  IsValidForRead: bool
+  IsValidForUpdate: bool
+  AttributeOf: string
+}
+
+type EnumOption = {
+  Label: LabelGroup
+  Description: LabelGroup
+  Color: string
+  Value: int
+}
+
+type EnumAttributeFields = {
+  Options: EnumOption[]
+  OptionSetType: OptionSetType
+  IsGlobal: bool
+  SchemaName: string
+  Name: string
+  DisplayName: LabelGroup
+}
+type EnumAttribute = RawAttributeFields * EnumAttributeFields
+
+type StringAttributeFields = {
+  MaxLength: int option
+}
+
+type IntAttributeFields = {
+  MinValue: int option
+  MaxValue: int option
+}
+
+type EnumCollectionAttribute = RawAttributeFields
+
+type VirtualAttribute = 
+  | OptionSetCollectionAttribute of EnumCollectionAttribute
+
+type RawAttribute = 
+  | StringAttribute of RawAttributeFields * StringAttributeFields
+  | IntAttribute of RawAttributeFields * IntAttributeFields
+  | BigIntAttribute of RawAttributeFields
+  | BooleanAttribute of RawAttributeFields
+  | DateTimeAttribute of RawAttributeFields
+  | DecimalAttribute of RawAttributeFields
+  | DoubleAttribute of RawAttributeFields
+  | EnumAttribute of EnumAttribute
+  | FileAttribute of RawAttributeFields
+  | ImageAttribute of RawAttributeFields
+  | LookupAttribute of RawAttributeFields
+  | MemoAttribute of RawAttributeFields
+  | MoneyAttribute of RawAttributeFields
+  | VirtualAttribute of VirtualAttribute
+
+type RawAttributeType =
+  | BigInt
+  | Boolean
+  | DateTime
+  | Decimal
+  | Double
+  | Enum
+  | File
+  | Image
+  | Int
+  | Lookup
+  | Memo
+  | Money
+  | String
+
+
+type RawKey = {
+  DisplayName: LabelGroup
+  SchemaName: string
+  Attributes: string array
+}
+
+type RawOneToMany = {
+  SchemaName: string
+  ReferencingEntity: string
+  ReferencingAttribute: string
+  ReferencedEntity: string
+  ReferencedAttribute: string
+}
+
+type RawManyToMany = {
+  SchemaName: string
+  Entity1LogicalName: string
+  Entity1IntersectAttribute: string
+  Entity2LogicalName: string
+  Entity2IntersectAttribute: string
+}
+
+type RawEntity = {
+  LogicalName: string
+  SchemaName: string
+  ObjectTypeCode: int option
+  DisplayName: LabelGroup
+  Description: LabelGroup
+  IsPrivate: bool
+  Attributes: RawAttribute array
+  Keys: RawKey array
+  OneToManyRelationships: RawOneToMany array
+  ManyToOneRelationships: RawOneToMany array
+  ManyToManyRelationships: RawManyToMany array
+  IsIntersect: bool
+  PrimaryNameAttribute: string
+  PrimaryIdAttribute: string
+}
 
 /// Serializable record containing necessary (meta)data
 [<DataContract>]
@@ -57,5 +184,5 @@ type RawState = {
   crmVersion: Version
 
   [<field : DataMember>]
-  metadata: EntityMetadata[]
+  metadata: RawEntity[]
 }
