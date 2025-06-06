@@ -305,17 +305,9 @@ namespace DataverseProxyGenerator.Core.Metadata
             Precision = attr.Precision
         };
 
-        private EnumColumnModel BuildEnumColumn(EnumAttributeMetadata attr, Dictionary<string, string> labelMapping) => new EnumColumnModel
+        private EnumColumnModel BuildEnumColumn(EnumAttributeMetadata attr, Dictionary<string, string> labelMapping)
         {
-            LogicalName = attr.LogicalName,
-            SchemaName = attr.SchemaName,
-            DisplayName = ApplyLabelMapping(attr.DisplayName?.UserLocalizedLabel?.Label ?? attr.LogicalName, labelMapping),
-            Description = ApplyLabelMapping(attr.Description?.UserLocalizedLabel?.Label ?? string.Empty, labelMapping),
-            IsPrimaryKey = false,
-            IsNullable = attr.RequiredLevel?.Value != AttributeRequiredLevel.ApplicationRequired,
-            OptionsetName = attr.OptionSet?.Name ?? attr.LogicalName,
-            IsGlobalOptionset = attr.OptionSet?.IsGlobal ?? false,
-            OptionsetValues = attr.OptionSet?.Options?
+            var optionsetValues = attr.OptionSet?.Options?
                 .Where(o => o.Value != null)
                 .ToDictionary(
                     o => o.Value.GetValueOrDefault(),
@@ -342,8 +334,53 @@ namespace DataverseProxyGenerator.Core.Metadata
                         }
                         return label;
                     }
-                ) ?? new Dictionary<int, string>()
-        };
+                ) ?? new Dictionary<int, string>();
+
+            // Build OptionLocalizations: option value -> (LCID -> label)
+            var optionLocalizations = new Dictionary<int, Dictionary<int, string>>();
+            if (attr.OptionSet?.Options != null)
+            {
+                foreach (var o in attr.OptionSet.Options)
+                {
+                    if (o.Value == null) continue;
+                    var value = o.Value.GetValueOrDefault();
+                    var localizations = new Dictionary<int, string>();
+                    if (o.Label?.LocalizedLabels != null)
+                    {
+                        foreach (var loc in o.Label.LocalizedLabels)
+                        {
+                            if (!string.IsNullOrWhiteSpace(loc.Label))
+                            {
+                                localizations[loc.LanguageCode] = loc.Label;
+                            }
+                        }
+                    }
+                    // Always include the userlocalized label if present
+                    if (o.Label?.UserLocalizedLabel != null && !string.IsNullOrWhiteSpace(o.Label.UserLocalizedLabel.Label))
+                    {
+                        localizations[o.Label.UserLocalizedLabel.LanguageCode] = o.Label.UserLocalizedLabel.Label;
+                    }
+                    if (localizations.Count > 0)
+                    {
+                        optionLocalizations[value] = localizations;
+                    }
+                }
+            }
+
+            return new EnumColumnModel
+            {
+                LogicalName = attr.LogicalName,
+                SchemaName = attr.SchemaName,
+                DisplayName = ApplyLabelMapping(attr.DisplayName?.UserLocalizedLabel?.Label ?? attr.LogicalName, labelMapping),
+                Description = ApplyLabelMapping(attr.Description?.UserLocalizedLabel?.Label ?? string.Empty, labelMapping),
+                IsPrimaryKey = false,
+                IsNullable = attr.RequiredLevel?.Value != AttributeRequiredLevel.ApplicationRequired,
+                OptionsetName = attr.OptionSet?.Name ?? attr.LogicalName,
+                IsGlobalOptionset = attr.OptionSet?.IsGlobal ?? false,
+                OptionsetValues = optionsetValues,
+                OptionLocalizations = optionLocalizations
+            };
+        }
 
         private LookupColumnModel BuildLookupColumn(LookupAttributeMetadata attr, Dictionary<string, string> labelMapping) => new LookupColumnModel
         {

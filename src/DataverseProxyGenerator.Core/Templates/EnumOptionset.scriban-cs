@@ -1,9 +1,12 @@
 // {{optionsetName}}.cs
-namespace DataverseProxies.Optionsets
+namespace {{namespace}}
 {
     public enum {{optionsetName | string.capitalize}}
     {
         {{~ for pair in optionsetValues ~}}
+        {{~ for loc in pair.Localizations ~}}
+        [OptionSetMetadata("{{ loc.Value }}", Lcid={{ loc.Key }})]
+        {{~ end ~}}
         {{ pair.Name }} = {{ pair.Value }},
         {{~ end ~}}
     }

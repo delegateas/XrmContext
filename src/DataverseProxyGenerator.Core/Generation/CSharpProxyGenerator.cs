@@ -48,6 +48,7 @@ namespace DataverseProxyGenerator.Core.Generation
         private static string ProxyClassTemplatePath => Path.Combine(GetTemplatesDirectory(), "ProxyClass.scriban-cs");
         private static string EnumTemplatePath => Path.Combine(GetTemplatesDirectory(), "EnumOptionset.scriban-cs");
         private static string IntersectionInterfaceTemplatePath => Path.Combine(GetTemplatesDirectory(), "IntersectionInterface.scriban-cs");
+        private static string OptionSetMetadataAttributeTemplatePath => Path.Combine(GetTemplatesDirectory(), "OptionSetMetadataAttribute.scriban-cs");
 
         public CSharpProxyGenerator()
         {
@@ -55,7 +56,7 @@ namespace DataverseProxyGenerator.Core.Generation
 
         public IEnumerable<GeneratedFile> GenerateCode(IEnumerable<TableModel> tables, string @namespace, Dictionary<string, List<string>> intersectMapping)
         {
-            var (proxyTemplate, enumTemplate, interfaceTemplate) = LoadAllTemplates();
+            var (proxyTemplate, enumTemplate, interfaceTemplate, optionSetMetadataAttributeTemplate) = LoadAllTemplatesWithAttribute();
 
             var files = new List<GeneratedFile>();
 
@@ -89,6 +90,10 @@ namespace DataverseProxyGenerator.Core.Generation
             // Generate enums as before
             files.AddRange(GenerateEnumFiles(GetGlobalOptionsets(tables), @namespace, enumTemplate));
 
+            // Generate OptionSetMetadataAttribute
+            var attributeResult = optionSetMetadataAttributeTemplate.Render(new { @namespace }, member => member.Name);
+            files.Add(new GeneratedFile(Path.Combine("attributes", "OptionSetMetadataAttribute.cs"), attributeResult));
+
             return files;
         }
 
@@ -104,6 +109,23 @@ namespace DataverseProxyGenerator.Core.Generation
             var interfaceTemplate = Template.Parse(interfaceTemplateText);
 
             return (proxyTemplate, enumTemplate, interfaceTemplate);
+        }
+
+        private (Template proxyTemplate, Template enumTemplate, Template interfaceTemplate, Template optionSetMetadataAttributeTemplate) LoadAllTemplatesWithAttribute()
+        {
+            var proxyTemplateText = File.ReadAllText(ProxyClassTemplatePath);
+            var proxyTemplate = Template.Parse(proxyTemplateText);
+
+            var enumTemplateText = File.ReadAllText(EnumTemplatePath);
+            var enumTemplate = Template.Parse(enumTemplateText);
+
+            var interfaceTemplateText = File.ReadAllText(IntersectionInterfaceTemplatePath);
+            var interfaceTemplate = Template.Parse(interfaceTemplateText);
+
+            var optionSetMetadataAttributeTemplateText = File.ReadAllText(OptionSetMetadataAttributeTemplatePath);
+            var optionSetMetadataAttributeTemplate = Template.Parse(optionSetMetadataAttributeTemplateText);
+
+            return (proxyTemplate, enumTemplate, interfaceTemplate, optionSetMetadataAttributeTemplate);
         }
 
         private IEnumerable<EnumColumnModel> GetGlobalOptionsets(IEnumerable<TableModel> tables)
@@ -126,7 +148,10 @@ namespace DataverseProxyGenerator.Core.Generation
                     optionsetValues = optionset.OptionsetValues.Select(kvp => new
                     {
                         Value = kvp.Key,
-                        Name = kvp.Value
+                        Name = kvp.Value,
+                        Localizations = optionset.OptionLocalizations != null && optionset.OptionLocalizations.ContainsKey(kvp.Key)
+                            ? optionset.OptionLocalizations[kvp.Key]
+                            : new Dictionary<int, string>()
                     }),
                     @namespace
                 }, member => member.Name);

@@ -1,0 +1,17 @@
+using System;
+
+namespace {{namespace}}
+{
+    [AttributeUsage(AttributeTargets.Field, AllowMultiple = true)]
+    public class OptionSetMetadataAttribute : Attribute
+    {
+        public string Label { get; }
+        public int Lcid { get; }
+
+        public OptionSetMetadataAttribute(string label, int lcid)
+        {
+            Label = label;
+            Lcid = lcid;
+        }
+    }
+}
