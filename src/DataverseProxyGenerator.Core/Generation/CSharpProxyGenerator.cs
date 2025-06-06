@@ -83,7 +83,7 @@ namespace DataverseProxyGenerator.Core.Generation
                     },
                     @namespace
                 }, member => member.Name);
-                files.Add(new GeneratedFile($"{table.SchemaName}.cs", result));
+                files.Add(new GeneratedFile(Path.Combine("tables", $"{table.SchemaName}.cs"), result));
             }
 
             // Generate enums as before
