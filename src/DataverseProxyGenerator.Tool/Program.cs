@@ -100,15 +100,17 @@ namespace DataverseProxyGenerator.Tool
             };
 
             rootCommand.SetHandler(
-                async (string outputDirectory, string[] solutions, string[] entities, string @namespace, string deprecatedPrefix) =>
+                async (string outputDirectory, string[] solutions, string[] entities, string @namespace, string deprecatedPrefix, string[] labelMappings) =>
                 {
                     var (normalizedSolutions, normalizedEntities) = NormalizeArguments(solutions, entities);
 
                     var host = BuildHost();
 
-                    await RunWorkflowAsync(host, outputDirectory, normalizedSolutions, normalizedEntities, @namespace, deprecatedPrefix);
+                    var labelMappingDict = ParseLabelMappings(labelMappings);
+
+                    await RunWorkflowAsync(host, outputDirectory, normalizedSolutions, normalizedEntities, @namespace, deprecatedPrefix, labelMappingDict);
                 },
-                outputDirectoryOption, solutionsOption, entitiesOption, namespaceOption, deprecatedPrefixOption);
+                outputDirectoryOption, solutionsOption, entitiesOption, namespaceOption, deprecatedPrefixOption, labelMappingsOption);
 
             return rootCommand;
         }
@@ -151,7 +153,8 @@ namespace DataverseProxyGenerator.Tool
             string[] solutions,
             string[] entities,
             string @namespace,
-            string deprecatedPrefix)
+            string deprecatedPrefix,
+            Dictionary<string, string> labelMapping)
         {
             var fetcher = host.Services.GetRequiredService<IDataverseMetadataFetcher>();
             var serviceClient = host.Services.GetRequiredService<Microsoft.PowerPlatform.Dataverse.Client.ServiceClient>();
@@ -161,7 +164,7 @@ namespace DataverseProxyGenerator.Tool
             try
             {
                 Console.WriteLine("Fetching Dataverse metadata...");
-                var tables = await fetcher.FetchMetadataAsync(serviceClient, solutions, entities, deprecatedPrefix);
+                var tables = await fetcher.FetchMetadataAsync(serviceClient, solutions, entities, deprecatedPrefix, labelMapping);
 
                 Console.WriteLine("Generating proxy classes...");
                 var files = generator.GenerateCode(tables, @namespace);
@@ -175,6 +178,22 @@ namespace DataverseProxyGenerator.Tool
             {
                 Console.WriteLine($"Error: {ex.Message}");
             }
+        }
+
+        private static Dictionary<string, string> ParseLabelMappings(string[] labelMappings)
+        {
+            var dict = new Dictionary<string, string>();
+            foreach (var mapping in labelMappings)
+            {
+                var parts = mapping.Split(':', 2);
+                if (parts.Length == 2)
+                {
+                    var key = System.Text.RegularExpressions.Regex.Unescape(parts[0].Trim());
+                    var value = parts[1].Trim();
+                    dict[key] = value;
+                }
+            }
+            return dict;
         }
     }
 }

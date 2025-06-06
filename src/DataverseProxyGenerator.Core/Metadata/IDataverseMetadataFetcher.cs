@@ -18,6 +18,7 @@ namespace DataverseProxyGenerator.Core.Metadata
             Microsoft.PowerPlatform.Dataverse.Client.ServiceClient serviceClient,
             IEnumerable<string> solutionUniqueNames,
             IEnumerable<string> logicalNames,
-            string? deprecatedPrefix);
+            string? deprecatedPrefix,
+            Dictionary<string, string> labelMapping);
     }
 }
