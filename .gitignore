@@ -1,0 +1,65 @@
+# .NET build outputs
+bin/
+obj/
+out/
+
+# User-specific files
+*.user
+*.suo
+*.userprefs
+
+# Visual Studio/VSCode
+.vs/
+.vscode/
+
+# NuGet packages (if using packages folder, not recommended)
+packages/
+
+# Test results
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+
+# Build logs
+*.log
+
+# OS generated files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Rider IDE
+.idea/
+*.sln.iml
+
+# Resharper
+_ReSharper*/
+*.[Rr]e[Ss]harper
+
+# DotCover
+*.dotCover
+
+# NCrunch
+*.ncrunch*
+.*crunch*.local.xml
+
+# Local history for JetBrains IDEs
+.localhistory/
+
+# Temporary files
+~$*
+
+# Auto-generated files
+*.generated.cs
+
+# Others
+*.swp
+*.bak
+*.tmp
+*.orig
+
+# output dir for debugging
+output/
+src/DataverseProxyGenerator.Tool/appsettings.json

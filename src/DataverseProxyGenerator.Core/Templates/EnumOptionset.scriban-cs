@@ -1,0 +1,10 @@
+// {{optionsetName}}.cs
+namespace DataverseProxies.Optionsets
+{
+    public enum {{optionsetName | string.capitalize}}
+    {
+        {{~ for pair in optionsetValues ~}}
+        {{ pair.Name }} = {{ pair.Value }},
+        {{~ end ~}}
+    }
+}
