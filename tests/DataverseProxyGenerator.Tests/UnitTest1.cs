@@ -25,7 +25,7 @@ namespace DataverseProxyGenerator.Tests
             var generator = new CSharpProxyGenerator();
 
             // Act
-            var files = generator.GenerateCode([table], "TestNamespace");
+            var files = generator.GenerateCode([table], "TestNamespace", []);
 
             // Assert
             var file = Assert.Single(files);
@@ -52,7 +52,7 @@ namespace DataverseProxyGenerator.Tests
             var generator = new CSharpProxyGenerator();
 
             // Act
-            var files = generator.GenerateCode([table], "TestNamespace");
+            var files = generator.GenerateCode([table], "TestNamespace", []);
 
             // Assert
             var file = Assert.Single(files);
@@ -88,7 +88,7 @@ namespace DataverseProxyGenerator.Tests
             var generator = new CSharpProxyGenerator();
 
             // Act
-            var files = generator.GenerateCode([table], "TestNamespace");
+            var files = generator.GenerateCode([table], "TestNamespace", []);
 
             // Assert
             var file = Assert.Single(files);

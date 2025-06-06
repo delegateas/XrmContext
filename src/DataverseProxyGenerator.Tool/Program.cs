@@ -100,7 +100,7 @@ namespace DataverseProxyGenerator.Tool
             };
 
             rootCommand.SetHandler(
-                async (string outputDirectory, string[] solutions, string[] entities, string @namespace, string deprecatedPrefix, string[] labelMappings) =>
+                async (string outputDirectory, string[] solutions, string[] entities, string @namespace, string deprecatedPrefix, string[] intersect, string[] labelMappings) =>
                 {
                     var (normalizedSolutions, normalizedEntities) = NormalizeArguments(solutions, entities);
 
@@ -108,9 +108,11 @@ namespace DataverseProxyGenerator.Tool
 
                     var labelMappingDict = ParseLabelMappings(labelMappings);
 
-                    await RunWorkflowAsync(host, outputDirectory, normalizedSolutions, normalizedEntities, @namespace, deprecatedPrefix, labelMappingDict);
+                    var intersectMapping = ParseIntersectArgument(intersect);
+
+                    await RunWorkflowAsync(host, outputDirectory, normalizedSolutions, normalizedEntities, @namespace, deprecatedPrefix, intersectMapping, labelMappingDict);
                 },
-                outputDirectoryOption, solutionsOption, entitiesOption, namespaceOption, deprecatedPrefixOption, labelMappingsOption);
+                outputDirectoryOption, solutionsOption, entitiesOption, namespaceOption, deprecatedPrefixOption, intersectOption, labelMappingsOption);
 
             return rootCommand;
         }
@@ -154,6 +156,7 @@ namespace DataverseProxyGenerator.Tool
             string[] entities,
             string @namespace,
             string deprecatedPrefix,
+            Dictionary<string, List<string>> intersectMapping,
             Dictionary<string, string> labelMapping)
         {
             var fetcher = host.Services.GetRequiredService<IDataverseMetadataFetcher>();
@@ -166,13 +169,13 @@ namespace DataverseProxyGenerator.Tool
                 Console.WriteLine("Fetching Dataverse metadata...");
                 var tables = await fetcher.FetchMetadataAsync(serviceClient, solutions, entities, deprecatedPrefix, labelMapping);
 
-                Console.WriteLine("Generating proxy classes...");
-                var files = generator.GenerateCode(tables, @namespace);
+                Console.WriteLine("Generating proxy classes and intersection interfaces...");
+                var files = generator.GenerateCode(tables, @namespace, intersectMapping);
 
                 Console.WriteLine($"Writing files to {outputDirectory}...");
                 writer.WriteFiles(files, outputDirectory);
 
-                Console.WriteLine("Proxy class generation complete.");
+                Console.WriteLine("Proxy class and intersection interface generation complete.");
             }
             catch (Exception ex)
             {
@@ -194,6 +197,23 @@ namespace DataverseProxyGenerator.Tool
                 }
             }
             return dict;
+        }
+
+        private static Dictionary<string, List<string>> ParseIntersectArgument(string[] intersect)
+        {
+            // Example input: [ "ICustomer:account;contact", "IActivity:phonecall;email;task" ]
+            var result = new Dictionary<string, List<string>>();
+            foreach (var entry in intersect)
+            {
+                var parts = entry.Split(':', 2);
+                if (parts.Length == 2)
+                {
+                    var interfaceName = parts[0].Trim();
+                    var tableList = parts[1].Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                    result[interfaceName] = new List<string>(tableList);
+                }
+            }
+            return result;
         }
     }
 }

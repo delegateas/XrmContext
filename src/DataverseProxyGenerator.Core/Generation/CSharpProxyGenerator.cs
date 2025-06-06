@@ -8,13 +8,33 @@ namespace DataverseProxyGenerator.Core.Generation
 {
     public class CSharpProxyGenerator : ICodeGenerator
     {
+        // Helper struct for fast column comparison
+        private struct ColumnSignature
+        {
+            public string SchemaName { get; }
+            public string TypeName { get; }
+            public ColumnSignature(string schemaName, string typeName)
+            {
+                SchemaName = schemaName;
+                TypeName = typeName;
+            }
+            public override bool Equals(object obj)
+            {
+                return obj is ColumnSignature other &&
+                    SchemaName == other.SchemaName &&
+                    TypeName == other.TypeName;
+            }
+            public override int GetHashCode()
+            {
+                return (SchemaName, TypeName).GetHashCode();
+            }
+        }
+
         private static string GetTemplatesDirectory()
         {
-            // Get the directory of the currently executing assembly (Core project)
             var assemblyDir = Path.GetDirectoryName(typeof(CSharpProxyGenerator).Assembly.Location);
             if (assemblyDir == null)
                 throw new DirectoryNotFoundException("Could not determine the directory of the executing assembly.");
-            // Traverse up to the project root (assume /bin/Debug/net8.0/ -> project root)
             var dir = new DirectoryInfo(assemblyDir);
             while (dir != null && !Directory.Exists(Path.Combine(dir.FullName, "src")))
             {
@@ -27,19 +47,119 @@ namespace DataverseProxyGenerator.Core.Generation
 
         private static string ProxyClassTemplatePath => Path.Combine(GetTemplatesDirectory(), "ProxyClass.scriban-cs");
         private static string EnumTemplatePath => Path.Combine(GetTemplatesDirectory(), "EnumOptionset.scriban-cs");
+        private static string IntersectionInterfaceTemplatePath => Path.Combine(GetTemplatesDirectory(), "IntersectionInterface.scriban-cs");
 
         public CSharpProxyGenerator()
         {
-            // No parameters needed, templates are always loaded from known location
         }
 
-        public IEnumerable<GeneratedFile> GenerateCode(IEnumerable<TableModel> tables, string @namespace)
+        public IEnumerable<GeneratedFile> GenerateCode(IEnumerable<TableModel> tables, string @namespace, Dictionary<string, List<string>> intersectMapping)
         {
-            var (template, enumTemplate) = LoadTemplates();
+            var (proxyTemplate, enumTemplate) = LoadTemplates();
+            var interfaceTemplate = LoadIntersectionInterfaceTemplate();
 
             var files = new List<GeneratedFile>();
 
-            files.AddRange(GenerateTableProxyFiles(tables, @namespace, template));
+            // Build intersection data structures up front
+            var tableDict = tables.ToDictionary(t => t.LogicalName, t => t);
+            var tableColumns = new Dictionary<string, HashSet<ColumnSignature>>();
+            foreach (var t in tables)
+            {
+                var set = new HashSet<ColumnSignature>();
+                foreach (var c in t.Columns)
+                {
+                    set.Add(new ColumnSignature(c.SchemaName, c.TypeName));
+                }
+                tableColumns[t.LogicalName] = set;
+            }
+
+            var interfaceColumns = new Dictionary<string, HashSet<ColumnSignature>>();
+            var tableToInterfaces = new Dictionary<string, List<string>>();
+
+            if (intersectMapping != null && intersectMapping.Count > 0)
+            {
+                foreach (var kvp in intersectMapping)
+                {
+                    var interfaceName = kvp.Key;
+                    var tableNames = kvp.Value.Where(tableDict.ContainsKey).ToList();
+                    if (tableNames.Count == 0) continue;
+
+                    var sets = tableNames.Select(n => tableColumns[n]).ToList();
+                    var intersection = new HashSet<ColumnSignature>(sets[0]);
+                    foreach (var s in sets.Skip(1))
+                        intersection.IntersectWith(s);
+
+                    if (intersection.Count > 0)
+                    {
+                        interfaceColumns[interfaceName] = intersection;
+                    }
+
+                    foreach (var tableName in tableNames)
+                    {
+                        if (!tableToInterfaces.TryGetValue(tableName, out var list))
+                        {
+                            list = new List<string>();
+                            tableToInterfaces[tableName] = list;
+                        }
+                        if (!list.Contains(interfaceName))
+                            list.Add(interfaceName);
+                    }
+                }
+            }
+
+            // Unified code generation loop
+            // 1. Generate intersection interfaces (if any)
+            foreach (var kvp in interfaceColumns)
+            {
+                var interfaceName = kvp.Key;
+                var colSigs = kvp.Value;
+                var columns = new List<object>();
+                foreach (var sig in colSigs)
+                {
+                    var col = tables.SelectMany(t => t.Columns)
+                        .FirstOrDefault(c => c.SchemaName == sig.SchemaName && c.TypeName == sig.TypeName);
+                    if (col != null)
+                    {
+                        columns.Add(new
+                        {
+                            col.SchemaName,
+                            col.DisplayName,
+                            col.Description,
+                            TypeSignature = GetPropertyTypeSignature(col)
+                        });
+                    }
+                }
+                var interfaceResult = interfaceTemplate.Render(new
+                {
+                    interfaceName,
+                    @namespace,
+                    columns
+                }, member => member.Name);
+
+                files.Add(new GeneratedFile(Path.Combine("intersections", $"{interfaceName}.cs"), interfaceResult));
+            }
+
+            // 2. Generate proxy classes (with interfaces if needed)
+            foreach (var table in tables)
+            {
+                var interfaces = tableToInterfaces.TryGetValue(table.LogicalName, out var ifaces) ? ifaces : new List<string>();
+                var result = proxyTemplate.Render(new
+                {
+                    table = new
+                    {
+                        SchemaName = table.SchemaName,
+                        Columns = table.Columns,
+                        Relationships = table.Relationships,
+                        LogicalName = table.LogicalName,
+                        DisplayName = table.DisplayName,
+                        InterfacesList = interfaces
+                    },
+                    @namespace
+                }, member => member.Name);
+                files.Add(new GeneratedFile($"{table.SchemaName}.cs", result));
+            }
+
+            // 3. Generate enums as before
             files.AddRange(GenerateEnumFiles(GetGlobalOptionsets(tables), @namespace, enumTemplate));
 
             return files;
@@ -56,13 +176,10 @@ namespace DataverseProxyGenerator.Core.Generation
             return (proxyTemplate, enumTemplate);
         }
 
-        private IEnumerable<GeneratedFile> GenerateTableProxyFiles(IEnumerable<TableModel> tables, string @namespace, Template template)
+        private Template LoadIntersectionInterfaceTemplate()
         {
-            foreach (var table in tables)
-            {
-                var result = template.Render(new { table, @namespace }, member => member.Name);
-                yield return new GeneratedFile($"{table.SchemaName}.cs", result);
-            }
+            var text = File.ReadAllText(IntersectionInterfaceTemplatePath);
+            return Template.Parse(text);
         }
 
         private IEnumerable<EnumColumnModel> GetGlobalOptionsets(IEnumerable<TableModel> tables)
@@ -91,6 +208,42 @@ namespace DataverseProxyGenerator.Core.Generation
                 }, member => member.Name);
 
                 yield return new GeneratedFile(Path.Combine("optionsets", $"{optionset.OptionsetName}.cs"), enumResult);
+            }
+        }
+
+        private string GetPropertyTypeSignature(ColumnModel col)
+        {
+            switch (col.TypeName)
+            {
+                case "StringColumnModel":
+                case "MemoColumnModel":
+                    return "string";
+                case "IntegerColumnModel":
+                    return col.IsNullable ? "int?" : "int";
+                case "BigIntColumnModel":
+                    return col.IsNullable ? "long?" : "long";
+                case "BooleanColumnModel":
+                    return col.IsNullable ? "bool?" : "bool";
+                case "DateTimeColumnModel":
+                    return col.IsNullable ? "DateTime?" : "DateTime";
+                case "DecimalColumnModel":
+                    return col.IsNullable ? "decimal?" : "decimal";
+                case "DoubleColumnModel":
+                    return col.IsNullable ? "double?" : "double";
+                case "MoneyColumnModel":
+                    return col.IsNullable ? "decimal?" : "decimal";
+                case "EnumColumnModel":
+                    var enumName = (col as EnumColumnModel)?.OptionsetName ?? "int";
+                    return col.IsNullable ? $"{enumName}?" : enumName;
+                case "LookupColumnModel":
+                    return "EntityReference";
+                case "FileColumnModel":
+                case "ImageColumnModel":
+                    return "byte[]";
+                case "UniqueIdentifierColumnModel":
+                    return col.IsNullable ? "System.Guid?" : "System.Guid";
+                default:
+                    return "object";
             }
         }
     }

@@ -11,11 +11,12 @@ namespace DataverseProxyGenerator.Core.Generation
     public interface ICodeGenerator
     {
         /// <summary>
-        /// Generates code files from the provided Dataverse table models.
+        /// Generates code files from the provided Dataverse table models, including intersection interfaces.
         /// </summary>
         /// <param name="tables">The Dataverse table models to generate code for.</param>
         /// <param name="namespace">The namespace to use in generated code.</param>
+        /// <param name="intersectMapping">Mapping of interface names to lists of table schema names for intersection interfaces.</param>
         /// <returns>A collection of generated files (filename and content).</returns>
-        IEnumerable<GeneratedFile> GenerateCode(IEnumerable<TableModel> tables, string @namespace);
+        IEnumerable<GeneratedFile> GenerateCode(IEnumerable<TableModel> tables, string @namespace, Dictionary<string, List<string>> intersectMapping);
     }
 }
