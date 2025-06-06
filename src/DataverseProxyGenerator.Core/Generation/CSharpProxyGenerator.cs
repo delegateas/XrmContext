@@ -55,13 +55,90 @@ namespace DataverseProxyGenerator.Core.Generation
 
         public IEnumerable<GeneratedFile> GenerateCode(IEnumerable<TableModel> tables, string @namespace, Dictionary<string, List<string>> intersectMapping)
         {
-            var (proxyTemplate, enumTemplate) = LoadTemplates();
-            var interfaceTemplate = LoadIntersectionInterfaceTemplate();
+            var (proxyTemplate, enumTemplate, interfaceTemplate) = LoadAllTemplates();
 
             var files = new List<GeneratedFile>();
 
-            // Build intersection data structures up front
             var tableDict = tables.ToDictionary(t => t.LogicalName, t => t);
+            var tableColumns = BuildTableColumns(tables);
+
+            var (interfaceColumns, tableToInterfaces) = BuildIntersectionData(intersectMapping, tableDict, tableColumns);
+
+            files.AddRange(GenerateIntersectionInterfaceFiles(interfaceColumns, tables, @namespace, interfaceTemplate));
+
+            // Generate proxy classes (with interfaces if needed)
+            foreach (var table in tables)
+            {
+                var interfaces = tableToInterfaces.TryGetValue(table.LogicalName, out var ifaces) ? ifaces : new List<string>();
+                var result = proxyTemplate.Render(new
+                {
+                    table = new
+                    {
+                        SchemaName = table.SchemaName,
+                        Columns = table.Columns,
+                        Relationships = table.Relationships,
+                        LogicalName = table.LogicalName,
+                        DisplayName = table.DisplayName,
+                        InterfacesList = interfaces
+                    },
+                    @namespace
+                }, member => member.Name);
+                files.Add(new GeneratedFile($"{table.SchemaName}.cs", result));
+            }
+
+            // Generate enums as before
+            files.AddRange(GenerateEnumFiles(GetGlobalOptionsets(tables), @namespace, enumTemplate));
+
+            return files;
+        }
+
+        private (Template proxyTemplate, Template enumTemplate, Template interfaceTemplate) LoadAllTemplates()
+        {
+            var proxyTemplateText = File.ReadAllText(ProxyClassTemplatePath);
+            var proxyTemplate = Template.Parse(proxyTemplateText);
+
+            var enumTemplateText = File.ReadAllText(EnumTemplatePath);
+            var enumTemplate = Template.Parse(enumTemplateText);
+
+            var interfaceTemplateText = File.ReadAllText(IntersectionInterfaceTemplatePath);
+            var interfaceTemplate = Template.Parse(interfaceTemplateText);
+
+            return (proxyTemplate, enumTemplate, interfaceTemplate);
+        }
+
+        private IEnumerable<EnumColumnModel> GetGlobalOptionsets(IEnumerable<TableModel> tables)
+        {
+            return tables
+                .SelectMany(t => t.Columns)
+                .OfType<EnumColumnModel>()
+                .Where(c => c.IsGlobalOptionset && !string.IsNullOrEmpty(c.OptionsetName) && c.OptionsetValues != null)
+                .GroupBy(c => c.OptionsetName)
+                .Select(g => g.First());
+        }
+
+        private IEnumerable<GeneratedFile> GenerateEnumFiles(IEnumerable<EnumColumnModel> globalOptionsets, string @namespace, Template enumTemplate)
+        {
+            foreach (var optionset in globalOptionsets)
+            {
+                var enumResult = enumTemplate.Render(new
+                {
+                    optionsetName = optionset.OptionsetName,
+                    optionsetValues = optionset.OptionsetValues.Select(kvp => new
+                    {
+                        Value = kvp.Key,
+                        Name = kvp.Value
+                    }),
+                    @namespace
+                }, member => member.Name);
+
+                yield return new GeneratedFile(Path.Combine("optionsets", $"{optionset.OptionsetName}.cs"), enumResult);
+            }
+        }
+
+        // --- Extracted Helper Methods ---
+
+        private Dictionary<string, HashSet<ColumnSignature>> BuildTableColumns(IEnumerable<TableModel> tables)
+        {
             var tableColumns = new Dictionary<string, HashSet<ColumnSignature>>();
             foreach (var t in tables)
             {
@@ -72,7 +149,12 @@ namespace DataverseProxyGenerator.Core.Generation
                 }
                 tableColumns[t.LogicalName] = set;
             }
+            return tableColumns;
+        }
 
+        private (Dictionary<string, HashSet<ColumnSignature>> interfaceColumns, Dictionary<string, List<string>> tableToInterfaces)
+            BuildIntersectionData(Dictionary<string, List<string>> intersectMapping, Dictionary<string, TableModel> tableDict, Dictionary<string, HashSet<ColumnSignature>> tableColumns)
+        {
             var interfaceColumns = new Dictionary<string, HashSet<ColumnSignature>>();
             var tableToInterfaces = new Dictionary<string, List<string>>();
 
@@ -107,8 +189,15 @@ namespace DataverseProxyGenerator.Core.Generation
                 }
             }
 
-            // Unified code generation loop
-            // 1. Generate intersection interfaces (if any)
+            return (interfaceColumns, tableToInterfaces);
+        }
+
+        private IEnumerable<GeneratedFile> GenerateIntersectionInterfaceFiles(
+            Dictionary<string, HashSet<ColumnSignature>> interfaceColumns,
+            IEnumerable<TableModel> tables,
+            string @namespace,
+            Template interfaceTemplate)
+        {
             foreach (var kvp in interfaceColumns)
             {
                 var interfaceName = kvp.Key;
@@ -136,78 +225,7 @@ namespace DataverseProxyGenerator.Core.Generation
                     columns
                 }, member => member.Name);
 
-                files.Add(new GeneratedFile(Path.Combine("intersections", $"{interfaceName}.cs"), interfaceResult));
-            }
-
-            // 2. Generate proxy classes (with interfaces if needed)
-            foreach (var table in tables)
-            {
-                var interfaces = tableToInterfaces.TryGetValue(table.LogicalName, out var ifaces) ? ifaces : new List<string>();
-                var result = proxyTemplate.Render(new
-                {
-                    table = new
-                    {
-                        SchemaName = table.SchemaName,
-                        Columns = table.Columns,
-                        Relationships = table.Relationships,
-                        LogicalName = table.LogicalName,
-                        DisplayName = table.DisplayName,
-                        InterfacesList = interfaces
-                    },
-                    @namespace
-                }, member => member.Name);
-                files.Add(new GeneratedFile($"{table.SchemaName}.cs", result));
-            }
-
-            // 3. Generate enums as before
-            files.AddRange(GenerateEnumFiles(GetGlobalOptionsets(tables), @namespace, enumTemplate));
-
-            return files;
-        }
-
-        private (Template proxyTemplate, Template enumTemplate) LoadTemplates()
-        {
-            var templateText = File.ReadAllText(ProxyClassTemplatePath);
-            var proxyTemplate = Template.Parse(templateText);
-
-            var enumTemplateText = File.ReadAllText(EnumTemplatePath);
-            var enumTemplate = Template.Parse(enumTemplateText);
-
-            return (proxyTemplate, enumTemplate);
-        }
-
-        private Template LoadIntersectionInterfaceTemplate()
-        {
-            var text = File.ReadAllText(IntersectionInterfaceTemplatePath);
-            return Template.Parse(text);
-        }
-
-        private IEnumerable<EnumColumnModel> GetGlobalOptionsets(IEnumerable<TableModel> tables)
-        {
-            return tables
-                .SelectMany(t => t.Columns)
-                .OfType<EnumColumnModel>()
-                .Where(c => c.IsGlobalOptionset && !string.IsNullOrEmpty(c.OptionsetName) && c.OptionsetValues != null)
-                .GroupBy(c => c.OptionsetName)
-                .Select(g => g.First());
-        }
-
-        private IEnumerable<GeneratedFile> GenerateEnumFiles(IEnumerable<EnumColumnModel> globalOptionsets, string @namespace, Template enumTemplate)
-        {
-            foreach (var optionset in globalOptionsets)
-            {
-                var enumResult = enumTemplate.Render(new
-                {
-                    optionsetName = optionset.OptionsetName,
-                    optionsetValues = optionset.OptionsetValues.Select(kvp => new
-                    {
-                        Value = kvp.Key,
-                        Name = kvp.Value
-                    }),
-                    @namespace
-                }, member => member.Name);
-
-                yield return new GeneratedFile(Path.Combine("optionsets", $"{optionset.OptionsetName}.cs"), enumResult);
+                yield return new GeneratedFile(Path.Combine("intersections", $"{interfaceName}.cs"), interfaceResult);
             }
         }
 
