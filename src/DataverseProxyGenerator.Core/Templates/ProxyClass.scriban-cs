@@ -5,7 +5,7 @@ using Microsoft.Xrm.Sdk;
 namespace {{namespace}}
 {
     [System.CodeDom.Compiler.GeneratedCode("DataverseProxyGenerator", "1.0.0")]
-    public partial class {{table.SchemaName}} : Entity{{~ if table.InterfacesList.size > 0 ~}}, {{ table.InterfacesList | array.join ", " }}{{ end ~}}
+    public partial class {{table.SchemaName}} : Entity{{ if table.InterfacesList.size > 0 }}, {{ table.InterfacesList | array.join ", " }}{{ end }}
     {
         {{~ for column in table.Columns ~}}
         {{~ if column.Description || column.DisplayName ~}}
@@ -20,7 +20,7 @@ namespace {{namespace}}
         {{~ end ~}}
         [AttributeLogicalName("{{ column.LogicalName }}")]
         [DisplayName("{{ column.DisplayName }}")]
-        {{~ if column.IsObsolete }}[ObsoleteAttribute()]{{ end }}
+        {{ if column.IsObsolete }}[ObsoleteAttribute()]{{ end }}
         {{~ if column.TypeName == "StringColumnModel" || column.TypeName == "MemoColumnModel" ~}}
         public string {{column.SchemaName}}
         {
