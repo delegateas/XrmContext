@@ -11,7 +11,9 @@ namespace {{namespace}}
         {{~ if column.Description || column.DisplayName ~}}
         /// <summary>
         {{~ if column.Description && column.Description != "" && column.Description != " " && column.Description != "  " && column.Description != "   " && column.Description != "\t" && column.Description != "\n" && column.Description != "\r\n" ~}}
-        /// <para>{{ column.Description }}</para>
+        {{~ for line in column.Description | string.split '\n' ~}}
+        /// <para>{{ line | string.strip }}</para>
+        {{~ end ~}}
         {{~ end ~}}
         {{~ if column.DisplayName ~}}
         /// <para>Display Name: {{ column.DisplayName }}</para>
