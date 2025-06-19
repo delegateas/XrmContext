@@ -61,5 +61,5 @@ _ReSharper*/
 *.orig
 
 # output dir for debugging
-output/
+/output
 src/DataverseProxyGenerator.Tool/appsettings.json
