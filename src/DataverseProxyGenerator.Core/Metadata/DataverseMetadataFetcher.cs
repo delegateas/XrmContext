@@ -134,7 +134,7 @@ namespace DataverseProxyGenerator.Core.Metadata
             var entityResponse = (Microsoft.Xrm.Sdk.Messages.RetrieveEntityResponse)await serviceClient.ExecuteAsync(entityRequest);
             return entityResponse.EntityMetadata;
         }
-        
+
         private TableModel BuildTableModelFromMetadata(EntityMetadata entityMetadata, string? deprecatedPrefix, Dictionary<string, string> labelMapping)
         {
             var table = new TableModel
@@ -142,6 +142,8 @@ namespace DataverseProxyGenerator.Core.Metadata
                 LogicalName = entityMetadata.LogicalName,
                 SchemaName = entityMetadata.SchemaName,
                 DisplayName = ApplyLabelMapping(entityMetadata.DisplayName?.UserLocalizedLabel?.Label ?? entityMetadata.LogicalName, labelMapping),
+                EntityTypeCode = entityMetadata.ObjectTypeCode ?? 0,
+                PrimaryNameAttribute = entityMetadata.PrimaryNameAttribute,
                 Columns = new List<ColumnModel>(),
                 Relationships = new List<RelationshipModel>()
             };

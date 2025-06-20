@@ -80,6 +80,8 @@ namespace DataverseProxyGenerator.Core.Generation
                         Relationships = table.Relationships,
                         LogicalName = table.LogicalName,
                         DisplayName = table.DisplayName,
+                        EntityTypeCode = table.EntityTypeCode,
+                        PrimaryNameAttribute = table.PrimaryNameAttribute,
                         InterfacesList = interfaces
                     },
                     @namespace

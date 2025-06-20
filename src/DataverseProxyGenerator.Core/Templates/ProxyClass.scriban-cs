@@ -1,12 +1,27 @@
 // {{table.SchemaName}}.cs
 using System;
 using Microsoft.Xrm.Sdk;
+using System.Runtime.Serialization;
 
 namespace {{namespace}}
 {
+    /// <summary>
+    /// <para>Display Name: {{ table.DisplayName }}</para>
+    /// </summary>
     [System.CodeDom.Compiler.GeneratedCode("DataverseProxyGenerator", "1.0.0")]
+    [EntityLogicalName("{{table.LogicalName}}")]
+    [DebuggerDisplay("{DebuggerDisplay,nq}")]
+    [DataContract]
     public partial class {{table.SchemaName}} : Entity{{ if table.InterfacesList.size > 0 }}, {{ table.InterfacesList | array.join ", " }}{{ end }}
     {
+        public const string EntityLogicalName = "{{table.LogicalName}}";
+        public const int EntityTypeCode = {{table.EntityTypeCode}};
+
+        public {{table.SchemaName}}() : base(EntityLogicalName) { }
+        public {{table.SchemaName}}(Guid id) : base(EntityLogicalName, id) { }
+
+        private string DebuggerDisplay => GetDebuggerDisplay("{{ table.PrimaryNameAttribute }}");
+
         {{~ for column in table.Columns ~}}
         {{~ if column.Description || column.DisplayName ~}}
         /// <summary>
