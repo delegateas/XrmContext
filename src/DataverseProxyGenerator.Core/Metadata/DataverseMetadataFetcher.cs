@@ -15,7 +15,7 @@ namespace DataverseProxyGenerator.Core.Metadata
             ServiceClient serviceClient,
             IEnumerable<string> solutionUniqueNames,
             IEnumerable<string> logicalNames,
-            string deprecatedPrefix,
+            string? deprecatedPrefix,
             Dictionary<string, string> labelMapping)
         {
             var tables = new List<TableModel>();
@@ -135,7 +135,7 @@ namespace DataverseProxyGenerator.Core.Metadata
             return entityResponse.EntityMetadata;
         }
         
-        private TableModel BuildTableModelFromMetadata(EntityMetadata entityMetadata, string deprecatedPrefix, Dictionary<string, string> labelMapping)
+        private TableModel BuildTableModelFromMetadata(EntityMetadata entityMetadata, string? deprecatedPrefix, Dictionary<string, string> labelMapping)
         {
             var table = new TableModel
             {
@@ -164,7 +164,7 @@ namespace DataverseProxyGenerator.Core.Metadata
             return table;
         }
 
-        private ColumnModel? BuildColumnModel(AttributeMetadata attr, string deprecatedPrefix, Dictionary<string, string> labelMapping)
+        private ColumnModel? BuildColumnModel(AttributeMetadata attr, string? deprecatedPrefix, Dictionary<string, string> labelMapping)
         {
             ColumnModel? column = attr switch
             {
@@ -240,7 +240,9 @@ namespace DataverseProxyGenerator.Core.Metadata
             DisplayName = ApplyLabelMapping(attr.DisplayName?.UserLocalizedLabel?.Label ?? attr.LogicalName, labelMapping),
             Description = ApplyLabelMapping(attr.Description?.UserLocalizedLabel?.Label ?? string.Empty, labelMapping),
             IsPrimaryKey = false,
-            IsNullable = attr.RequiredLevel?.Value != AttributeRequiredLevel.ApplicationRequired
+            IsNullable = attr.RequiredLevel?.Value != AttributeRequiredLevel.ApplicationRequired,
+            Min = attr.MinValue ?? int.MinValue,
+            Max = attr.MaxValue ?? int.MaxValue
         };
 
         private BigIntColumnModel BuildBigIntColumn(BigIntAttributeMetadata attr, Dictionary<string, string> labelMapping) => new BigIntColumnModel

@@ -22,14 +22,18 @@ namespace {{namespace}}
         {{~ end ~}}
         [AttributeLogicalName("{{ column.LogicalName }}")]
         [DisplayName("{{ column.DisplayName }}")]
-        {{ if column.IsObsolete }}[ObsoleteAttribute()]{{ end }}
+        {{~ if column.IsObsolete ~}}
+        [ObsoleteAttribute()]
+        {{~ end ~}}
         {{~ if column.TypeName == "StringColumnModel" || column.TypeName == "MemoColumnModel" ~}}
+        [MaxLength({{ column.MaxLength }})]
         public string {{column.SchemaName}}
         {
             get => GetAttributeValue<string>("{{column.LogicalName}}");
             set => SetAttributeValue("{{column.LogicalName}}", value);
         }
         {{~ else if column.TypeName == "IntegerColumnModel" ~}}
+        [Range({{ column.Min }}, {{ column.Max }})]
         public int{{ if column.IsNullable }}?{{ end }} {{column.SchemaName}}
         {
             get => GetAttributeValue<int{{ if column.IsNullable }}?{{ end }}>("{{column.LogicalName}}");

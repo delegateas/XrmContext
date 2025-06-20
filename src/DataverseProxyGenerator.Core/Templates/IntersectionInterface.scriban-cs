@@ -4,7 +4,7 @@ using Microsoft.Xrm.Sdk;
 
 namespace {{namespace}}
 {
-    public interface {{interfaceName}}
+    public interface {{interfaceName}} : Entity
     {
         {{~ for column in columns ~}}
         {{~ if column.Description || column.DisplayName ~}}

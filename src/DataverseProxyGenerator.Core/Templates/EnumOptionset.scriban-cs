@@ -1,13 +1,18 @@
 // {{optionsetName}}.cs
+using System.Runtime.Serialization;
+
 namespace {{namespace}}
 {
+    [DataContract]
     public enum {{optionsetName | string.capitalize}}
     {
         {{~ for pair in optionsetValues ~}}
+        [EnumMember]
         {{~ for loc in pair.Localizations ~}}
         [OptionSetMetadata("{{ loc.Value }}", Lcid={{ loc.Key }})]
         {{~ end ~}}
         {{ pair.Name }} = {{ pair.Value }},
         {{~ end ~}}
+
     }
 }
