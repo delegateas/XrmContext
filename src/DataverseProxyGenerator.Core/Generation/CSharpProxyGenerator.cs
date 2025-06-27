@@ -71,7 +71,7 @@ namespace DataverseProxyGenerator.Core.Generation
             foreach (var table in tables)
             {
                 var interfaces = tableToInterfaces.TryGetValue(table.LogicalName, out var ifaces) ? ifaces : new List<string>();
-                var result = proxyTemplate.Render(new
+                var model = new
                 {
                     table = new
                     {
@@ -82,10 +82,15 @@ namespace DataverseProxyGenerator.Core.Generation
                         DisplayName = table.DisplayName,
                         EntityTypeCode = table.EntityTypeCode,
                         PrimaryNameAttribute = table.PrimaryNameAttribute,
-                        InterfacesList = interfaces
+                        InterfacesList = interfaces ?? new List<string>()
                     },
                     @namespace
-                }, member => member.Name);
+                };
+                var context = new Scriban.TemplateContext();
+                context.LoopLimit = 0; // 0 means no limit
+                context.MemberRenamer = member => member.Name;
+                context.PushGlobal(Scriban.Runtime.ScriptObject.From(model));
+                var result = proxyTemplate.Render(context);
                 files.Add(new GeneratedFile(Path.Combine("tables", $"{table.SchemaName}.cs"), result));
             }
 

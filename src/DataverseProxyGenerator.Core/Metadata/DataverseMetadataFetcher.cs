@@ -28,10 +28,12 @@ namespace DataverseProxyGenerator.Core.Metadata
             var logicalNamesToFetch = (logicalNames ?? []).Where(name => !string.IsNullOrWhiteSpace(name) && !fetchedLogicalNames.Contains(name)).Distinct().ToList();
             var metadataFromLogicalNames = await GetEntityMetadataFromLogicalNamesAsync(serviceClient, logicalNamesToFetch);
 
+            var allMetadata = metadataFromSolution.Concat(metadataFromLogicalNames);
+
             // Merge all metadata
-            foreach (var metadata in metadataFromSolution.Concat(metadataFromLogicalNames))
+            foreach (var metadata in allMetadata)
             {
-                var table = BuildTableModelFromMetadata(metadata, deprecatedPrefix, labelMapping);
+                var table = BuildTableModelFromMetadata(allMetadata, metadata, deprecatedPrefix, labelMapping);
                 tables.Add(table);
             }
 
@@ -135,7 +137,7 @@ namespace DataverseProxyGenerator.Core.Metadata
             return entityResponse.EntityMetadata;
         }
 
-        private TableModel BuildTableModelFromMetadata(EntityMetadata entityMetadata, string? deprecatedPrefix, Dictionary<string, string> labelMapping)
+        private TableModel BuildTableModelFromMetadata(IEnumerable<EntityMetadata> allMetadata, EntityMetadata entityMetadata, string? deprecatedPrefix, Dictionary<string, string> labelMapping)
         {
             var table = new TableModel
             {
@@ -161,7 +163,7 @@ namespace DataverseProxyGenerator.Core.Metadata
                 }
             }
 
-            MapRelationships(entityMetadata, table);
+            MapRelationships(allMetadata, entityMetadata, table);
 
             return table;
         }
@@ -428,33 +430,55 @@ namespace DataverseProxyGenerator.Core.Metadata
             IsUniqueIdentifier = true
         };
 
-        private void MapRelationships(EntityMetadata entityMetadata, TableModel table)
+        private void MapRelationships(IEnumerable<EntityMetadata> allMetadata, EntityMetadata entityMetadata, TableModel table)
         {
             foreach (var rel in entityMetadata.ManyToOneRelationships)
             {
                 table.Relationships.Add(new RelationshipModel
                 {
-                    RelationshipName = rel.SchemaName,
-                    RelatedTable = rel.ReferencedEntity,
-                    RelationshipType = "ManyToOne"
+                    SchemaName = rel.SchemaName,
+                    RelationshipType = "ManyToOne",
+                    ThisEntityRole = "Referencing",
+                    ThisEntityAttribute = rel.ReferencingAttribute,
+                    RelatedEntity = rel.ReferencedEntity,
+                    RelatedEntityAttribute = rel.ReferencedAttribute,
+                    RelatedEntitySchemaName = allMetadata.FirstOrDefault(x => x.LogicalName == rel.ReferencedEntity)?.SchemaName ?? "Entity",
                 });
             }
             foreach (var rel in entityMetadata.OneToManyRelationships)
             {
                 table.Relationships.Add(new RelationshipModel
                 {
-                    RelationshipName = rel.SchemaName,
-                    RelatedTable = rel.ReferencedEntity,
-                    RelationshipType = "OneToMany"
+                    SchemaName = rel.SchemaName,
+                    RelationshipType = "OneToMany",
+                    ThisEntityRole = "Referenced",
+                    ThisEntityAttribute = rel.ReferencedAttribute,
+                    RelatedEntity = rel.ReferencingEntity,
+                    RelatedEntityAttribute = rel.ReferencingAttribute,
+                    RelatedEntitySchemaName = allMetadata.FirstOrDefault(x => x.LogicalName == rel.ReferencedEntity)?.SchemaName ?? "Entity",
                 });
             }
             foreach (var rel in entityMetadata.ManyToManyRelationships)
             {
                 table.Relationships.Add(new RelationshipModel
                 {
-                    RelationshipName = rel.SchemaName,
-                    RelatedTable = rel.Entity1LogicalName,
-                    RelationshipType = "ManyToMany"
+                    SchemaName = rel.SchemaName,
+                    RelationshipType = "ManyToMany",
+                    ThisEntityRole = "Entity1",
+                    ThisEntityAttribute = rel.Entity1IntersectAttribute,
+                    RelatedEntity = rel.Entity2LogicalName,
+                    RelatedEntityAttribute = rel.Entity2IntersectAttribute,
+                    RelatedEntitySchemaName = allMetadata.FirstOrDefault(x => x.LogicalName == rel.Entity2LogicalName)?.SchemaName ?? "Entity",
+                });
+                table.Relationships.Add(new RelationshipModel
+                {
+                    SchemaName = rel.SchemaName,
+                    RelationshipType = "ManyToMany",
+                    ThisEntityRole = "Entity2",
+                    ThisEntityAttribute = rel.Entity2IntersectAttribute,
+                    RelatedEntity = rel.Entity1LogicalName,
+                    RelatedEntityAttribute = rel.Entity1IntersectAttribute,
+                    RelatedEntitySchemaName = allMetadata.FirstOrDefault(x => x.LogicalName == rel.Entity1LogicalName)?.SchemaName ?? "Entity",
                 });
             }
         }

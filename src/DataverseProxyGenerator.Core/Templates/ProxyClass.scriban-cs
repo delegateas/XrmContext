@@ -157,5 +157,23 @@ namespace {{namespace}}
         }
         {{~ end ~}}
         {{~ end ~}}
+
+        {{~ for rel in table.Relationships ~}}
+        {{~ if rel.RelationshipType == "ManyToOne" ~}}
+        [AttributeLogicalName("{{ rel.ThisEntityAttribute }}")]
+        {{~ end ~}}
+        [RelationshipSchemaName("{{ rel.SchemaName }}")]
+        public {{ if rel.RelationshipType == "OneToMany" || rel.RelationshipType == "ManyToMany" }}IEnumerable<{{ rel.RelatedEntitySchemaName }}> {{ rel.SchemaName }}
+        {
+            get => GetRelatedEntities<{{ rel.RelatedEntitySchemaName }}>("{{ rel.SchemaName }}", null);
+            set => SetRelatedEntities("{{ rel.SchemaName }}", null, value);
+        }
+        {{ else if rel.RelationshipType == "ManyToOne" }}{{ rel.RelatedEntitySchemaName }} {{ rel.SchemaName }}
+        {
+            get => GetRelatedEntity<{{ rel.RelatedEntitySchemaName }}>("{{ rel.SchemaName }}", null);
+            set => SetRelatedEntity("{{ rel.SchemaName }}", null, value);
+        }
+        {{ end }}
+        {{~ end ~}}
     }
 }
