@@ -22,6 +22,31 @@ namespace {{namespace}}
 
         private string DebuggerDisplay => GetDebuggerDisplay("{{ table.PrimaryNameAttribute }}");
 
+        [AttributeLogicalName("{{ table.LogicalName }}id")]
+        public override Guid Id {
+            get {
+                return base.Id;
+            }
+            set {
+                SetId("{{ table.LogicalName }}id", value);
+            }
+        }
+
+        /// <summary>
+        /// <para>Entydigt id for objektforekomster</para>
+        /// <para>Display Name: {{ table.DisplayName }}</para>
+        /// </summary>
+        [AttributeLogicalName("{{ table.LogicalName }}id")]
+        [DisplayName("{{ table.DisplayName }}")]
+        public Guid? {{ table.SchemaName }}id {
+            get {
+                return GetAttributeValue<Guid?>("{{ table.LogicalName }}id");
+            }
+            set {
+                SetId("{{ table.LogicalName }}id", value);
+            }
+        }
+
         {{~ for column in table.Columns ~}}
         {{~ if column.Description || column.DisplayName ~}}
         /// <summary>
