@@ -188,11 +188,11 @@ namespace DataverseProxyGenerator.Core.Generation
             {
                 var enumResult = enumTemplate.Render(new
                 {
-                    optionsetName = optionset.OptionsetName,
+                    optionsetName = SanitizeName(optionset.OptionsetName),
                     optionsetValues = optionset.OptionsetValues.Select(kvp => new
                     {
                         Value = kvp.Key,
-                        Name = kvp.Value,
+                        Name = SanitizeName(kvp.Value),
                         Localizations = optionset.OptionLocalizations != null && optionset.OptionLocalizations.ContainsKey(kvp.Key)
                             ? optionset.OptionLocalizations[kvp.Key]
                             : new Dictionary<int, string>()
@@ -200,8 +200,25 @@ namespace DataverseProxyGenerator.Core.Generation
                     @namespace
                 }, member => member.Name);
 
-                yield return new GeneratedFile(Path.Combine("optionsets", $"{optionset.OptionsetName}.cs"), enumResult);
+                yield return new GeneratedFile(Path.Combine("optionsets", $"{SanitizeName(optionset.OptionsetName)}.cs"), enumResult);
             }
+        }
+
+        // --- Enum Name Sanitization Helper ---
+        private static readonly char[] CharsToRemove = { '(', ')', '_', '\'', '-', '–' };
+        private static string SanitizeName(string name)
+        {
+            if (string.IsNullOrEmpty(name))
+            {
+                var rand = new System.Random();
+                return "EmptyName" + rand.Next(1000, 10000);
+            }
+            var cleaned = string.Concat(name.Where(c => !CharsToRemove.Contains(c)));
+            if (cleaned.Length > 0 && char.IsDigit(cleaned[0]))
+            {
+                cleaned = "X" + cleaned;
+            }
+            return cleaned;
         }
 
         // --- Extracted Helper Methods ---

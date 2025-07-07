@@ -1,10 +1,11 @@
-// {{optionsetName}}.cs
 using System.Runtime.Serialization;
 
 namespace {{namespace}}
 {
     [DataContract]
+#pragma warning disable CA1008 // Enums should have zero value
     public enum {{optionsetName | string.capitalize}}
+#pragma warning restore CA1008 // Enums should have zero value
     {
         {{~ for pair in optionsetValues | array.sort "Value" ~}}
         [EnumMember]

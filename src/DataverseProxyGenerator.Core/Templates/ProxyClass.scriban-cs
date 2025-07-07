@@ -1,7 +1,9 @@
-// {{table.SchemaName}}.cs
 using System;
 using Microsoft.Xrm.Sdk;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.Runtime.Serialization;
+using Microsoft.Xrm.Sdk.Client;
 
 namespace {{namespace}}
 {
@@ -136,7 +138,7 @@ namespace {{namespace}}
         public Guid{{ if column.IsNullable }}?{{ end }} {{column.SchemaName}}
         {
             get => GetAttributeValue<Guid{{ if column.IsNullable }}?{{ end }}>("{{column.LogicalName}}");
-            set => SetAttributeValue("{{column.LogicalName}}", value);
+            set => SetId("{{column.LogicalName}}", value);
         }
         {{~ end ~}}
         {{~ if !for.last ~}}

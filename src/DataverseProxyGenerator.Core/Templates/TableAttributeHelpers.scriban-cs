@@ -174,5 +174,22 @@ namespace {{ namespace }}
             }
             return anyRemoved;
         }
+
+        public static void SetId(this Entity entity, string primaryIdAttribute, Guid? guid)
+        {
+            base.Id = guid.GetValueOrDefault();
+            entity.SetAttributeValue(primaryIdAttribute, guid);
+        }
+
+        protected string GetDebuggerDisplay(this Entity entity, string primaryNameAttribute)
+        {
+            string display = GetType().Name;
+
+            var name = entity.GetAttributeValue<string>(primaryNameAttribute);
+            if (!string.IsNullOrEmpty(name)) display += string.Format(" ({0})", name);
+            if (Id != Guid.Empty) display += string.Format(" [{0}]", Id);
+
+            return display;
+        }
     }
 }
