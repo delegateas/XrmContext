@@ -2,6 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
 using Microsoft.Xrm.Sdk;
 
 namespace {{ namespace }}
@@ -110,6 +112,39 @@ namespace {{ namespace }}
             {
                 entity.SetAttributeValue(attributeName, null);
             }
+        }
+
+        /// <summary>
+        /// Gets the logical column name for a property on the entity, using the AttributeLogicalNameAttribute if present.
+        /// </summary>
+        public static string GetColumnName<T>(this T entity, Expression<Func<T, object>> lambda) where T : Entity
+        {
+            if (lambda == null) throw new ArgumentNullException(nameof(lambda));
+
+            MemberExpression body = lambda.Body as MemberExpression;
+            if (body == null)
+            {
+                var ubody = lambda.Body as UnaryExpression;
+                if (ubody != null && ubody.Operand is MemberExpression)
+                {
+                    body = ubody.Operand as MemberExpression;
+                }
+            }
+
+            if (body == null)
+                throw new ArgumentException("Invalid lambda expression. Expression should point to a property.");
+
+            var member = body.Member;
+            var customAttributes = member.GetCustomAttributesData();
+            var neededAttribute = customAttributes.FirstOrDefault(x => x.AttributeType == typeof(AttributeLogicalNameAttribute));
+            if (neededAttribute != null)
+            {
+                var arg = neededAttribute.ConstructorArguments.FirstOrDefault().Value;
+                if (arg != null)
+                    return arg.ToString();
+            }
+
+            return member.Name;
         }
     }
 }
