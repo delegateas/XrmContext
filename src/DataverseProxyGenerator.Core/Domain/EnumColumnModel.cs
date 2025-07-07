@@ -6,6 +6,7 @@ namespace DataverseProxyGenerator.Core.Domain
     {
         public string OptionsetName { get; init; }
         public bool IsGlobalOptionset { get; init; }
+        public bool IsMultiSelect { get; init; }
         public Dictionary<int, string> OptionsetValues { get; init; }
         /// <summary>
         /// Maps option value to a dictionary of LCID → label.

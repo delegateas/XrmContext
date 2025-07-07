@@ -392,6 +392,7 @@ namespace DataverseProxyGenerator.Core.Metadata
                 IsNullable = attr.RequiredLevel?.Value != AttributeRequiredLevel.ApplicationRequired,
                 OptionsetName = attr.OptionSet?.Name ?? attr.LogicalName,
                 IsGlobalOptionset = attr.OptionSet?.IsGlobal ?? false,
+                IsMultiSelect = attr.AttributeTypeName == "MultiSelectPicklistType",
                 OptionsetValues = optionsetValues,
                 OptionLocalizations = optionLocalizations
             };
