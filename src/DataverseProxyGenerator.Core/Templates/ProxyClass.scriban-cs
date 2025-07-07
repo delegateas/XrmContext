@@ -97,15 +97,23 @@ namespace {{namespace}}
         {{~ else if column.TypeName == "MoneyColumnModel" ~}}
         public decimal{{ if column.IsNullable }}?{{ end }} {{column.SchemaName}}
         {
-            get => GetAttributeValue<Money>("{{column.LogicalName}}")?.Value;
-            set => SetAttributeValue("{{column.LogicalName}}", value.HasValue ? new Money(value.Value) : null);
+            get => this.GetMoneyValue("{{column.LogicalName}}");
+            set => this.SetMoneyValue("{{column.LogicalName}}", value);
         }
         {{~ else if column.TypeName == "EnumColumnModel" ~}}
+        {{~ if column.IsMultiSelect ~}}
+        public IEnumerable<{{ column.OptionsetName | string.capitalize }}> {{column.SchemaName}}
+        {
+            get => this.GetOptionSetCollectionValue<{{ column.OptionsetName | string.capitalize }}>("{{column.LogicalName}}");
+            set => this.SetOptionSetCollectionValue("{{column.LogicalName}}", value);
+        }
+        {{~ else ~}}
         public {{ column.OptionsetName | string.capitalize }}{{ if column.IsNullable }}?{{ end }} {{column.SchemaName}}
         {
-            get => ({{ column.OptionsetName | string.capitalize }}{{ if column.IsNullable }}?{{ end }})GetAttributeValue<OptionSetValue>("{{column.LogicalName}}")?.Value;
-            set => SetAttributeValue("{{column.LogicalName}}", value.HasValue ? new OptionSetValue((int)value.Value) : null);
+            get => this.GetOptionSetValue<{{ column.OptionsetName | string.capitalize }}>("{{column.LogicalName}}");
+            set => this.SetOptionSetValue("{{column.LogicalName}}", value);
         }
+        {{~ end ~}}
         {{~ else if column.TypeName == "LookupColumnModel" ~}}
         public EntityReference {{column.SchemaName}}
         {
