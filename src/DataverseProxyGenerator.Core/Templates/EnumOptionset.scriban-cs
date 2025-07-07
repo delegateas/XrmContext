@@ -6,7 +6,7 @@ namespace {{namespace}}
     [DataContract]
     public enum {{optionsetName | string.capitalize}}
     {
-        {{~ for pair in optionsetValues ~}}
+        {{~ for pair in optionsetValues | array.sort "Value" ~}}
         [EnumMember]
         {{~ for loc in pair.Localizations ~}}
         [OptionSetMetadata("{{ loc.Value }}", Lcid={{ loc.Key }})]

@@ -6,7 +6,7 @@ namespace {{namespace}}
 {
     public interface {{interfaceName}} : Entity
     {
-        {{~ for column in columns ~}}
+        {{~ for column in columns | array.sort "LogicalName" ~}}
         {{~ if column.Description || column.DisplayName ~}}
         /// <summary>
         {{~ if column.Description && column.Description != "" && column.Description != " " && column.Description != "  " && column.Description != "\t" && column.Description != "\n" && column.Description != "\r\n" ~}}

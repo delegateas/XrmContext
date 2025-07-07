@@ -231,7 +231,7 @@ namespace DataverseProxyGenerator.Core.Metadata
                              !string.IsNullOrEmpty(deprecatedPrefix) &&
                              entityMetadata.PrimaryNameAttribute.StartsWith(deprecatedPrefix, StringComparison.OrdinalIgnoreCase)
             };
-            table.Columns.Insert(0, primaryIdColumn);
+            table.Columns.Add(primaryIdColumn);
         }
 
         private StringColumnModel BuildStringColumn(StringAttributeMetadata attr, Dictionary<string, string> labelMapping) => new StringColumnModel

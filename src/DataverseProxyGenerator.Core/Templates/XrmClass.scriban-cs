@@ -6,7 +6,7 @@ public partial class Xrm : OrganizationServiceContext
 {
     public Xrm(IOrganizationService service) : base(service) { }
 
-{{~ for table in tables ~}}
+{{~ for table in tables | array.sort "SchemaName" ~}}
     public IQueryable<{{ table.SchemaName }}> {{ table.SchemaName }}Set
     {
         get { return CreateQuery<{{ table.SchemaName }}>(); }
