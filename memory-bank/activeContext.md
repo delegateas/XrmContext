@@ -27,11 +27,12 @@
 ## Recent Code Additions
 - **Domain Models:** Added/updated C# record types for all Dataverse attribute types (BigInt, Boolean, DateTime, Decimal, Double, Enum, File, Image, Integer, Lookup, Memo, Money, PartyList, PrimaryId, Relationship, String, Table). Each model is in its own file for maintainability.
 - **Code Generation:** `CSharpProxyGenerator` implements modular codegen for all supported attribute types, robust enum/optionset handling, and template-driven output using Scriban. Multiple `.scriban-cs` templates for proxy classes, enums, intersection interfaces, etc.
+- **Automated Tests:** Added a single Verify-based snapshot test that generates an entity with all supported attribute types, verifying the generated code in one snapshot. This reduces maintenance and makes it easy to see the effect of changes across all types.
 - **Output Writer:** `FileSystemOutputWriter` abstracts file writing and directory creation.
 - **CLI:** Orchestrates the fetch/generate/write pipeline, supports advanced options, robust argument parsing, and dependency injection.
 
-## Missing Automated Tests
-- **Attribute Type Codegen:** No tests for int, bool, decimal, double, money, datetime, lookup, enum, guid, file, image, memo columns (only string columns are tested).
+## Automated Tests
+- **Attribute Type Codegen:** All supported attribute types (string, int, bool, decimal, double, money, datetime, lookup, enum, guid, file, image, memo, partylist, etc.) are now covered by a single Verify-based snapshot test. This test generates a single entity with all attribute types, minimizing snapshot churn and maintenance.
 - **Output Writer:** No tests for file writing, directory creation, or error handling in `FileSystemOutputWriter`.
 - **CLI Orchestration:** No tests for argument parsing, DI setup, error handling, or user feedback.
 - **Edge Cases:** No tests for attribute filtering, enum edge cases, template errors, or invalid metadata.
@@ -65,6 +66,7 @@
 ## Learnings and Project Insights
 - Filtering on AttributeOf is essential to avoid generating supporting attributes.
 - Mapping optionset values to anonymous objects is the most robust way to ensure Scriban compatibility for enums.
+- Using a single Verify-based snapshot test for all attribute types greatly reduces maintenance and makes it easy to track the effect of changes across the codegen pipeline.
 - Early investment in documentation (memory bank) streamlines future development and onboarding.
 - Strict adherence to separation of concerns facilitates maintainability and extensibility.
 - Refactoring to smaller methods and enforcing one class per file dramatically improves maintainability and code clarity.

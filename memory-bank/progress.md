@@ -10,7 +10,7 @@
 - Only main attributes are included in codegen by filtering on `AttributeOf == null`.
 - Enum generation is robust: optionset values are mapped to anonymous objects before passing to the Scriban template, ensuring correct output.
 - Output writer creates all necessary directories for generated files.
-- Unit test validates codegen for string columns.
+- Single Verify-based snapshot test validates codegen for all supported attribute types (string, int, bool, decimal, double, money, datetime, lookup, enum, guid, file, image, memo, partylist, etc.) in one entity, minimizing snapshot churn and maintenance.
 - **Template formatting fix:** ProxyClass.scriban-cs updated to avoid double newlines after the last attribute section.
 - **Automated formatting test:** Robust test added to validate both property generation and that no double newlines appear after the last attribute. Test reliably locates the template file regardless of working directory.
 - Project builds and runs successfully on .NET 8.
@@ -34,7 +34,7 @@
 - **Refactored for maintainability:** All large methods are now split into smaller, focused helpers. Each file contains only a single class, and the codebase is modular and easy to maintain.
 
 ## Known Issues
-- No automated tests for most attribute types, output writer, CLI, edge cases, or relationship handling (see "What's Left to Build"). This is not blocking current workflow but may impact future maintainability.
+- No automated tests for output writer, CLI, edge cases, or relationship handling (see "What's Left to Build"). This is not blocking current workflow but may impact future maintainability.
 - Edge cases in enum or attribute handling may arise as more entities are tested.
 
 ## Evolution of Project Decisions
