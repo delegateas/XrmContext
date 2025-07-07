@@ -82,6 +82,7 @@ namespace DataverseProxyGenerator.Core.Generation
                         DisplayName = table.DisplayName,
                         EntityTypeCode = table.EntityTypeCode,
                         PrimaryNameAttribute = table.PrimaryNameAttribute,
+                        PrimaryIdAttribute = table.PrimaryIdAttribute,
                         InterfacesList = interfaces ?? new List<string>()
                     },
                     @namespace
@@ -179,8 +180,10 @@ namespace DataverseProxyGenerator.Core.Generation
                 {
                     set.Add(new ColumnSignature(c.SchemaName, c.TypeName));
                 }
+
                 tableColumns[t.LogicalName] = set;
             }
+            
             return tableColumns;
         }
 

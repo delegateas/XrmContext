@@ -146,6 +146,7 @@ namespace DataverseProxyGenerator.Core.Metadata
                 DisplayName = ApplyLabelMapping(entityMetadata.DisplayName?.UserLocalizedLabel?.Label ?? entityMetadata.LogicalName, labelMapping),
                 EntityTypeCode = entityMetadata.ObjectTypeCode ?? 0,
                 PrimaryNameAttribute = entityMetadata.PrimaryNameAttribute,
+                PrimaryIdAttribute = entityMetadata.PrimaryIdAttribute,
                 Columns = new List<ColumnModel>(),
                 Relationships = new List<RelationshipModel>()
             };
@@ -162,6 +163,8 @@ namespace DataverseProxyGenerator.Core.Metadata
                     table.Columns.Add(column);
                 }
             }
+
+            AddPrimaryIdColumn(table, entityMetadata, deprecatedPrefix, labelMapping);
 
             MapRelationships(allMetadata, entityMetadata, table);
 
@@ -185,7 +188,6 @@ namespace DataverseProxyGenerator.Core.Metadata
                 LookupAttributeMetadata lookupAttr => BuildLookupColumn(lookupAttr, labelMapping),
                 FileAttributeMetadata fileAttr => BuildFileColumn(fileAttr, labelMapping),
                 ImageAttributeMetadata imageAttr => BuildImageColumn(imageAttr, labelMapping),
-                UniqueIdentifierAttributeMetadata guidAttr => BuildUniqueIdentifierColumn(guidAttr, labelMapping),
                 _ => null
             };
 
@@ -215,13 +217,29 @@ namespace DataverseProxyGenerator.Core.Metadata
             return label;
         }
 
+        private void AddPrimaryIdColumn(TableModel table, EntityMetadata entityMetadata, string? deprecatedPrefix, Dictionary<string, string> labelMapping)
+        {
+            var primaryIdAttribute = entityMetadata.Attributes.Where(x => x.LogicalName == entityMetadata.PrimaryIdAttribute).FirstOrDefault();
+
+            var primaryIdColumn = new PrimaryIdColumnModel
+            {
+                LogicalName = entityMetadata.PrimaryIdAttribute,
+                SchemaName = primaryIdAttribute?.SchemaName ?? entityMetadata.PrimaryIdAttribute,
+                DisplayName = ApplyLabelMapping(primaryIdAttribute?.DisplayName?.UserLocalizedLabel?.Label ?? entityMetadata.PrimaryIdAttribute, labelMapping),
+                IsNullable = false,
+                IsObsolete = !string.IsNullOrEmpty(entityMetadata.PrimaryNameAttribute) &&
+                             !string.IsNullOrEmpty(deprecatedPrefix) &&
+                             entityMetadata.PrimaryNameAttribute.StartsWith(deprecatedPrefix, StringComparison.OrdinalIgnoreCase)
+            };
+            table.Columns.Insert(0, primaryIdColumn);
+        }
+
         private StringColumnModel BuildStringColumn(StringAttributeMetadata attr, Dictionary<string, string> labelMapping) => new StringColumnModel
         {
             LogicalName = attr.LogicalName,
             SchemaName = attr.SchemaName,
             DisplayName = ApplyLabelMapping(attr.DisplayName?.UserLocalizedLabel?.Label ?? attr.LogicalName, labelMapping),
             Description = ApplyLabelMapping(attr.Description?.UserLocalizedLabel?.Label ?? string.Empty, labelMapping),
-            IsPrimaryKey = attr.IsPrimaryId ?? false,
             IsNullable = attr.RequiredLevel?.Value != AttributeRequiredLevel.ApplicationRequired,
             MaxLength = attr.MaxLength
         };
@@ -232,7 +250,6 @@ namespace DataverseProxyGenerator.Core.Metadata
             SchemaName = attr.SchemaName,
             DisplayName = ApplyLabelMapping(attr.DisplayName?.UserLocalizedLabel?.Label ?? attr.LogicalName, labelMapping),
             Description = ApplyLabelMapping(attr.Description?.UserLocalizedLabel?.Label ?? string.Empty, labelMapping),
-            IsPrimaryKey = false,
             IsNullable = attr.RequiredLevel?.Value != AttributeRequiredLevel.ApplicationRequired,
             MaxLength = attr.MaxLength
         };
@@ -243,7 +260,6 @@ namespace DataverseProxyGenerator.Core.Metadata
             SchemaName = attr.SchemaName,
             DisplayName = ApplyLabelMapping(attr.DisplayName?.UserLocalizedLabel?.Label ?? attr.LogicalName, labelMapping),
             Description = ApplyLabelMapping(attr.Description?.UserLocalizedLabel?.Label ?? string.Empty, labelMapping),
-            IsPrimaryKey = false,
             IsNullable = attr.RequiredLevel?.Value != AttributeRequiredLevel.ApplicationRequired,
             Min = attr.MinValue ?? int.MinValue,
             Max = attr.MaxValue ?? int.MaxValue
@@ -255,7 +271,6 @@ namespace DataverseProxyGenerator.Core.Metadata
             SchemaName = attr.SchemaName,
             DisplayName = ApplyLabelMapping(attr.DisplayName?.UserLocalizedLabel?.Label ?? attr.LogicalName, labelMapping),
             Description = ApplyLabelMapping(attr.Description?.UserLocalizedLabel?.Label ?? string.Empty, labelMapping),
-            IsPrimaryKey = false,
             IsNullable = attr.RequiredLevel?.Value != AttributeRequiredLevel.ApplicationRequired
         };
 
@@ -265,7 +280,6 @@ namespace DataverseProxyGenerator.Core.Metadata
             SchemaName = attr.SchemaName,
             DisplayName = ApplyLabelMapping(attr.DisplayName?.UserLocalizedLabel?.Label ?? attr.LogicalName, labelMapping),
             Description = ApplyLabelMapping(attr.Description?.UserLocalizedLabel?.Label ?? string.Empty, labelMapping),
-            IsPrimaryKey = false,
             IsNullable = attr.RequiredLevel?.Value != AttributeRequiredLevel.ApplicationRequired
         };
 
@@ -275,7 +289,6 @@ namespace DataverseProxyGenerator.Core.Metadata
             SchemaName = attr.SchemaName,
             DisplayName = ApplyLabelMapping(attr.DisplayName?.UserLocalizedLabel?.Label ?? attr.LogicalName, labelMapping),
             Description = ApplyLabelMapping(attr.Description?.UserLocalizedLabel?.Label ?? string.Empty, labelMapping),
-            IsPrimaryKey = false,
             IsNullable = attr.RequiredLevel?.Value != AttributeRequiredLevel.ApplicationRequired
         };
 
@@ -285,7 +298,6 @@ namespace DataverseProxyGenerator.Core.Metadata
             SchemaName = attr.SchemaName,
             DisplayName = ApplyLabelMapping(attr.DisplayName?.UserLocalizedLabel?.Label ?? attr.LogicalName, labelMapping),
             Description = ApplyLabelMapping(attr.Description?.UserLocalizedLabel?.Label ?? string.Empty, labelMapping),
-            IsPrimaryKey = false,
             IsNullable = attr.RequiredLevel?.Value != AttributeRequiredLevel.ApplicationRequired,
             Precision = attr.Precision
         };
@@ -296,7 +308,6 @@ namespace DataverseProxyGenerator.Core.Metadata
             SchemaName = attr.SchemaName,
             DisplayName = ApplyLabelMapping(attr.DisplayName?.UserLocalizedLabel?.Label ?? attr.LogicalName, labelMapping),
             Description = ApplyLabelMapping(attr.Description?.UserLocalizedLabel?.Label ?? string.Empty, labelMapping),
-            IsPrimaryKey = false,
             IsNullable = attr.RequiredLevel?.Value != AttributeRequiredLevel.ApplicationRequired
         };
 
@@ -306,7 +317,6 @@ namespace DataverseProxyGenerator.Core.Metadata
             SchemaName = attr.SchemaName,
             DisplayName = ApplyLabelMapping(attr.DisplayName?.UserLocalizedLabel?.Label ?? attr.LogicalName, labelMapping),
             Description = ApplyLabelMapping(attr.Description?.UserLocalizedLabel?.Label ?? string.Empty, labelMapping),
-            IsPrimaryKey = false,
             IsNullable = attr.RequiredLevel?.Value != AttributeRequiredLevel.ApplicationRequired,
             Precision = attr.Precision
         };
@@ -379,7 +389,6 @@ namespace DataverseProxyGenerator.Core.Metadata
                 SchemaName = attr.SchemaName,
                 DisplayName = ApplyLabelMapping(attr.DisplayName?.UserLocalizedLabel?.Label ?? attr.LogicalName, labelMapping),
                 Description = ApplyLabelMapping(attr.Description?.UserLocalizedLabel?.Label ?? string.Empty, labelMapping),
-                IsPrimaryKey = false,
                 IsNullable = attr.RequiredLevel?.Value != AttributeRequiredLevel.ApplicationRequired,
                 OptionsetName = attr.OptionSet?.Name ?? attr.LogicalName,
                 IsGlobalOptionset = attr.OptionSet?.IsGlobal ?? false,
@@ -394,7 +403,6 @@ namespace DataverseProxyGenerator.Core.Metadata
             SchemaName = attr.SchemaName,
             DisplayName = ApplyLabelMapping(attr.DisplayName?.UserLocalizedLabel?.Label ?? attr.LogicalName, labelMapping),
             Description = ApplyLabelMapping(attr.Description?.UserLocalizedLabel?.Label ?? string.Empty, labelMapping),
-            IsPrimaryKey = false,
             IsNullable = attr.RequiredLevel?.Value != AttributeRequiredLevel.ApplicationRequired,
             TargetTable = attr.Targets?.FirstOrDefault() ?? "Unknown",
         };
@@ -405,7 +413,6 @@ namespace DataverseProxyGenerator.Core.Metadata
             SchemaName = attr.SchemaName,
             DisplayName = ApplyLabelMapping(attr.DisplayName?.UserLocalizedLabel?.Label ?? attr.LogicalName, labelMapping),
             Description = ApplyLabelMapping(attr.Description?.UserLocalizedLabel?.Label ?? string.Empty, labelMapping),
-            IsPrimaryKey = false,
             IsNullable = attr.RequiredLevel?.Value != AttributeRequiredLevel.ApplicationRequired
         };
 
@@ -415,19 +422,7 @@ namespace DataverseProxyGenerator.Core.Metadata
             SchemaName = attr.SchemaName,
             DisplayName = ApplyLabelMapping(attr.DisplayName?.UserLocalizedLabel?.Label ?? attr.LogicalName, labelMapping),
             Description = ApplyLabelMapping(attr.Description?.UserLocalizedLabel?.Label ?? string.Empty, labelMapping),
-            IsPrimaryKey = false,
             IsNullable = attr.RequiredLevel?.Value != AttributeRequiredLevel.ApplicationRequired
-        };
-
-        private UniqueIdentifierColumnModel BuildUniqueIdentifierColumn(UniqueIdentifierAttributeMetadata attr, Dictionary<string, string> labelMapping) => new UniqueIdentifierColumnModel
-        {
-            LogicalName = attr.LogicalName,
-            SchemaName = attr.SchemaName,
-            DisplayName = ApplyLabelMapping(attr.DisplayName?.UserLocalizedLabel?.Label ?? attr.LogicalName, labelMapping),
-            Description = ApplyLabelMapping(attr.Description?.UserLocalizedLabel?.Label ?? string.Empty, labelMapping),
-            IsPrimaryKey = attr.IsPrimaryId ?? false,
-            IsNullable = attr.RequiredLevel?.Value != AttributeRequiredLevel.ApplicationRequired,
-            IsUniqueIdentifier = true
         };
 
         private void MapRelationships(IEnumerable<EntityMetadata> allMetadata, EntityMetadata entityMetadata, TableModel table)

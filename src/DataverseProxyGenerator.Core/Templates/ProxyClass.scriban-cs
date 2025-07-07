@@ -22,28 +22,13 @@ namespace {{namespace}}
 
         private string DebuggerDisplay => GetDebuggerDisplay("{{ table.PrimaryNameAttribute }}");
 
-        [AttributeLogicalName("{{ table.LogicalName }}id")]
+        [AttributeLogicalName("{{ table.PrimaryIdAttribute }}")]
         public override Guid Id {
             get {
                 return base.Id;
             }
             set {
-                SetId("{{ table.LogicalName }}id", value);
-            }
-        }
-
-        /// <summary>
-        /// <para>Entydigt id for objektforekomster</para>
-        /// <para>Display Name: {{ table.DisplayName }}</para>
-        /// </summary>
-        [AttributeLogicalName("{{ table.LogicalName }}id")]
-        [DisplayName("{{ table.DisplayName }}")]
-        public Guid? {{ table.SchemaName }}id {
-            get {
-                return GetAttributeValue<Guid?>("{{ table.LogicalName }}id");
-            }
-            set {
-                SetId("{{ table.LogicalName }}id", value);
+                SetId("{{ table.PrimaryIdAttribute }}", value);
             }
         }
 
@@ -133,7 +118,7 @@ namespace {{namespace}}
             get => GetAttributeValue<byte[]>("{{column.LogicalName}}");
             set => SetAttributeValue("{{column.LogicalName}}", value);
         }
-        {{~ else if column.TypeName == "UniqueIdentifierColumnModel" ~}}
+        {{~ else if column.TypeName == "PrimaryIdColumnModel" ~}}
         public Guid{{ if column.IsNullable }}?{{ end }} {{column.SchemaName}}
         {
             get => GetAttributeValue<Guid{{ if column.IsNullable }}?{{ end }}>("{{column.LogicalName}}");
@@ -142,19 +127,6 @@ namespace {{namespace}}
         {{~ end ~}}
         {{~ if !for.last ~}}
 
-        {{~ end ~}}
-        {{~ end ~}}
-
-        {{~ for column in table.Columns ~}}
-        {{~ if column.TypeName == "UniqueIdentifierColumnModel" && column.IsPrimaryKey ~}}
-        /// <summary>
-        /// Overload for entity Id property to set the unique identifier attribute.
-        /// </summary>
-        public Guid Id
-        {
-            get => this.{{column.SchemaName}};
-            set => this.{{column.SchemaName}} = value;
-        }
         {{~ end ~}}
         {{~ end ~}}
 

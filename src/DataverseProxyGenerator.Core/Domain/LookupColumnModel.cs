@@ -4,6 +4,5 @@ namespace DataverseProxyGenerator.Core.Domain
     {
         public string TargetTable { get; init; }
         public string RelationshipName { get; init; }
-        public override string TypeName => "LookupColumnModel";
     }
 }

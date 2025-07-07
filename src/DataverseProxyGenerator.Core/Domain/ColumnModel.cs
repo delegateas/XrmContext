@@ -6,9 +6,8 @@ namespace DataverseProxyGenerator.Core.Domain
         public required string SchemaName { get; init; }
         public required string DisplayName { get; init; }
         public string? Description { get; init; }
-        public bool IsPrimaryKey { get; init; }
         public bool IsNullable { get; init; }
         public bool IsObsolete { get; init; }
-        public abstract string TypeName { get; }
+        public string TypeName => GetType().Name;
     }
 }

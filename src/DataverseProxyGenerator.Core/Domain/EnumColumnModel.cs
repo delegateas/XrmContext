@@ -11,6 +11,5 @@ namespace DataverseProxyGenerator.Core.Domain
         /// Maps option value to a dictionary of LCID → label.
         /// </summary>
         public Dictionary<int, Dictionary<int, string>> OptionLocalizations { get; init; }
-        public override string TypeName => "EnumColumnModel";
     }
 }
