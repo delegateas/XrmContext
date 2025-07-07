@@ -34,7 +34,7 @@
 - **Refactored for maintainability:** All large methods are now split into smaller, focused helpers. Each file contains only a single class, and the codebase is modular and easy to maintain.
 
 ## Known Issues
-- None blocking current workflow.
+- No automated tests for most attribute types, output writer, CLI, edge cases, or relationship handling (see "What's Left to Build"). This is not blocking current workflow but may impact future maintainability.
 - Edge cases in enum or attribute handling may arise as more entities are tested.
 
 ## Evolution of Project Decisions

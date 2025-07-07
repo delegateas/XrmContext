@@ -24,6 +24,19 @@
 - **Template formatting fix:** Updated ProxyClass.scriban-cs to avoid double newlines after the last attribute section, ensuring clean output.
 - **Automated formatting test:** Added a robust test that uses the real template to verify both property generation and that no double newlines appear after the last attribute. Test reliably locates the template file regardless of working directory.
 
+## Recent Code Additions
+- **Domain Models:** Added/updated C# record types for all Dataverse attribute types (BigInt, Boolean, DateTime, Decimal, Double, Enum, File, Image, Integer, Lookup, Memo, Money, PartyList, PrimaryId, Relationship, String, Table). Each model is in its own file for maintainability.
+- **Code Generation:** `CSharpProxyGenerator` implements modular codegen for all supported attribute types, robust enum/optionset handling, and template-driven output using Scriban. Multiple `.scriban-cs` templates for proxy classes, enums, intersection interfaces, etc.
+- **Output Writer:** `FileSystemOutputWriter` abstracts file writing and directory creation.
+- **CLI:** Orchestrates the fetch/generate/write pipeline, supports advanced options, robust argument parsing, and dependency injection.
+
+## Missing Automated Tests
+- **Attribute Type Codegen:** No tests for int, bool, decimal, double, money, datetime, lookup, enum, guid, file, image, memo columns (only string columns are tested).
+- **Output Writer:** No tests for file writing, directory creation, or error handling in `FileSystemOutputWriter`.
+- **CLI Orchestration:** No tests for argument parsing, DI setup, error handling, or user feedback.
+- **Edge Cases:** No tests for attribute filtering, enum edge cases, template errors, or invalid metadata.
+- **Relationship Handling:** No tests for codegen of relationships or intersection interfaces (if supported).
+
 ## Next Steps
 - Monitor for any issues or regressions related to the recent refactor, especially in downstream consumers or integrations.
 - Ensure all new features and codegen logic use schema names exclusively.
