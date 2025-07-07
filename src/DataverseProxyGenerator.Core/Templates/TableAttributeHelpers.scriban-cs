@@ -1,0 +1,115 @@
+// TableAttributeHelpers.cs
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.Xrm.Sdk;
+
+namespace {{ namespace }}
+{
+    public static class TableAttributeHelpers
+    {
+        public static T? GetOptionSetValue<T>(this Entity entity, string attributeName)
+            where T : struct, IComparable, IConvertible, IFormattable
+        {
+            var optionSet = entity.GetAttributeValue<OptionSetValue>(attributeName);
+            if (optionSet != null)
+            {
+                return (T)Enum.ToObject(typeof(T), optionSet.Value);
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        public static void SetOptionSetValue<T>(this Entity entity, string attributeName, T value)
+        {
+            if (value != null)
+            {
+                entity.SetAttributeValue(attributeName, new OptionSetValue((int)(object)value));
+            }
+            else
+            {
+                entity.SetAttributeValue(attributeName, null);
+            }
+        }
+
+        public static IEnumerable<T> GetOptionSetCollectionValue<T>(this Entity entity, string attributeName)
+            where T : struct, IComparable, IConvertible, IFormattable
+        {
+            var optionSetCollection = entity.GetAttributeValue<OptionSetValueCollection>(attributeName);
+            if (optionSetCollection != null && optionSetCollection.Count != 0)
+            {
+                return optionSetCollection
+                    .Select(osv => (T)Enum.ToObject(typeof(T), osv.Value))
+                    .ToArray();
+            }
+            return null;
+        }
+
+        public static void SetOptionSetCollectionValue<T>(this Entity entity, string attributeName, IEnumerable<T> value)
+        {
+            if (value != null && value.Any())
+            {
+                var arr = value
+                    .Select(v => new OptionSetValue((int)(object)v))
+                    .ToArray();
+                entity.SetAttributeValue(attributeName, new OptionSetValueCollection(arr));
+            }
+            else
+            {
+                entity.SetAttributeValue(attributeName, null);
+            }
+        }
+
+        public static decimal? GetMoneyValue(this Entity entity, string attributeName)
+        {
+            var money = entity.GetAttributeValue<Money>(attributeName);
+            if (money != null)
+            {
+                return money.Value;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        public static void SetMoneyValue(this Entity entity, string attributeName, decimal? value)
+        {
+            if (value.HasValue)
+            {
+                entity.SetAttributeValue(attributeName, new Money(value.Value));
+            }
+            else
+            {
+                entity.SetAttributeValue(attributeName, null);
+            }
+        }
+
+        public static IEnumerable<T> GetEntityCollection<T>(this Entity entity, string attributeName) where T : Entity
+        {
+            var collection = entity.GetAttributeValue<EntityCollection>(attributeName);
+            if (collection != null && collection.Entities != null)
+            {
+                return collection.Entities.Select(x => x as T);
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        public static void SetEntityCollection<T>(this Entity entity, string attributeName, IEnumerable<T> entities) where T : Entity
+        {
+            if (entities != null)
+            {
+                entity.SetAttributeValue(attributeName, new EntityCollection(new List<Entity>(entities)));
+            }
+            else
+            {
+                entity.SetAttributeValue(attributeName, null);
+            }
+        }
+    }
+}

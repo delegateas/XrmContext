@@ -112,6 +112,12 @@ namespace {{namespace}}
             get => GetAttributeValue<EntityReference>("{{column.LogicalName}}");
             set => SetAttributeValue("{{column.LogicalName}}", value);
         }
+        {{~ else if column.TypeName == "PartyListColumnModel" ~}}
+        public IEnumerable<ActivityParty> {{column.SchemaName}}
+        {
+            get => GetEntityCollection<ActivityParty>("{{column.LogicalName}}");
+            set => SetEntityCollection("{{column.LogicalName}}", value);
+        }
         {{~ else if column.TypeName == "FileColumnModel" || column.TypeName == "ImageColumnModel" ~}}
         public byte[] {{column.SchemaName}}
         {

@@ -185,6 +185,7 @@ namespace DataverseProxyGenerator.Core.Metadata
                 DoubleAttributeMetadata dblAttr => BuildDoubleColumn(dblAttr, labelMapping),
                 MoneyAttributeMetadata moneyAttr => BuildMoneyColumn(moneyAttr, labelMapping),
                 EnumAttributeMetadata enumAttr => BuildEnumColumn(enumAttr, labelMapping),
+                LookupAttributeMetadata lookupAttr when lookupAttr.AttributeType == AttributeTypeCode.PartyList => BuildPartyListColumn(lookupAttr, labelMapping),
                 LookupAttributeMetadata lookupAttr => BuildLookupColumn(lookupAttr, labelMapping),
                 FileAttributeMetadata fileAttr => BuildFileColumn(fileAttr, labelMapping),
                 ImageAttributeMetadata imageAttr => BuildImageColumn(imageAttr, labelMapping),
@@ -397,6 +398,15 @@ namespace DataverseProxyGenerator.Core.Metadata
                 OptionLocalizations = optionLocalizations
             };
         }
+
+        private PartyListColumnModel BuildPartyListColumn(LookupAttributeMetadata attr, Dictionary<string, string> labelMapping) => new PartyListColumnModel
+        {
+            LogicalName = attr.LogicalName,
+            SchemaName = attr.SchemaName,
+            DisplayName = ApplyLabelMapping(attr.DisplayName?.UserLocalizedLabel?.Label ?? attr.LogicalName, labelMapping),
+            Description = ApplyLabelMapping(attr.Description?.UserLocalizedLabel?.Label ?? string.Empty, labelMapping),
+            IsNullable = attr.RequiredLevel?.Value != AttributeRequiredLevel.ApplicationRequired,
+        };
 
         private LookupColumnModel BuildLookupColumn(LookupAttributeMetadata attr, Dictionary<string, string> labelMapping) => new LookupColumnModel
         {

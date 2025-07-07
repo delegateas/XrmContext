@@ -50,6 +50,7 @@ namespace DataverseProxyGenerator.Core.Generation
         private static string IntersectionInterfaceTemplatePath => Path.Combine(GetTemplatesDirectory(), "IntersectionInterface.scriban-cs");
         private static string OptionSetMetadataAttributeTemplatePath => Path.Combine(GetTemplatesDirectory(), "OptionSetMetadataAttribute.scriban-cs");
         private static string XrmClassTemplatePath => Path.Combine(GetTemplatesDirectory(), "XrmClass.scriban-cs");
+        private static string TableHelperTemplatePath => Path.Combine(GetTemplatesDirectory(), "TableAttributeHelpers.scriban-cs");
 
         public CSharpProxyGenerator()
         {
@@ -57,7 +58,7 @@ namespace DataverseProxyGenerator.Core.Generation
 
         public IEnumerable<GeneratedFile> GenerateCode(IEnumerable<TableModel> tables, string @namespace, Dictionary<string, List<string>> intersectMapping)
         {
-            var (proxyTemplate, enumTemplate, interfaceTemplate, optionSetMetadataAttributeTemplate) = LoadAllTemplatesWithAttribute();
+            var templates = LoadAllTemplatesWithAttribute();
 
             var files = new List<GeneratedFile>();
 
@@ -66,9 +67,35 @@ namespace DataverseProxyGenerator.Core.Generation
 
             var (interfaceColumns, tableToInterfaces) = BuildIntersectionData(intersectMapping, tableDict, tableColumns);
 
-            files.AddRange(GenerateIntersectionInterfaceFiles(interfaceColumns, tables, @namespace, interfaceTemplate));
+            files.AddRange(GenerateIntersectionInterfaceFiles(interfaceColumns, tables, @namespace, templates.interfaceTemplate));
 
             // Generate proxy classes (with interfaces if needed)
+            files.AddRange(GenerateProxyClassFiles(tables, @namespace, tableToInterfaces, templates.proxyTemplate));
+
+            // Generate enums as before
+            files.AddRange(GenerateEnumFiles(GetGlobalOptionsets(tables), @namespace, templates.enumTemplate));
+
+            // Generate Xrm context class
+            var xrmClassResult = templates.xrmTemplate.Render(new { tables }, member => member.Name);
+            files.Add(new GeneratedFile(Path.Combine("queries", "Xrm.cs"), xrmClassResult));
+
+            // Generate OptionSetMetadataAttribute
+            var attributeResult = templates.optionSetMetadataAttributeTemplate.Render(new { @namespace }, member => member.Name);
+            files.Add(new GeneratedFile(Path.Combine("attributes", "OptionSetMetadataAttribute.cs"), attributeResult));
+
+            // Generate TableAttributeHelpers
+            var tableHelperResult = templates.tableHelperTemplate.Render(new { @namespace }, member => member.Name);
+            files.Add(new GeneratedFile(Path.Combine("tables", "TableAttributeHelpers.cs"), tableHelperResult));
+            
+            return files;
+        }
+
+        private IEnumerable<GeneratedFile> GenerateProxyClassFiles(
+        IEnumerable<TableModel> tables,
+        string @namespace,
+        Dictionary<string, List<string>> tableToInterfaces,
+        Template proxyTemplate)
+        {
             foreach (var table in tables)
             {
                 var interfaces = tableToInterfaces.TryGetValue(table.LogicalName, out var ifaces) ? ifaces : new List<string>();
@@ -93,23 +120,8 @@ namespace DataverseProxyGenerator.Core.Generation
                 context.MemberRenamer = member => member.Name;
                 context.PushGlobal(Scriban.Runtime.ScriptObject.From(model));
                 var result = proxyTemplate.Render(context);
-                files.Add(new GeneratedFile(Path.Combine("tables", $"{table.SchemaName}.cs"), result));
+                yield return new GeneratedFile(Path.Combine("tables", $"{table.SchemaName}.cs"), result);
             }
-
-            // Generate enums as before
-            files.AddRange(GenerateEnumFiles(GetGlobalOptionsets(tables), @namespace, enumTemplate));
-
-            // Generate Xrm context class
-            var xrmClassTemplateText = File.ReadAllText(XrmClassTemplatePath);
-            var xrmClassTemplate = Template.Parse(xrmClassTemplateText);
-            var xrmClassResult = xrmClassTemplate.Render(new { tables }, member => member.Name);
-            files.Add(new GeneratedFile(Path.Combine("queries", "Xrm.cs"), xrmClassResult));
-
-            // Generate OptionSetMetadataAttribute
-            var attributeResult = optionSetMetadataAttributeTemplate.Render(new { @namespace }, member => member.Name);
-            files.Add(new GeneratedFile(Path.Combine("attributes", "OptionSetMetadataAttribute.cs"), attributeResult));
-
-            return files;
         }
 
         private (Template proxyTemplate, Template enumTemplate, Template interfaceTemplate) LoadAllTemplates()
@@ -126,7 +138,13 @@ namespace DataverseProxyGenerator.Core.Generation
             return (proxyTemplate, enumTemplate, interfaceTemplate);
         }
 
-        private (Template proxyTemplate, Template enumTemplate, Template interfaceTemplate, Template optionSetMetadataAttributeTemplate) LoadAllTemplatesWithAttribute()
+        private (Template proxyTemplate,
+        Template enumTemplate,
+        Template interfaceTemplate,
+        Template optionSetMetadataAttributeTemplate,
+        Template xrmTemplate,
+        Template tableHelperTemplate)
+        LoadAllTemplatesWithAttribute()
         {
             var proxyTemplateText = File.ReadAllText(ProxyClassTemplatePath);
             var proxyTemplate = Template.Parse(proxyTemplateText);
@@ -140,7 +158,18 @@ namespace DataverseProxyGenerator.Core.Generation
             var optionSetMetadataAttributeTemplateText = File.ReadAllText(OptionSetMetadataAttributeTemplatePath);
             var optionSetMetadataAttributeTemplate = Template.Parse(optionSetMetadataAttributeTemplateText);
 
-            return (proxyTemplate, enumTemplate, interfaceTemplate, optionSetMetadataAttributeTemplate);
+            var xrmClassTemplateText = File.ReadAllText(XrmClassTemplatePath);
+            var xrmClassTemplate = Template.Parse(xrmClassTemplateText);
+
+            var tableHelperTemplateText = File.ReadAllText(TableHelperTemplatePath);
+            var tableHelperTemplate = Template.Parse(tableHelperTemplateText);
+
+            return (proxyTemplate,
+                enumTemplate,
+                interfaceTemplate,
+                optionSetMetadataAttributeTemplate,
+                xrmClassTemplate,
+                tableHelperTemplate);
         }
 
         private IEnumerable<EnumColumnModel> GetGlobalOptionsets(IEnumerable<TableModel> tables)
