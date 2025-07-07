@@ -146,5 +146,33 @@ namespace {{ namespace }}
 
             return member.Name;
         }
+
+        /// <summary>
+        /// Checks if all specified attributes are present on the entity.
+        /// </summary>
+        public static bool ContainsAttributes<T>(this T entity, params Expression<Func<T, object>>[] attrGetters) where T : Entity
+        {
+            if (entity == null) throw new ArgumentNullException(nameof(entity));
+            if (attrGetters == null || attrGetters.Length == 0) return false;
+            return attrGetters
+                .Select(a => entity.GetColumnName(a).ToLowerInvariant())
+                .All(a => entity.Contains(a));
+        }
+
+        /// <summary>
+        /// Removes all specified attributes from the entity. Returns true if any attribute was removed.
+        /// </summary>
+        public static bool RemoveAttributes<T>(this T entity, params Expression<Func<T, object>>[] attrGetters) where T : Entity
+        {
+            if (entity == null) throw new ArgumentNullException(nameof(entity));
+            if (attrGetters == null || attrGetters.Length == 0) return false;
+            bool anyRemoved = false;
+            foreach (var a in attrGetters)
+            {
+                var name = entity.GetColumnName(a).ToLowerInvariant();
+                anyRemoved |= entity.Attributes.Remove(name);
+            }
+            return anyRemoved;
+        }
     }
 }
