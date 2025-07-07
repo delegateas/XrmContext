@@ -9,10 +9,9 @@ namespace {{namespace}}
         {{~ for pair in optionsetValues | array.sort "Value" ~}}
         [EnumMember]
         {{~ for loc in pair.Localizations ~}}
-        [OptionSetMetadata("{{ loc.Value }}", Lcid={{ loc.Key }})]
+        [OptionSetMetadata("{{ loc.Value }}", {{ loc.Key }})]
         {{~ end ~}}
         {{ pair.Name }} = {{ pair.Value }},
         {{~ end ~}}
-
     }
 }
