@@ -49,6 +49,7 @@ namespace DataverseProxyGenerator.Core.Generation
         private static string EnumTemplatePath => Path.Combine(GetTemplatesDirectory(), "EnumOptionset.scriban-cs");
         private static string IntersectionInterfaceTemplatePath => Path.Combine(GetTemplatesDirectory(), "IntersectionInterface.scriban-cs");
         private static string OptionSetMetadataAttributeTemplatePath => Path.Combine(GetTemplatesDirectory(), "OptionSetMetadataAttribute.scriban-cs");
+        private static string XrmClassTemplatePath => Path.Combine(GetTemplatesDirectory(), "XrmClass.scriban-cs");
 
         public CSharpProxyGenerator()
         {
@@ -97,6 +98,12 @@ namespace DataverseProxyGenerator.Core.Generation
 
             // Generate enums as before
             files.AddRange(GenerateEnumFiles(GetGlobalOptionsets(tables), @namespace, enumTemplate));
+
+            // Generate Xrm context class
+            var xrmClassTemplateText = File.ReadAllText(XrmClassTemplatePath);
+            var xrmClassTemplate = Template.Parse(xrmClassTemplateText);
+            var xrmClassResult = xrmClassTemplate.Render(new { tables }, member => member.Name);
+            files.Add(new GeneratedFile(Path.Combine("queries", "Xrm.cs"), xrmClassResult));
 
             // Generate OptionSetMetadataAttribute
             var attributeResult = optionSetMetadataAttributeTemplate.Render(new { @namespace }, member => member.Name);

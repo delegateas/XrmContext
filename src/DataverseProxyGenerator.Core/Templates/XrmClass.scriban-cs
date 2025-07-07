@@ -1,0 +1,15 @@
+using System.Linq;
+using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk.Client;
+
+public partial class Xrm : OrganizationServiceContext
+{
+    public Xrm(IOrganizationService service) : base(service) { }
+
+{{~ for table in tables ~}}
+    public IQueryable<{{ table.SchemaName }}> {{ table.SchemaName }}Set
+    {
+        get { return CreateQuery<{{ table.SchemaName }}>(); }
+    }
+{{~ end ~}}
+}
