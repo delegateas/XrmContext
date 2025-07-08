@@ -185,7 +185,7 @@ namespace DataverseProxyGenerator.Core.Generation
             return tables
                 .SelectMany(t => t.Columns)
                 .OfType<EnumColumnModel>()
-                .Where(c => c.IsGlobalOptionset && !string.IsNullOrEmpty(c.OptionsetName) && c.OptionsetValues != null)
+                .Where(c => !string.IsNullOrEmpty(c.OptionsetName) && c.OptionsetValues != null)
                 .GroupBy(c => c.OptionsetName)
                 .Select(g => g.First());
         }
