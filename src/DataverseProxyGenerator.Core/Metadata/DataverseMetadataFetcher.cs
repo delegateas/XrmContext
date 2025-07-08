@@ -487,6 +487,11 @@ namespace DataverseProxyGenerator.Core.Metadata
                     RelatedEntitySchemaName = allMetadata.FirstOrDefault(x => x.LogicalName == rel.Entity1LogicalName)?.SchemaName ?? "Entity",
                 });
             }
+
+            table = table with
+            {
+                Relationships = [.. table.Relationships.DistinctBy(x => x.SchemaName)],
+            };
         }
     }
 }

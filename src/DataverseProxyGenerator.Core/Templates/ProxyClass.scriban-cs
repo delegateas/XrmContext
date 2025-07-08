@@ -55,50 +55,50 @@ namespace {{namespace}}
         {{~ end ~}}
         {{~ if column.TypeName == "StringColumnModel" || column.TypeName == "MemoColumnModel" ~}}
         [MaxLength({{ column.MaxLength }})]
-        public string {{column.SchemaName}}
+        public string? {{column.SchemaName}}
         {
-            get => GetAttributeValue<string>("{{column.LogicalName}}");
+            get => GetAttributeValue<string?>("{{column.LogicalName}}");
             set => SetAttributeValue("{{column.LogicalName}}", value);
         }
         {{~ else if column.TypeName == "IntegerColumnModel" ~}}
         [Range({{ column.Min }}, {{ column.Max }})]
-        public int{{ if column.IsNullable }}?{{ end }} {{column.SchemaName}}
+        public int? {{column.SchemaName}}
         {
-            get => GetAttributeValue<int{{ if column.IsNullable }}?{{ end }}>("{{column.LogicalName}}");
+            get => GetAttributeValue<int?>("{{column.LogicalName}}");
             set => SetAttributeValue("{{column.LogicalName}}", value);
         }
         {{~ else if column.TypeName == "BigIntColumnModel" ~}}
-        public long{{ if column.IsNullable }}?{{ end }} {{column.SchemaName}}
+        public long? {{column.SchemaName}}
         {
-            get => GetAttributeValue<long{{ if column.IsNullable }}?{{ end }}>("{{column.LogicalName}}");
+            get => GetAttributeValue<long?>("{{column.LogicalName}}");
             set => SetAttributeValue("{{column.LogicalName}}", value);
         }
         {{~ else if column.TypeName == "BooleanColumnModel" ~}}
-        public bool{{ if column.IsNullable }}?{{ end }} {{column.SchemaName}}
+        public bool? {{column.SchemaName}}
         {
-            get => GetAttributeValue<bool{{ if column.IsNullable }}?{{ end }}>("{{column.LogicalName}}");
+            get => GetAttributeValue<bool?>("{{column.LogicalName}}");
             set => SetAttributeValue("{{column.LogicalName}}", value);
         }
         {{~ else if column.TypeName == "DateTimeColumnModel" ~}}
-        public DateTime{{ if column.IsNullable }}?{{ end }} {{column.SchemaName}}
+        public DateTime? {{column.SchemaName}}
         {
-            get => GetAttributeValue<DateTime{{ if column.IsNullable }}?{{ end }}>("{{column.LogicalName}}");
+            get => GetAttributeValue<DateTime?>("{{column.LogicalName}}");
             set => SetAttributeValue("{{column.LogicalName}}", value);
         }
         {{~ else if column.TypeName == "DecimalColumnModel" ~}}
-        public decimal{{ if column.IsNullable }}?{{ end }} {{column.SchemaName}}
+        public decimal? {{column.SchemaName}}
         {
-            get => GetAttributeValue<decimal{{ if column.IsNullable }}?{{ end }}>("{{column.LogicalName}}");
+            get => GetAttributeValue<decimal?>("{{column.LogicalName}}");
             set => SetAttributeValue("{{column.LogicalName}}", value);
         }
         {{~ else if column.TypeName == "DoubleColumnModel" ~}}
-        public double{{ if column.IsNullable }}?{{ end }} {{column.SchemaName}}
+        public double? {{column.SchemaName}}
         {
-            get => GetAttributeValue<double{{ if column.IsNullable }}?{{ end }}>("{{column.LogicalName}}");
+            get => GetAttributeValue<double?>("{{column.LogicalName}}");
             set => SetAttributeValue("{{column.LogicalName}}", value);
         }
         {{~ else if column.TypeName == "MoneyColumnModel" ~}}
-        public decimal{{ if column.IsNullable }}?{{ end }} {{column.SchemaName}}
+        public decimal? {{column.SchemaName}}
         {
             get => this.GetMoneyValue("{{column.LogicalName}}");
             set => this.SetMoneyValue("{{column.LogicalName}}", value);
@@ -111,16 +111,16 @@ namespace {{namespace}}
             set => this.SetOptionSetCollectionValue("{{column.LogicalName}}", value);
         }
         {{~ else ~}}
-        public {{ column.OptionsetName | string.capitalize }}{{ if column.IsNullable }}?{{ end }} {{column.SchemaName}}
+        public {{ column.OptionsetName | string.capitalize }}? {{column.SchemaName}}
         {
             get => this.GetOptionSetValue<{{ column.OptionsetName | string.capitalize }}>("{{column.LogicalName}}");
             set => this.SetOptionSetValue("{{column.LogicalName}}", value);
         }
         {{~ end ~}}
         {{~ else if column.TypeName == "LookupColumnModel" ~}}
-        public EntityReference {{column.SchemaName}}
+        public EntityReference? {{column.SchemaName}}
         {
-            get => GetAttributeValue<EntityReference>("{{column.LogicalName}}");
+            get => GetAttributeValue<EntityReference?>("{{column.LogicalName}}");
             set => SetAttributeValue("{{column.LogicalName}}", value);
         }
         {{~ else if column.TypeName == "PartyListColumnModel" ~}}
@@ -136,9 +136,9 @@ namespace {{namespace}}
             set => SetAttributeValue("{{column.LogicalName}}", value);
         }
         {{~ else if column.TypeName == "PrimaryIdColumnModel" ~}}
-        public Guid{{ if column.IsNullable }}?{{ end }} {{column.SchemaName}}
+        public Guid {{column.SchemaName}}
         {
-            get => GetAttributeValue<Guid{{ if column.IsNullable }}?{{ end }}>("{{column.LogicalName}}");
+            get => GetAttributeValue<Guid>("{{column.LogicalName}}");
             set => SetId("{{column.LogicalName}}", value);
         }
         {{~ end ~}}

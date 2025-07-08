@@ -120,7 +120,7 @@ namespace {{ namespace }}
             }
         }
 
-        protected void SetOptionSetValue<T>(string attributeName, T value)
+        protected void SetOptionSetValue<T>(string attributeName, T? value)
         {
             if (value != null)
             {
