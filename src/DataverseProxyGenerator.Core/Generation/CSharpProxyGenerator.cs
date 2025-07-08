@@ -51,6 +51,7 @@ namespace DataverseProxyGenerator.Core.Generation
         private static string OptionSetMetadataAttributeTemplatePath => Path.Combine(GetTemplatesDirectory(), "OptionSetMetadataAttribute.scriban-cs");
         private static string XrmClassTemplatePath => Path.Combine(GetTemplatesDirectory(), "XrmClass.scriban-cs");
         private static string TableHelperTemplatePath => Path.Combine(GetTemplatesDirectory(), "TableAttributeHelpers.scriban-cs");
+        private static string ExtendedEntityTemplatePath => Path.Combine(GetTemplatesDirectory(), "ExtendedEntity.scriban-cs");
 
         public CSharpProxyGenerator()
         {
@@ -86,7 +87,11 @@ namespace DataverseProxyGenerator.Core.Generation
             // Generate TableAttributeHelpers
             var tableHelperResult = templates.tableHelperTemplate.Render(new { @namespace }, member => member.Name);
             files.Add(new GeneratedFile(Path.Combine("tables", "TableAttributeHelpers.cs"), tableHelperResult));
-            
+
+            // Generate ExtendedEntity
+            var extendedEntityResult = templates.extendedEntityTemplate.Render(new { @namespace }, member => member.Name);
+            files.Add(new GeneratedFile(Path.Combine("tables", "ExtendedEntity.cs"), extendedEntityResult));
+
             return files;
         }
 
@@ -104,7 +109,19 @@ namespace DataverseProxyGenerator.Core.Generation
                     table = new
                     {
                         SchemaName = table.SchemaName,
-                        Columns = table.Columns,
+                        Columns = table.Columns.Select(c =>
+                        c switch
+                        {
+                            EnumColumnModel enumCol => enumCol with
+                            {
+                                SchemaName = SanitizeName(enumCol.SchemaName),
+                                OptionsetName = SanitizeName(enumCol.OptionsetName),
+                            },
+                            _ => c with
+                            {
+                                SchemaName = SanitizeName(c.SchemaName),
+                            }
+                        }),
                         Relationships = table.Relationships,
                         LogicalName = table.LogicalName,
                         DisplayName = table.DisplayName,
@@ -124,26 +141,13 @@ namespace DataverseProxyGenerator.Core.Generation
             }
         }
 
-        private (Template proxyTemplate, Template enumTemplate, Template interfaceTemplate) LoadAllTemplates()
-        {
-            var proxyTemplateText = File.ReadAllText(ProxyClassTemplatePath);
-            var proxyTemplate = Template.Parse(proxyTemplateText);
-
-            var enumTemplateText = File.ReadAllText(EnumTemplatePath);
-            var enumTemplate = Template.Parse(enumTemplateText);
-
-            var interfaceTemplateText = File.ReadAllText(IntersectionInterfaceTemplatePath);
-            var interfaceTemplate = Template.Parse(interfaceTemplateText);
-
-            return (proxyTemplate, enumTemplate, interfaceTemplate);
-        }
-
         private (Template proxyTemplate,
         Template enumTemplate,
         Template interfaceTemplate,
         Template optionSetMetadataAttributeTemplate,
         Template xrmTemplate,
-        Template tableHelperTemplate)
+        Template tableHelperTemplate,
+        Template extendedEntityTemplate)
         LoadAllTemplatesWithAttribute()
         {
             var proxyTemplateText = File.ReadAllText(ProxyClassTemplatePath);
@@ -164,12 +168,16 @@ namespace DataverseProxyGenerator.Core.Generation
             var tableHelperTemplateText = File.ReadAllText(TableHelperTemplatePath);
             var tableHelperTemplate = Template.Parse(tableHelperTemplateText);
 
+            var extendedEntityTemplateText = File.ReadAllText(ExtendedEntityTemplatePath);
+            var extendedEntityTemplate = Template.Parse(extendedEntityTemplateText);
+
             return (proxyTemplate,
                 enumTemplate,
                 interfaceTemplate,
                 optionSetMetadataAttributeTemplate,
                 xrmClassTemplate,
-                tableHelperTemplate);
+                tableHelperTemplate,
+                extendedEntityTemplate);
         }
 
         private IEnumerable<EnumColumnModel> GetGlobalOptionsets(IEnumerable<TableModel> tables)
