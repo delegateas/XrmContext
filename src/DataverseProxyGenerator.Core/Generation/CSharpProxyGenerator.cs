@@ -226,6 +226,11 @@ namespace DataverseProxyGenerator.Core.Generation
             {
                 cleaned = "X" + cleaned;
             }
+            // Ensure first letter is uppercase
+            if (!string.IsNullOrEmpty(cleaned))
+            {
+                cleaned = char.ToUpper(cleaned[0]) + cleaned.Substring(1);
+            }
             return cleaned;
         }
 
@@ -307,7 +312,7 @@ namespace DataverseProxyGenerator.Core.Generation
                     {
                         columns.Add(new
                         {
-                            col.SchemaName,
+                            SchemaName = SanitizeName(col.SchemaName),
                             col.DisplayName,
                             col.Description,
                             TypeSignature = GetPropertyTypeSignature(col)
@@ -331,31 +336,33 @@ namespace DataverseProxyGenerator.Core.Generation
             {
                 case "StringColumnModel":
                 case "MemoColumnModel":
-                    return "string";
+                    return "string?";
                 case "IntegerColumnModel":
-                    return col.IsNullable ? "int?" : "int";
+                    return "int?";
                 case "BigIntColumnModel":
-                    return col.IsNullable ? "long?" : "long";
+                    return "long?";
                 case "BooleanColumnModel":
-                    return col.IsNullable ? "bool?" : "bool";
+                    return "bool?";
                 case "DateTimeColumnModel":
-                    return col.IsNullable ? "DateTime?" : "DateTime";
+                    return "DateTime?";
                 case "DecimalColumnModel":
-                    return col.IsNullable ? "decimal?" : "decimal";
+                    return "decimal?";
                 case "DoubleColumnModel":
-                    return col.IsNullable ? "double?" : "double";
+                    return "double?";
                 case "MoneyColumnModel":
-                    return col.IsNullable ? "decimal?" : "decimal";
+                    return "decimal?";
                 case "EnumColumnModel":
-                    var enumName = (col as EnumColumnModel)?.OptionsetName ?? "int";
-                    return col.IsNullable ? $"{enumName}?" : enumName;
+                    var enumName = SanitizeName(((EnumColumnModel)col).OptionsetName);
+                    return $"{enumName}?";
                 case "LookupColumnModel":
-                    return "EntityReference";
+                    return "EntityReference?";
+                case "PartyListColumnModel":
+                    return "IEnumerable<ActivityParty>";
                 case "FileColumnModel":
                 case "ImageColumnModel":
                     return "byte[]";
-                case "UniqueIdentifierColumnModel":
-                    return col.IsNullable ? "System.Guid?" : "System.Guid";
+                case "PrimaryIdColumnModel":
+                    return "Guid";
                 default:
                     return "object";
             }

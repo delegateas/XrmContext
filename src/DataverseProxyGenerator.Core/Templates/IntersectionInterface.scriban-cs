@@ -4,7 +4,7 @@ using Microsoft.Xrm.Sdk;
 
 namespace {{namespace}}
 {
-    public interface {{interfaceName}} : Entity
+    public interface {{interfaceName}}
     {
         {{~ for column in columns | array.sort "LogicalName" ~}}
         {{~ if column.Description || column.DisplayName ~}}
@@ -21,7 +21,6 @@ namespace {{namespace}}
         {{~ end ~}}
         {{ column.TypeSignature }} {{column.SchemaName}} { get; set; }
         {{~ if !for.last }}
-
         {{~ end ~}}
         {{~ end ~}}
     }
