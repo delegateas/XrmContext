@@ -8,7 +8,18 @@ namespace DataverseProxyGenerator.Core.Output
     {
         public void WriteFiles(IEnumerable<GeneratedFile> files, string outputDirectory)
         {
-            if (!Directory.Exists(outputDirectory))
+            if (Directory.Exists(outputDirectory))
+            {
+                foreach (var file in Directory.GetFiles(outputDirectory))
+                {
+                    File.Delete(file);
+                }
+                foreach (var dir in Directory.GetDirectories(outputDirectory))
+                {
+                    Directory.Delete(dir, true);
+                }
+            }
+            else
             {
                 Directory.CreateDirectory(outputDirectory);
             }
