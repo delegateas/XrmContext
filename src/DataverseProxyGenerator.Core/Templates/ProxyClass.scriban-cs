@@ -6,163 +6,164 @@ using System.Diagnostics;
 using System.Runtime.Serialization;
 using Microsoft.Xrm.Sdk.Client;
 
-namespace {{namespace}}
+namespace {{namespace}};
+
+/// <summary>
+/// <para>Display Name: {{ table.DisplayName }}</para>
+/// </summary>
+[System.CodeDom.Compiler.GeneratedCode("DataverseProxyGenerator", "1.0.0")]
+[EntityLogicalName("{{table.LogicalName}}")]
+[DebuggerDisplay("{DebuggerDisplay,nq}")]
+[DataContract]
+public partial class {{table.SchemaName}} : ExtendedEntity{{ if table.InterfacesList.size > 0 }}, {{ table.InterfacesList | array.join ", " }}{{ end }}
 {
-    /// <summary>
-    /// <para>Display Name: {{ table.DisplayName }}</para>
-    /// </summary>
-    [System.CodeDom.Compiler.GeneratedCode("DataverseProxyGenerator", "1.0.0")]
-    [EntityLogicalName("{{table.LogicalName}}")]
-    [DebuggerDisplay("{DebuggerDisplay,nq}")]
-    [DataContract]
-    public partial class {{table.SchemaName}} : ExtendedEntity{{ if table.InterfacesList.size > 0 }}, {{ table.InterfacesList | array.join ", " }}{{ end }}
-    {
-        public const string EntityLogicalName = "{{table.LogicalName}}";
-        public const int EntityTypeCode = {{table.EntityTypeCode}};
+    public const string EntityLogicalName = "{{table.LogicalName}}";
+    public const int EntityTypeCode = {{table.EntityTypeCode}};
 
-        public {{table.SchemaName}}() : base(EntityLogicalName) { }
-        public {{table.SchemaName}}(Guid id) : base(EntityLogicalName, id) { }
+    public {{table.SchemaName}}() : base(EntityLogicalName) { }
+    public {{table.SchemaName}}(Guid id) : base(EntityLogicalName, id) { }
 
-        private string DebuggerDisplay => GetDebuggerDisplay("{{ table.PrimaryNameAttribute }}");
+    private string DebuggerDisplay => GetDebuggerDisplay("{{ table.PrimaryNameAttribute }}");
 
-        [AttributeLogicalName("{{ table.PrimaryIdAttribute }}")]
-        public override Guid Id {
-            get {
-                return base.Id;
-            }
-            set {
-                SetId("{{ table.PrimaryIdAttribute }}", value);
-            }
+    [AttributeLogicalName("{{ table.PrimaryIdAttribute }}")]
+    public override Guid Id {
+        get {
+            return base.Id;
         }
-
-        {{~ for column in table.Columns | array.sort "LogicalName" ~}}
-        {{~ if column.Description || column.DisplayName ~}}
-        /// <summary>
-        {{~ if column.Description && column.Description != "" && column.Description != " " && column.Description != "  " && column.Description != "   " && column.Description != "\t" && column.Description != "\n" && column.Description != "\r\n" ~}}
-        {{~ for line in column.Description | string.split '\n' ~}}
-        /// <para>{{ line | string.strip }}</para>
-        {{~ end ~}}
-        {{~ end ~}}
-        {{~ if column.DisplayName ~}}
-        /// <para>Display Name: {{ column.DisplayName }}</para>
-        {{~ end ~}}
-        /// </summary>
-        {{~ end ~}}
-        [AttributeLogicalName("{{ column.LogicalName }}")]
-        [DisplayName("{{ column.DisplayName }}")]
-        {{~ if column.IsObsolete ~}}
-        [ObsoleteAttribute()]
-        {{~ end ~}}
-        {{~ if column.TypeName == "StringColumnModel" || column.TypeName == "MemoColumnModel" ~}}
-        [MaxLength({{ column.MaxLength }})]
-        public string? {{column.SchemaName}}
-        {
-            get => GetAttributeValue<string>("{{column.LogicalName}}");
-            set => SetAttributeValue("{{column.LogicalName}}", value);
+        set {
+            SetId("{{ table.PrimaryIdAttribute }}", value);
         }
-        {{~ else if column.TypeName == "IntegerColumnModel" ~}}
-        [Range({{ column.Min }}, {{ column.Max }})]
-        public int? {{column.SchemaName}}
-        {
-            get => GetAttributeValue<int>("{{column.LogicalName}}");
-            set => SetAttributeValue("{{column.LogicalName}}", value);
-        }
-        {{~ else if column.TypeName == "BigIntColumnModel" ~}}
-        public long? {{column.SchemaName}}
-        {
-            get => GetAttributeValue<long>("{{column.LogicalName}}");
-            set => SetAttributeValue("{{column.LogicalName}}", value);
-        }
-        {{~ else if column.TypeName == "BooleanColumnModel" ~}}
-        public bool? {{column.SchemaName}}
-        {
-            get => GetAttributeValue<bool>("{{column.LogicalName}}");
-            set => SetAttributeValue("{{column.LogicalName}}", value);
-        }
-        {{~ else if column.TypeName == "DateTimeColumnModel" ~}}
-        public DateTime? {{column.SchemaName}}
-        {
-            get => GetAttributeValue<DateTime>("{{column.LogicalName}}");
-            set => SetAttributeValue("{{column.LogicalName}}", value);
-        }
-        {{~ else if column.TypeName == "DecimalColumnModel" ~}}
-        public decimal? {{column.SchemaName}}
-        {
-            get => GetAttributeValue<decimal>("{{column.LogicalName}}");
-            set => SetAttributeValue("{{column.LogicalName}}", value);
-        }
-        {{~ else if column.TypeName == "DoubleColumnModel" ~}}
-        public double? {{column.SchemaName}}
-        {
-            get => GetAttributeValue<double>("{{column.LogicalName}}");
-            set => SetAttributeValue("{{column.LogicalName}}", value);
-        }
-        {{~ else if column.TypeName == "MoneyColumnModel" ~}}
-        public decimal? {{column.SchemaName}}
-        {
-            get => this.GetMoneyValue("{{column.LogicalName}}");
-            set => this.SetMoneyValue("{{column.LogicalName}}", value);
-        }
-        {{~ else if column.TypeName == "EnumColumnModel" ~}}
-        {{~ if column.IsMultiSelect ~}}
-        public IEnumerable<{{ column.OptionsetName | string.capitalize }}> {{column.SchemaName}}
-        {
-            get => this.GetOptionSetCollectionValue<{{ column.OptionsetName | string.capitalize }}>("{{column.LogicalName}}");
-            set => this.SetOptionSetCollectionValue("{{column.LogicalName}}", value);
-        }
-        {{~ else ~}}
-        public {{ column.OptionsetName | string.capitalize }}? {{column.SchemaName}}
-        {
-            get => this.GetOptionSetValue<{{ column.OptionsetName | string.capitalize }}>("{{column.LogicalName}}");
-            set => this.SetOptionSetValue("{{column.LogicalName}}", value);
-        }
-        {{~ end ~}}
-        {{~ else if column.TypeName == "LookupColumnModel" ~}}
-        public EntityReference? {{column.SchemaName}}
-        {
-            get => GetAttributeValue<EntityReference>("{{column.LogicalName}}");
-            set => SetAttributeValue("{{column.LogicalName}}", value);
-        }
-        {{~ else if column.TypeName == "PartyListColumnModel" ~}}
-        public IEnumerable<ActivityParty> {{column.SchemaName}}
-        {
-            get => GetEntityCollection<ActivityParty>("{{column.LogicalName}}");
-            set => SetEntityCollection("{{column.LogicalName}}", value);
-        }
-        {{~ else if column.TypeName == "FileColumnModel" || column.TypeName == "ImageColumnModel" ~}}
-        public byte[] {{column.SchemaName}}
-        {
-            get => GetAttributeValue<byte[]>("{{column.LogicalName}}");
-            set => SetAttributeValue("{{column.LogicalName}}", value);
-        }
-        {{~ else if column.TypeName == "PrimaryIdColumnModel" ~}}
-        public Guid {{column.SchemaName}}
-        {
-            get => GetAttributeValue<Guid>("{{column.LogicalName}}");
-            set => SetId("{{column.LogicalName}}", value);
-        }
-        {{~ end ~}}
-        {{~ if !for.last ~}}
-
-        {{~ end ~}}
-        {{~ end ~}}
-
-        {{~ for rel in table.Relationships ~}}
-        {{~ if rel.RelationshipType == "ManyToOne" ~}}
-        [AttributeLogicalName("{{ rel.ThisEntityAttribute }}")]
-        {{~ end ~}}
-        [RelationshipSchemaName("{{ rel.SchemaName }}")]
-        public {{ if rel.RelationshipType == "OneToMany" || rel.RelationshipType == "ManyToMany" }}IEnumerable<{{ rel.RelatedEntitySchemaName }}> {{ rel.SchemaName }}
-        {
-            get => GetRelatedEntities<{{ rel.RelatedEntitySchemaName }}>("{{ rel.SchemaName }}", null);
-            set => SetRelatedEntities("{{ rel.SchemaName }}", null, value);
-        }
-        {{ else if rel.RelationshipType == "ManyToOne" }}{{ rel.RelatedEntitySchemaName }} {{ rel.SchemaName }}
-        {
-            get => GetRelatedEntity<{{ rel.RelatedEntitySchemaName }}>("{{ rel.SchemaName }}", null);
-            set => SetRelatedEntity("{{ rel.SchemaName }}", null, value);
-        }
-        {{ end }}
-        {{~ end ~}}
     }
+
+    {{~ for column in table.Columns | array.sort "LogicalName" ~}}
+    {{~ if column.Description || column.DisplayName ~}}
+    /// <summary>
+    {{~ if column.Description && column.Description != "" && column.Description != " " && column.Description != "  " && column.Description != "   " && column.Description != "\t" && column.Description != "\n" && column.Description != "\r\n" ~}}
+    {{~ for line in column.Description | string.split '\n' ~}}
+    /// <para>{{ line | string.strip }}</para>
+    {{~ end ~}}
+    {{~ end ~}}
+    {{~ if column.DisplayName ~}}
+    /// <para>Display Name: {{ column.DisplayName }}</para>
+    {{~ end ~}}
+    /// </summary>
+    {{~ end ~}}
+    [AttributeLogicalName("{{ column.LogicalName }}")]
+    [DisplayName("{{ column.DisplayName }}")]
+    {{~ if column.IsObsolete ~}}
+    [ObsoleteAttribute()]
+    {{~ end ~}}
+    {{~ if column.TypeName == "StringColumnModel" || column.TypeName == "MemoColumnModel" ~}}
+    [MaxLength({{ column.MaxLength }})]
+    public string? {{column.SchemaName}}
+    {
+        get => GetAttributeValue<string>("{{column.LogicalName}}");
+        set => SetAttributeValue("{{column.LogicalName}}", value);
+    }
+    {{~ else if column.TypeName == "IntegerColumnModel" ~}}
+    [Range({{ column.Min }}, {{ column.Max }})]
+    public int? {{column.SchemaName}}
+    {
+        get => GetAttributeValue<int>("{{column.LogicalName}}");
+        set => SetAttributeValue("{{column.LogicalName}}", value);
+    }
+    {{~ else if column.TypeName == "BigIntColumnModel" ~}}
+    public long? {{column.SchemaName}}
+    {
+        get => GetAttributeValue<long>("{{column.LogicalName}}");
+        set => SetAttributeValue("{{column.LogicalName}}", value);
+    }
+    {{~ else if column.TypeName == "BooleanColumnModel" ~}}
+    public bool? {{column.SchemaName}}
+    {
+        get => GetAttributeValue<bool>("{{column.LogicalName}}");
+        set => SetAttributeValue("{{column.LogicalName}}", value);
+    }
+    {{~ else if column.TypeName == "DateTimeColumnModel" ~}}
+    public DateTime? {{column.SchemaName}}
+    {
+        get => GetAttributeValue<DateTime>("{{column.LogicalName}}");
+        set => SetAttributeValue("{{column.LogicalName}}", value);
+    }
+    {{~ else if column.TypeName == "DecimalColumnModel" ~}}
+    public decimal? {{column.SchemaName}}
+    {
+        get => GetAttributeValue<decimal>("{{column.LogicalName}}");
+        set => SetAttributeValue("{{column.LogicalName}}", value);
+    }
+    {{~ else if column.TypeName == "DoubleColumnModel" ~}}
+    public double? {{column.SchemaName}}
+    {
+        get => GetAttributeValue<double>("{{column.LogicalName}}");
+        set => SetAttributeValue("{{column.LogicalName}}", value);
+    }
+    {{~ else if column.TypeName == "MoneyColumnModel" ~}}
+    public decimal? {{column.SchemaName}}
+    {
+        get => this.GetMoneyValue("{{column.LogicalName}}");
+        set => this.SetMoneyValue("{{column.LogicalName}}", value);
+    }
+    {{~ else if column.TypeName == "EnumColumnModel" ~}}
+    {{~ if column.IsMultiSelect ~}}
+    public IEnumerable<{{ column.OptionsetName | string.capitalize }}> {{column.SchemaName}}
+    {
+        get => this.GetOptionSetCollectionValue<{{ column.OptionsetName | string.capitalize }}>("{{column.LogicalName}}");
+        set => this.SetOptionSetCollectionValue("{{column.LogicalName}}", value);
+    }
+    {{~ else ~}}
+    public {{ column.OptionsetName | string.capitalize }}? {{column.SchemaName}}
+    {
+        get => this.GetOptionSetValue<{{ column.OptionsetName | string.capitalize }}>("{{column.LogicalName}}");
+        set => this.SetOptionSetValue("{{column.LogicalName}}", value);
+    }
+    {{~ end ~}}
+    {{~ else if column.TypeName == "LookupColumnModel" ~}}
+    public EntityReference? {{column.SchemaName}}
+    {
+        get => GetAttributeValue<EntityReference>("{{column.LogicalName}}");
+        set => SetAttributeValue("{{column.LogicalName}}", value);
+    }
+    {{~ else if column.TypeName == "PartyListColumnModel" ~}}
+    public IEnumerable<ActivityParty> {{column.SchemaName}}
+    {
+        get => GetEntityCollection<ActivityParty>("{{column.LogicalName}}");
+        set => SetEntityCollection("{{column.LogicalName}}", value);
+    }
+    {{~ else if column.TypeName == "FileColumnModel" || column.TypeName == "ImageColumnModel" ~}}
+    public byte[] {{column.SchemaName}}
+    {
+        get => GetAttributeValue<byte[]>("{{column.LogicalName}}");
+        set => SetAttributeValue("{{column.LogicalName}}", value);
+    }
+    {{~ else if column.TypeName == "PrimaryIdColumnModel" ~}}
+    public Guid {{column.SchemaName}}
+    {
+        get => GetAttributeValue<Guid>("{{column.LogicalName}}");
+        set => SetId("{{column.LogicalName}}", value);
+    }
+    {{~ end ~}}
+    {{~ if !for.last ~}}
+
+    {{~ end ~}}
+    {{~ end ~}}
+
+    {{~ if ! table.IsIntersect ~}}
+    {{~ for rel in table.Relationships ~}}
+    {{~ if rel.RelationshipType == "ManyToOne" ~}}
+    [AttributeLogicalName("{{ rel.ThisEntityAttribute }}")]
+    {{~ end ~}}
+    [RelationshipSchemaName("{{ rel.SchemaName }}")]
+    public {{ if rel.RelationshipType == "OneToMany" || rel.RelationshipType == "ManyToMany" }}IEnumerable<{{ rel.RelatedEntitySchemaName }}> {{ rel.SchemaName }}
+    {
+        get => GetRelatedEntities<{{ rel.RelatedEntitySchemaName }}>("{{ rel.SchemaName }}", null);
+        set => SetRelatedEntities("{{ rel.SchemaName }}", null, value);
+    }
+    {{ else if rel.RelationshipType == "ManyToOne" }}{{ rel.RelatedEntitySchemaName }} {{ rel.SchemaName }}
+    {
+        get => GetRelatedEntity<{{ rel.RelatedEntitySchemaName }}>("{{ rel.SchemaName }}", null);
+        set => SetRelatedEntity("{{ rel.SchemaName }}", null, value);
+    }
+    {{ end }}
+    {{~ end ~}}
+    {{~ end ~}}
 }

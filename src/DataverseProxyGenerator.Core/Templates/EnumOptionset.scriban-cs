@@ -1,18 +1,17 @@
 using System.Runtime.Serialization;
 
-namespace {{namespace}}
-{
-    [DataContract]
+namespace {{namespace}};
+
+[DataContract]
 #pragma warning disable CA1008 // Enums should have zero value
-    public enum {{optionsetName | string.capitalize}}
+public enum {{optionsetName | string.capitalize}}
 #pragma warning restore CA1008 // Enums should have zero value
-    {
-        {{~ for pair in optionsetValues | array.sort "Value" ~}}
-        [EnumMember]
-        {{~ for loc in pair.Localizations ~}}
-        [OptionSetMetadata("{{ loc.Value }}", {{ loc.Key }})]
-        {{~ end ~}}
-        {{ pair.Name }} = {{ pair.Value }},
-        {{~ end ~}}
-    }
+{
+    {{~ for pair in optionsetValues | array.sort "Value" ~}}
+    [EnumMember]
+    {{~ for loc in pair.Localizations ~}}
+    [OptionSetMetadata("{{ loc.Value }}", {{ loc.Key }})]
+    {{~ end ~}}
+    {{ pair.Name }} = {{ pair.Value }},
+    {{~ end ~}}
 }

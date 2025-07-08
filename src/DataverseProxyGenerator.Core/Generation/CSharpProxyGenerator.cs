@@ -77,7 +77,7 @@ namespace DataverseProxyGenerator.Core.Generation
             files.AddRange(GenerateEnumFiles(GetGlobalOptionsets(tables), @namespace, templates.enumTemplate));
 
             // Generate Xrm context class
-            var xrmClassResult = templates.xrmTemplate.Render(new { tables }, member => member.Name);
+            var xrmClassResult = templates.xrmTemplate.Render(new { tables, @namespace }, member => member.Name);
             files.Add(new GeneratedFile(Path.Combine("queries", "Xrm.cs"), xrmClassResult));
 
             // Generate OptionSetMetadataAttribute
@@ -128,6 +128,7 @@ namespace DataverseProxyGenerator.Core.Generation
                         EntityTypeCode = table.EntityTypeCode,
                         PrimaryNameAttribute = table.PrimaryNameAttribute,
                         PrimaryIdAttribute = table.PrimaryIdAttribute,
+                        IsIntersect = table.IsIntersect,
                         InterfacesList = interfaces ?? new List<string>()
                     },
                     @namespace
@@ -213,7 +214,7 @@ namespace DataverseProxyGenerator.Core.Generation
         }
 
         // --- Enum Name Sanitization Helper ---
-        private static readonly char[] CharsToRemove = { '(', ')', '_', '\'', '-', '–' };
+        private static readonly char[] CharsToRemove = { '(', ')', '_', '\'', '-', '–', '%' };
         private static string SanitizeName(string name)
         {
             if (string.IsNullOrEmpty(name))

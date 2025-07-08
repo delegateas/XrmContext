@@ -10,6 +10,7 @@ namespace DataverseProxyGenerator.Core.Domain
         public int EntityTypeCode { get; init; }
         public string? PrimaryNameAttribute { get; init; }
         public string PrimaryIdAttribute { get; init; }
+        public bool IsIntersect { get; init; }
         public List<ColumnModel> Columns { get; init; } = new();
         public List<RelationshipModel> Relationships { get; init; } = new();
     }

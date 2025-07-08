@@ -1,18 +1,17 @@
 using System;
 
-namespace {{namespace}}
+namespace {{namespace}};
+
+[AttributeUsage(AttributeTargets.Field, AllowMultiple = true)]
+public sealed class OptionSetMetadataAttribute : Attribute
 {
-    [AttributeUsage(AttributeTargets.Field, AllowMultiple = true)]
-    public sealed class OptionSetMetadataAttribute : Attribute
+    public string Label { get; }
+
+    public int Lcid { get; }
+
+    public OptionSetMetadataAttribute(string label, int lcid)
     {
-        public string Label { get; }
-
-        public int Lcid { get; }
-
-        public OptionSetMetadataAttribute(string label, int lcid)
-        {
-            Label = label;
-            Lcid = lcid;
-        }
+        Label = label;
+        Lcid = lcid;
     }
 }

@@ -6,69 +6,68 @@ using System.Linq.Expressions;
 using System.Reflection;
 using Microsoft.Xrm.Sdk;
 
-namespace {{ namespace }}
+namespace {{ namespace }};
+
+public static class TableAttributeHelpers
 {
-    public static class TableAttributeHelpers
+    /// <summary>
+    /// Gets the logical column name for a property on the entity, using the AttributeLogicalNameAttribute if present.
+    /// </summary>
+    public static string GetColumnName<T>(this T entity, Expression<Func<T, object>> lambda) where T : Entity
     {
-        /// <summary>
-        /// Gets the logical column name for a property on the entity, using the AttributeLogicalNameAttribute if present.
-        /// </summary>
-        public static string GetColumnName<T>(this T entity, Expression<Func<T, object>> lambda) where T : Entity
+        if (lambda == null) throw new ArgumentNullException(nameof(lambda));
+
+        MemberExpression body = lambda.Body as MemberExpression;
+        if (body == null)
         {
-            if (lambda == null) throw new ArgumentNullException(nameof(lambda));
-
-            MemberExpression body = lambda.Body as MemberExpression;
-            if (body == null)
+            var ubody = lambda.Body as UnaryExpression;
+            if (ubody != null && ubody.Operand is MemberExpression)
             {
-                var ubody = lambda.Body as UnaryExpression;
-                if (ubody != null && ubody.Operand is MemberExpression)
-                {
-                    body = ubody.Operand as MemberExpression;
-                }
+                body = ubody.Operand as MemberExpression;
             }
-
-            if (body == null)
-                throw new ArgumentException("Invalid lambda expression. Expression should point to a property.");
-
-            var member = body.Member;
-            var customAttributes = member.GetCustomAttributesData();
-            var neededAttribute = customAttributes.FirstOrDefault(x => x.AttributeType == typeof(AttributeLogicalNameAttribute));
-            if (neededAttribute != null)
-            {
-                var arg = neededAttribute.ConstructorArguments.FirstOrDefault().Value;
-                if (arg != null)
-                    return arg.ToString();
-            }
-
-            return member.Name;
         }
 
-        /// <summary>
-        /// Checks if all specified attributes are present on the entity.
-        /// </summary>
-        public static bool ContainsAttributes<T>(this T entity, params Expression<Func<T, object>>[] attrGetters) where T : Entity
+        if (body == null)
+            throw new ArgumentException("Invalid lambda expression. Expression should point to a property.");
+
+        var member = body.Member;
+        var customAttributes = member.GetCustomAttributesData();
+        var neededAttribute = customAttributes.FirstOrDefault(x => x.AttributeType == typeof(AttributeLogicalNameAttribute));
+        if (neededAttribute != null)
         {
-            if (entity == null) throw new ArgumentNullException(nameof(entity));
-            if (attrGetters == null || attrGetters.Length == 0) return false;
-            return attrGetters
-                .Select(a => entity.GetColumnName(a).ToLowerInvariant())
-                .All(a => entity.Contains(a));
+            var arg = neededAttribute.ConstructorArguments.FirstOrDefault().Value;
+            if (arg != null)
+                return arg.ToString();
         }
 
-        /// <summary>
-        /// Removes all specified attributes from the entity. Returns true if any attribute was removed.
-        /// </summary>
-        public static bool RemoveAttributes<T>(this T entity, params Expression<Func<T, object>>[] attrGetters) where T : Entity
+        return member.Name;
+    }
+
+    /// <summary>
+    /// Checks if all specified attributes are present on the entity.
+    /// </summary>
+    public static bool ContainsAttributes<T>(this T entity, params Expression<Func<T, object>>[] attrGetters) where T : Entity
+    {
+        if (entity == null) throw new ArgumentNullException(nameof(entity));
+        if (attrGetters == null || attrGetters.Length == 0) return false;
+        return attrGetters
+            .Select(a => entity.GetColumnName(a).ToLowerInvariant())
+            .All(a => entity.Contains(a));
+    }
+
+    /// <summary>
+    /// Removes all specified attributes from the entity. Returns true if any attribute was removed.
+    /// </summary>
+    public static bool RemoveAttributes<T>(this T entity, params Expression<Func<T, object>>[] attrGetters) where T : Entity
+    {
+        if (entity == null) throw new ArgumentNullException(nameof(entity));
+        if (attrGetters == null || attrGetters.Length == 0) return false;
+        bool anyRemoved = false;
+        foreach (var a in attrGetters)
         {
-            if (entity == null) throw new ArgumentNullException(nameof(entity));
-            if (attrGetters == null || attrGetters.Length == 0) return false;
-            bool anyRemoved = false;
-            foreach (var a in attrGetters)
-            {
-                var name = entity.GetColumnName(a).ToLowerInvariant();
-                anyRemoved |= entity.Attributes.Remove(name);
-            }
-            return anyRemoved;
+            var name = entity.GetColumnName(a).ToLowerInvariant();
+            anyRemoved |= entity.Attributes.Remove(name);
         }
+        return anyRemoved;
     }
 }

@@ -2,6 +2,8 @@ using System.Linq;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Client;
 
+namespace {{ namespace }};
+
 public partial class Xrm : OrganizationServiceContext
 {
     public Xrm(IOrganizationService service) : base(service) { }

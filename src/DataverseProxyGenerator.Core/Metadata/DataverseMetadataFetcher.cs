@@ -25,7 +25,13 @@ namespace DataverseProxyGenerator.Core.Metadata
             var fetchedLogicalNames = new HashSet<string>(metadataFromSolution.Select(m => m.LogicalName));
 
             // Fetch by logical names not already fetched
-            var logicalNamesToFetch = (logicalNames ?? []).Where(name => !string.IsNullOrWhiteSpace(name) && !fetchedLogicalNames.Contains(name)).Distinct().ToList();
+            var toolLogicalNames = new List<string>() { "activityparty" };
+            var logicalNamesToFetch =
+                (logicalNames ?? [])
+                .Concat(toolLogicalNames)
+                .Where(name => !string.IsNullOrWhiteSpace(name) && !fetchedLogicalNames.Contains(name))
+                .Distinct()
+                .ToList();
             var metadataFromLogicalNames = await GetEntityMetadataFromLogicalNamesAsync(serviceClient, logicalNamesToFetch);
 
             var allMetadata = metadataFromSolution.Concat(metadataFromLogicalNames);
@@ -149,6 +155,7 @@ namespace DataverseProxyGenerator.Core.Metadata
                 EntityTypeCode = entityMetadata.ObjectTypeCode ?? 0,
                 PrimaryNameAttribute = entityMetadata.PrimaryNameAttribute,
                 PrimaryIdAttribute = entityMetadata.PrimaryIdAttribute,
+                IsIntersect = entityMetadata.IsIntersect ?? false,
                 Columns = new List<ColumnModel>(),
                 Relationships = new List<RelationshipModel>()
             };
