@@ -5,11 +5,13 @@ using Microsoft.PowerPlatform.Dataverse.Client;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Metadata;
 using System.Linq;
+using System.Threading;
 
 namespace DataverseProxyGenerator.Core.Metadata
 {
     public class DataverseMetadataFetcher : IDataverseMetadataFetcher
     {
+        private const int MaxParallelism = 8;
         /// <inheritdoc />
         public async Task<List<TableModel>> FetchMetadataAsync(
             ServiceClient serviceClient,
@@ -59,7 +61,19 @@ namespace DataverseProxyGenerator.Core.Metadata
 
                 var entityIds = GetEntityIdsFromSolution(serviceClient, solutionId);
 
-                var metadataTasks = entityIds.Select(entityId => GetEntityMetadataFromIdAsync(serviceClient, entityId));
+                using var semaphore = new SemaphoreSlim(MaxParallelism);
+                var metadataTasks = entityIds.Select(async entityId =>
+                {
+                    await semaphore.WaitAsync();
+                    try
+                    {
+                        return await GetEntityMetadataFromIdAsync(serviceClient, entityId);
+                    }
+                    finally
+                    {
+                        semaphore.Release();
+                    }
+                });
                 var metadata = await Task.WhenAll(metadataTasks);
 
                 foreach (var m in metadata)
@@ -74,21 +88,34 @@ namespace DataverseProxyGenerator.Core.Metadata
         private async Task<List<EntityMetadata>> GetEntityMetadataFromLogicalNamesAsync(ServiceClient serviceClient, IEnumerable<string> logicalNames)
         {
             var metadataList = new List<EntityMetadata>();
-            foreach (var logicalName in logicalNames)
+            using var semaphore = new SemaphoreSlim(MaxParallelism);
+            var tasks = logicalNames.Select(async logicalName =>
             {
-                var entityRequest = new Microsoft.Xrm.Sdk.Messages.RetrieveEntityRequest
+                await semaphore.WaitAsync();
+                try
                 {
-                    LogicalName = logicalName,
-                    EntityFilters = EntityFilters.Entity | EntityFilters.Attributes | EntityFilters.Relationships,
-                    RetrieveAsIfPublished = true
-                };
+                    var entityRequest = new Microsoft.Xrm.Sdk.Messages.RetrieveEntityRequest
+                    {
+                        LogicalName = logicalName,
+                        EntityFilters = EntityFilters.Entity | EntityFilters.Attributes | EntityFilters.Relationships,
+                        RetrieveAsIfPublished = true
+                    };
 
-                var entityResponse = (Microsoft.Xrm.Sdk.Messages.RetrieveEntityResponse)await serviceClient.ExecuteAsync(entityRequest);
-                if (entityResponse?.EntityMetadata != null)
-                {
-                    metadataList.Add(entityResponse.EntityMetadata);
+                    var entityResponse = (Microsoft.Xrm.Sdk.Messages.RetrieveEntityResponse)await serviceClient.ExecuteAsync(entityRequest);
+                    if (entityResponse?.EntityMetadata != null)
+                    {
+                        return entityResponse.EntityMetadata;
+                    }
+                    return null;
                 }
-            }
+                finally
+                {
+                    semaphore.Release();
+                }
+            });
+
+            var results = await Task.WhenAll(tasks);
+            metadataList.AddRange(results.Where(m => m != null)!);
             return metadataList;
         }
 
