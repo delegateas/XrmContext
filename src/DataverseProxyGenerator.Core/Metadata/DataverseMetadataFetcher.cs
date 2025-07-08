@@ -30,10 +30,12 @@ namespace DataverseProxyGenerator.Core.Metadata
 
             var allMetadata = metadataFromSolution.Concat(metadataFromLogicalNames);
 
+            var logicalNameToMetadata = allMetadata.ToDictionary(m => m.LogicalName, m => m);
+
             // Merge all metadata
             foreach (var metadata in allMetadata)
             {
-                var table = BuildTableModelFromMetadata(allMetadata, metadata, deprecatedPrefix, labelMapping);
+                var table = BuildTableModelFromMetadata(logicalNameToMetadata, metadata, deprecatedPrefix, labelMapping);
                 tables.Add(table);
             }
 
@@ -137,7 +139,7 @@ namespace DataverseProxyGenerator.Core.Metadata
             return entityResponse.EntityMetadata;
         }
 
-        private TableModel BuildTableModelFromMetadata(IEnumerable<EntityMetadata> allMetadata, EntityMetadata entityMetadata, string? deprecatedPrefix, Dictionary<string, string> labelMapping)
+        private TableModel BuildTableModelFromMetadata(Dictionary<string, EntityMetadata> logicalNameToMetadata, EntityMetadata entityMetadata, string? deprecatedPrefix, Dictionary<string, string> labelMapping)
         {
             var table = new TableModel
             {
@@ -166,7 +168,7 @@ namespace DataverseProxyGenerator.Core.Metadata
 
             AddPrimaryIdColumn(table, entityMetadata, deprecatedPrefix, labelMapping);
 
-            MapRelationships(allMetadata, entityMetadata, table);
+            MapRelationships(logicalNameToMetadata, entityMetadata, table);
 
             return table;
         }
@@ -436,7 +438,7 @@ namespace DataverseProxyGenerator.Core.Metadata
             IsNullable = attr.RequiredLevel?.Value != AttributeRequiredLevel.ApplicationRequired
         };
 
-        private void MapRelationships(IEnumerable<EntityMetadata> allMetadata, EntityMetadata entityMetadata, TableModel table)
+        private void MapRelationships(Dictionary<string, EntityMetadata> logicalNameToMetadata, EntityMetadata entityMetadata, TableModel table)
         {
             foreach (var rel in entityMetadata.ManyToOneRelationships)
             {
@@ -448,10 +450,10 @@ namespace DataverseProxyGenerator.Core.Metadata
                     ThisEntityAttribute = rel.ReferencingAttribute,
                     RelatedEntity = rel.ReferencedEntity,
                     RelatedEntityAttribute = rel.ReferencedAttribute,
-                    RelatedEntitySchemaName = allMetadata.FirstOrDefault(x => x.LogicalName == rel.ReferencedEntity)?.SchemaName ?? "Entity",
+                    RelatedEntitySchemaName = logicalNameToMetadata.TryGetValue(rel.ReferencedEntity, out var relatedMetadata) ? relatedMetadata.SchemaName : "Entity",
                 });
             }
-            foreach (var rel in entityMetadata.OneToManyRelationships)
+            foreach (var rel in entityMetadata.OneToManyRelationships.Where(x => x.ReferencedEntity != entityMetadata.LogicalName))
             {
                 table.Relationships.Add(new RelationshipModel
                 {
@@ -461,21 +463,26 @@ namespace DataverseProxyGenerator.Core.Metadata
                     ThisEntityAttribute = rel.ReferencedAttribute,
                     RelatedEntity = rel.ReferencingEntity,
                     RelatedEntityAttribute = rel.ReferencingAttribute,
-                    RelatedEntitySchemaName = allMetadata.FirstOrDefault(x => x.LogicalName == rel.ReferencedEntity)?.SchemaName ?? "Entity",
+                    RelatedEntitySchemaName = logicalNameToMetadata.TryGetValue(rel.ReferencingEntity, out var relatedMetadata) ? relatedMetadata.SchemaName : "Entity",
                 });
             }
             foreach (var rel in entityMetadata.ManyToManyRelationships)
             {
-                table.Relationships.Add(new RelationshipModel
+                if (rel.Entity2LogicalName != entityMetadata.LogicalName)
                 {
-                    SchemaName = rel.SchemaName,
-                    RelationshipType = "ManyToMany",
-                    ThisEntityRole = "Entity1",
-                    ThisEntityAttribute = rel.Entity1IntersectAttribute,
-                    RelatedEntity = rel.Entity2LogicalName,
-                    RelatedEntityAttribute = rel.Entity2IntersectAttribute,
-                    RelatedEntitySchemaName = allMetadata.FirstOrDefault(x => x.LogicalName == rel.Entity2LogicalName)?.SchemaName ?? "Entity",
-                });
+                    table.Relationships.Add(new RelationshipModel
+                    {
+                        SchemaName = rel.SchemaName,
+                        RelationshipType = "ManyToMany",
+                        ThisEntityRole = "Entity1",
+                        ThisEntityAttribute = rel.Entity1IntersectAttribute,
+                        RelatedEntity = rel.Entity2LogicalName,
+                        RelatedEntityAttribute = rel.Entity2IntersectAttribute,
+                        RelatedEntitySchemaName = logicalNameToMetadata.TryGetValue(rel.Entity2LogicalName, out var relatedMetadata2) ? relatedMetadata2.SchemaName : "Entity",
+                    });
+                    continue;
+                }
+                
                 table.Relationships.Add(new RelationshipModel
                 {
                     SchemaName = rel.SchemaName,
@@ -484,7 +491,7 @@ namespace DataverseProxyGenerator.Core.Metadata
                     ThisEntityAttribute = rel.Entity2IntersectAttribute,
                     RelatedEntity = rel.Entity1LogicalName,
                     RelatedEntityAttribute = rel.Entity1IntersectAttribute,
-                    RelatedEntitySchemaName = allMetadata.FirstOrDefault(x => x.LogicalName == rel.Entity1LogicalName)?.SchemaName ?? "Entity",
+                    RelatedEntitySchemaName = logicalNameToMetadata.TryGetValue(rel.Entity1LogicalName, out var relatedMetadata1) ? relatedMetadata1.SchemaName : "Entity",
                 });
             }
 

@@ -244,7 +244,11 @@ namespace DataverseProxyGenerator.Core.Generation
                 var set = new HashSet<ColumnSignature>();
                 foreach (var c in t.Columns)
                 {
-                    set.Add(new ColumnSignature(c.SchemaName, c.TypeName));
+                    // For EnumColumnModel, include OptionsetName in the signature to distinguish enums with same logical name but different optionsets
+                    if (c is EnumColumnModel enumCol)
+                        set.Add(new ColumnSignature(c.SchemaName, $"EnumColumnModel:{enumCol.OptionsetName}"));
+                    else
+                        set.Add(new ColumnSignature(c.SchemaName, c.TypeName));
                 }
 
                 tableColumns[t.LogicalName] = set;
