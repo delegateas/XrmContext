@@ -8,8 +8,20 @@ namespace {{ namespace }}
 {
     public class ExtendedEntity : Entity
     {
-        public ExtendedEntity(string logicalName) : base(logicalName) { }
-        public ExtendedEntity(string logicalName, Guid id) : base(logicalName, id) { }
+        public ExtendedEntity(string logicalName)
+            : base(logicalName)
+        {
+        }
+
+        public ExtendedEntity(string logicalName, Guid id)
+            : base(logicalName, id)
+        {
+        }
+
+        public new T? GetAttributeValue<T>(string attributeLogicalName)
+        {
+            return base.GetAttributeValue<T>(attributeLogicalName);
+        }
 
         protected string GetDebuggerDisplay(string primaryNameAttribute)
         {
@@ -22,35 +34,37 @@ namespace {{ namespace }}
             return display;
         }
 
-        protected void SetId(string primaryIdAttribute, Guid? guid)
+        protected void SetId(string primaryIdAttribute, Guid? id)
         {
-            this.Id = guid.GetValueOrDefault();
-            this.SetAttributeValue(primaryIdAttribute, guid);
+            this.Id = id.GetValueOrDefault();
+            this.SetAttributeValue(primaryIdAttribute, id);
         }
 
-        protected IEnumerable<T> GetEntityCollection<T>(string attributeName) where T : Entity
+        protected IEnumerable<T> GetEntityCollection<T>(string attributeName)
+            where T : Entity
         {
             var collection = this.GetAttributeValue<EntityCollection>(attributeName);
             if (collection != null && collection.Entities != null)
             {
-                return collection.Entities.Select(x => x as T);
+                return collection.Entities.Select(x => x.ToEntity<T>());
             }
             else
             {
-                return null;
+                return Enumerable.Empty<T>();
             }
         }
 
-        protected void SetEntityCollection<T>(string attributeName, IEnumerable<T> entities) where T : Entity
+        protected void SetEntityCollection<T>(string attributeName, IEnumerable<T> entities)
+            where T : Entity
         {
-            if (entities != null)
-            {
-                this.SetAttributeValue(attributeName, new EntityCollection(new List<Entity>(entities)));
-            }
-            else
+            var list = entities?.Cast<Entity>().ToList();
+            if (list == null || !list.Any())
             {
                 this.SetAttributeValue(attributeName, null);
+                return;
             }
+
+            this.SetAttributeValue(attributeName, new EntityCollection(list));
         }
 
         protected decimal? GetMoneyValue(string attributeName)
@@ -88,22 +102,23 @@ namespace {{ namespace }}
                     .Select(osv => (T)Enum.ToObject(typeof(T), osv.Value))
                     .ToArray();
             }
-            return null;
+
+            return Enumerable.Empty<T>();
         }
 
-        protected void SetOptionSetCollectionValue<T>(string attributeName, IEnumerable<T> value)
+        protected void SetOptionSetCollectionValue<T>(string attributeName, IEnumerable<T> values)
         {
-            if (value != null && value.Any())
-            {
-                var arr = value
-                    .Select(v => new OptionSetValue((int)(object)v))
-                    .ToArray();
-                this.SetAttributeValue(attributeName, new OptionSetValueCollection(arr));
-            }
-            else
+            var list = values?.Cast<object>().Cast<int>().ToList();
+            if (list == null || !list.Any())
             {
                 this.SetAttributeValue(attributeName, null);
+                return;
             }
+
+            var arr = list
+                .Select(v => new OptionSetValue(v))
+                .ToArray();
+            this.SetAttributeValue(attributeName, new OptionSetValueCollection(arr));
         }
 
         protected T? GetOptionSetValue<T>(string attributeName)
@@ -114,10 +129,8 @@ namespace {{ namespace }}
             {
                 return (T)Enum.ToObject(typeof(T), optionSet.Value);
             }
-            else
-            {
-                return null;
-            }
+
+            return null;
         }
 
         protected void SetOptionSetValue<T>(string attributeName, T? value)
