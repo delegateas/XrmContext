@@ -2,7 +2,7 @@ namespace DataverseProxyGenerator.Core.Domain;
 
 public record RelationshipModel
 {
-    public string? SchemaName { get; init; } // Relationship schema name
+    public string SchemaName { get; init; } = string.Empty; // Relationship schema name
 
     public string? RelationshipType { get; init; } // OneToMany, ManyToOne, ManyToMany
 

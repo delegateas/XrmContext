@@ -112,7 +112,10 @@ public class CSharpProxyGenerator : ICodeGenerator
                             SchemaName = SanitizeName(c.SchemaName),
                         },
                     }),
-                    Relationships = table.Relationships,
+                    Relationships = table.Relationships.Select(r => r with
+                    {
+                        SchemaName = SanitizeName(r.SchemaName),
+                    }),
                     LogicalName = table.LogicalName,
                     DisplayName = table.DisplayName,
                     EntityTypeCode = table.EntityTypeCode,
@@ -203,7 +206,7 @@ public class CSharpProxyGenerator : ICodeGenerator
     }
 
     // --- Enum Name Sanitization Helper ---
-    private static readonly char[] CharsToRemove = { '(', ')', '_', '\'', '-', '–', '%' };
+    private static readonly char[] CharsToRemove = { '(', ')', '\'', '-', '–', '%' };
 
     private static string SanitizeName(string name)
     {
@@ -224,13 +227,20 @@ public class CSharpProxyGenerator : ICodeGenerator
             cleaned = "X" + cleaned;
         }
 
-        // Ensure first letter is uppercase
-        if (!string.IsNullOrEmpty(cleaned))
-        {
-            cleaned = char.ToUpper(cleaned[0], CultureInfo.InvariantCulture) + cleaned.Substring(1);
-        }
+        cleaned = ConvertSnakeCaseToPascalCase(cleaned);
 
         return cleaned;
+    }
+
+    private static string ConvertSnakeCaseToPascalCase(string input)
+    {
+        if (string.IsNullOrEmpty(input))
+            return input;
+
+        var titleCase = CultureInfo.CurrentCulture.TextInfo
+            .ToTitleCase(input.Replace('_', ' '));
+
+        return titleCase.Replace(" ", string.Empty, StringComparison.InvariantCulture);
     }
 
     // --- Extracted Helper Methods ---
