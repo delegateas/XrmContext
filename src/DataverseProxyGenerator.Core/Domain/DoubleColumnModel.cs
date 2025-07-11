@@ -1,7 +1,6 @@
-namespace DataverseProxyGenerator.Core.Domain
+namespace DataverseProxyGenerator.Core.Domain;
+
+public record DoubleColumnModel : ColumnModel
 {
-    public record DoubleColumnModel : ColumnModel
-    {
-        public int? Precision { get; init; }
-    }
+    public int? Precision { get; init; }
 }

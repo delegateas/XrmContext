@@ -1,6 +1,5 @@
-namespace DataverseProxyGenerator.Core.Domain
+namespace DataverseProxyGenerator.Core.Domain;
+
+public record PartyListColumnModel : ColumnModel
 {
-    public record PartyListColumnModel : ColumnModel
-    {
-    }
 }

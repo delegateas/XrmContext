@@ -1,6 +1,5 @@
-namespace DataverseProxyGenerator.Core.Domain
+namespace DataverseProxyGenerator.Core.Domain;
+
+public record PrimaryIdColumnModel : ColumnModel
 {
-    public record PrimaryIdColumnModel : ColumnModel
-    {
-    }
 }

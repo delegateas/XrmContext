@@ -153,6 +153,7 @@ public partial class {{table.SchemaName}} : ExtendedEntity{{ if table.Interfaces
     [AttributeLogicalName("{{ rel.ThisEntityAttribute }}")]
     {{~ end ~}}
     [RelationshipSchemaName("{{ rel.SchemaName }}")]
+    [RelationshipMetadata("{{ rel.RelationshipType }}", "{{ rel.ThisEntityAttribute }}", "{{ rel.RelatedEntity }}", "{{ rel.RelatedEntityAttribute }}", "{{ rel.ThisEntityRole }}")]
     public {{ if rel.RelationshipType == "OneToMany" || rel.RelationshipType == "ManyToMany" }}IEnumerable<{{ rel.RelatedEntitySchemaName }}> {{ rel.SchemaName }}
     {
         get => GetRelatedEntities<{{ rel.RelatedEntitySchemaName }}>("{{ rel.SchemaName }}", null);

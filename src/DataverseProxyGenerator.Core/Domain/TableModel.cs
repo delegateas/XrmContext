@@ -1,17 +1,22 @@
-using System.Collections.Generic;
+namespace DataverseProxyGenerator.Core.Domain;
 
-namespace DataverseProxyGenerator.Core.Domain
+public record TableModel
 {
-    public record TableModel
-    {
-        public string LogicalName { get; init; }
-        public string SchemaName { get; init; }
-        public string DisplayName { get; init; }
-        public int EntityTypeCode { get; init; }
-        public string? PrimaryNameAttribute { get; init; }
-        public string PrimaryIdAttribute { get; init; }
-        public bool IsIntersect { get; init; }
-        public List<ColumnModel> Columns { get; init; } = new();
-        public List<RelationshipModel> Relationships { get; init; } = new();
-    }
+    public string LogicalName { get; init; } = string.Empty;
+
+    public string SchemaName { get; init; } = string.Empty;
+
+    public string DisplayName { get; init; } = string.Empty;
+
+    public int EntityTypeCode { get; init; }
+
+    public string PrimaryNameAttribute { get; init; } = string.Empty;
+
+    public string PrimaryIdAttribute { get; init; } = string.Empty;
+
+    public bool IsIntersect { get; init; }
+
+    public IList<ColumnModel> Columns { get; init; } = [];
+
+    public IList<RelationshipModel> Relationships { get; init; } = [];
 }
