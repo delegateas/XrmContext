@@ -1,6 +1,5 @@
 using DataverseProxyGenerator.Core.Domain;
 using Scriban;
-using System.Globalization;
 
 namespace DataverseProxyGenerator.Core.Generation;
 
@@ -237,10 +236,18 @@ public class CSharpProxyGenerator : ICodeGenerator
         if (string.IsNullOrEmpty(input))
             return input;
 
-        var titleCase = CultureInfo.CurrentCulture.TextInfo
-            .ToTitleCase(input.Replace('_', ' '));
+        var segments = input.Split('_');
+        for (int i = 0; i < segments.Length; i++)
+        {
+            var segment = segments[i];
+            if (segment.Length == 0)
+                continue;
 
-        return titleCase.Replace(" ", string.Empty, StringComparison.InvariantCulture);
+            // Capitalize first letter, leave rest as-is
+            segments[i] = char.ToUpperInvariant(segment[0]) + segment.Substring(1);
+        }
+
+        return string.Concat(segments);
     }
 
     // --- Extracted Helper Methods ---

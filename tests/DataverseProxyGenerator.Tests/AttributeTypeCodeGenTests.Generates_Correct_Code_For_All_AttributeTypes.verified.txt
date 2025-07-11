@@ -162,6 +162,18 @@ public partial class TestEntity : ExtendedEntity
     }
 
     /// <summary>
+    /// <para>Display Name: Pascal Test</para>
+    /// </summary>
+    [AttributeLogicalName("prefix_pascalcasetest_withname")]
+    [DisplayName("Pascal Test")]
+    [MaxLength()]
+    public string? PrefixPascalCaseTestWithName
+    {
+        get => GetAttributeValue<string>("prefix_pascalcasetest_withname");
+        set => SetAttributeValue("prefix_pascalcasetest_withname", value);
+    }
+
+    /// <summary>
     /// <para>Display Name: Profile Picture</para>
     /// </summary>
     [AttributeLogicalName("profilepic")]

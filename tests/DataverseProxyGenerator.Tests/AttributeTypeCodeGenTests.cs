@@ -17,6 +17,7 @@ public class AttributeTypeCodeGenTests
             {
                 new StringColumnModel { LogicalName = "obsoleteattribute", SchemaName = "ObsoleteAttribute", DisplayName = "An Obsolete Attribute", IsObsolete = true },
                 new StringColumnModel { LogicalName = "name", SchemaName = "Name", DisplayName = "Name" },
+                new StringColumnModel { LogicalName = "prefix_pascalcasetest_withname", SchemaName = "prefix_pascalCaseTest_withName", DisplayName = "Pascal Test" },
                 new IntegerColumnModel { LogicalName = "age", SchemaName = "Age", DisplayName = "Age", IsNullable = false },
                 new IntegerColumnModel { LogicalName = "score", SchemaName = "Score", DisplayName = "Score", IsNullable = true },
                 new BooleanColumnModel { LogicalName = "isactive", SchemaName = "IsActive", DisplayName = "Is Active" },
