@@ -277,7 +277,8 @@ public class CSharpProxyGenerator : ICodeGenerator
             {
                 var interfaceName = kvp.Key;
                 var tableNames = kvp.Value.Where(tableDict.ContainsKey).ToList();
-                if (tableNames.Count == 0) continue;
+                if (tableNames.Count == 0)
+                    continue;
 
                 var sets = tableNames.Select(n => tableColumns[n]).ToList();
                 var intersection = new HashSet<ColumnSignature>(sets[0]);

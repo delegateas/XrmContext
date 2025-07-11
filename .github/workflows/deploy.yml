@@ -1,0 +1,40 @@
+name: Deploy
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-test-pack-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.x'
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build (Release)
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Test (Release)
+        run: dotnet test --configuration Release --no-build --no-restore
+
+      - name: Format
+        run: dotnet format --verify-no-changes
+
+      - name: Extract version from tag
+        id: get_version
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_ENV
+
+      - name: Pack .NET tool
+        run: dotnet pack src/DataverseProxyGenerator.Tool/DataverseProxyGenerator.Tool.csproj --configuration Release --no-build /p:PackageVersion=${{ env.VERSION }} /p:PackAsTool=true
+
+      - name: Publish to NuGet
+        run: dotnet nuget push src/DataverseProxyGenerator.Tool/bin/Release/xrmcontext.${{ env.VERSION }}.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json

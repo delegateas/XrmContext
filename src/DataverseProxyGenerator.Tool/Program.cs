@@ -1,4 +1,4 @@
-﻿using DataverseConnection;
+using DataverseConnection;
 using DataverseProxyGenerator.Core.Generation;
 using DataverseProxyGenerator.Core.Metadata;
 using DataverseProxyGenerator.Core.Output;

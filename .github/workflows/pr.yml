@@ -1,0 +1,28 @@
+name: PR
+
+on:
+  pull_request:
+
+jobs:
+  build-test-format:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.x'
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build (Release)
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Test (Release)
+        run: dotnet test --configuration Release --no-build --no-restore
+
+      - name: Format
+        run: dotnet format --verify-no-changes
