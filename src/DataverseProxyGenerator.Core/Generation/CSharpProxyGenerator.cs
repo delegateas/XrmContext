@@ -40,9 +40,10 @@ public class CSharpProxyGenerator : ICodeGenerator
 
     private static string ExtendedEntityTemplatePath => Path.Combine(GetTemplatesDirectory(), "ExtendedEntity.scriban-cs");
 
-    public IEnumerable<GeneratedFile> GenerateCode(IEnumerable<TableModel> tables, string namespaceSetting, string serviceContextName, IDictionary<string, List<string>> intersectMapping)
+    public IEnumerable<GeneratedFile> GenerateCode(IEnumerable<TableModel> tables, XrmGenerationConfig config)
     {
         ArgumentNullException.ThrowIfNull(tables);
+        ArgumentNullException.ThrowIfNull(config);
 
         var templates = LoadAllTemplates();
 
@@ -51,34 +52,34 @@ public class CSharpProxyGenerator : ICodeGenerator
         var tableDict = tables.ToDictionary(t => t.LogicalName, t => t, StringComparer.InvariantCulture);
         var tableColumns = BuildTableColumns(tables);
 
-        var (interfaceColumns, tableToInterfaces) = BuildIntersectionData(intersectMapping, tableDict, tableColumns);
+        var (interfaceColumns, tableToInterfaces) = BuildIntersectionData(config.IntersectMapping, tableDict, tableColumns);
 
-        files.AddRange(GenerateIntersectionInterfaceFiles(interfaceColumns, tables, namespaceSetting, templates.InterfaceTemplate));
+        files.AddRange(GenerateIntersectionInterfaceFiles(interfaceColumns, tables, config.NamespaceSetting, templates.InterfaceTemplate));
 
         // Generate proxy classes (with interfaces if needed)
-        files.AddRange(GenerateProxyClassFiles(tables, namespaceSetting, tableToInterfaces, templates.ProxyTemplate));
+        files.AddRange(GenerateProxyClassFiles(tables, config.NamespaceSetting, tableToInterfaces, templates.ProxyTemplate));
 
         // Generate enums as before
-        files.AddRange(GenerateEnumFiles(GetGlobalOptionsets(tables), namespaceSetting, templates.EnumTemplate));
+        files.AddRange(GenerateEnumFiles(GetGlobalOptionsets(tables), config.NamespaceSetting, templates.EnumTemplate));
 
         // Generate Xrm context class
-        var xrmClassResult = templates.XrmTemplate.Render(new { tables, namespaceSetting, serviceContextName }, member => member.Name);
+        var xrmClassResult = templates.XrmTemplate.Render(new { tables, config.NamespaceSetting, config.ServiceContextName }, member => member.Name);
         files.Add(new GeneratedFile(Path.Combine("queries", "Xrm.cs"), xrmClassResult));
 
         // Generate OptionSetMetadataAttribute
-        var attributeResult = templates.OptionSetMetadataAttributeTemplate.Render(new { namespaceSetting }, member => member.Name);
+        var attributeResult = templates.OptionSetMetadataAttributeTemplate.Render(new { config.NamespaceSetting }, member => member.Name);
         files.Add(new GeneratedFile(Path.Combine("attributes", "OptionSetMetadataAttribute.cs"), attributeResult));
 
         // Generate RelationshipMetadataAttribute
-        var relationshipAttributeResult = templates.RelationshipMetadataAttributeTemplate.Render(new { namespaceSetting }, member => member.Name);
+        var relationshipAttributeResult = templates.RelationshipMetadataAttributeTemplate.Render(new { config.NamespaceSetting }, member => member.Name);
         files.Add(new GeneratedFile(Path.Combine("attributes", "RelationshipMetadataAttribute.cs"), relationshipAttributeResult));
 
         // Generate TableAttributeHelpers
-        var tableHelperResult = templates.TableHelperTemplate.Render(new { namespaceSetting }, member => member.Name);
+        var tableHelperResult = templates.TableHelperTemplate.Render(new { config.NamespaceSetting }, member => member.Name);
         files.Add(new GeneratedFile(Path.Combine("tables", "TableAttributeHelpers.cs"), tableHelperResult));
 
         // Generate ExtendedEntity
-        var extendedEntityResult = templates.ExtendedEntityTemplate.Render(new { namespaceSetting }, member => member.Name);
+        var extendedEntityResult = templates.ExtendedEntityTemplate.Render(new { config.NamespaceSetting }, member => member.Name);
         files.Add(new GeneratedFile(Path.Combine("tables", "ExtendedEntity.cs"), extendedEntityResult));
 
         return files;
@@ -273,7 +274,7 @@ public class CSharpProxyGenerator : ICodeGenerator
     }
 
     private static (Dictionary<string, HashSet<ColumnSignature>> InterfaceColumns, Dictionary<string, List<string>> TableToInterfaces)
-        BuildIntersectionData(IDictionary<string, List<string>> intersectMapping, Dictionary<string, TableModel> tableDict, Dictionary<string, HashSet<ColumnSignature>> tableColumns)
+        BuildIntersectionData(IReadOnlyDictionary<string, IReadOnlyList<string>> intersectMapping, Dictionary<string, TableModel> tableDict, Dictionary<string, HashSet<ColumnSignature>> tableColumns)
     {
         var interfaceColumns = new Dictionary<string, HashSet<ColumnSignature>>(StringComparer.InvariantCulture);
         var tableToInterfaces = new Dictionary<string, List<string>>(StringComparer.InvariantCulture);

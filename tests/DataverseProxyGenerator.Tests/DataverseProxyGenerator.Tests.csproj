@@ -1,4 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\DataverseProxyGenerator.Tool\DataverseProxyGenerator.Tool.csproj" />
+  </ItemGroup>
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>

@@ -7,29 +7,32 @@ namespace DataverseProxyGenerator.Core.Metadata;
 public class DataverseMetadataFetcher : IDataverseMetadataFetcher
 {
     private const int MaxParallelism = 8;
+    private readonly ServiceClient serviceClient;
+    private readonly XrmFetchConfig config;
 
-    public async Task<IEnumerable<TableModel>> FetchMetadataAsync(
-        ServiceClient serviceClient,
-        IEnumerable<string> solutionUniqueNames,
-        IEnumerable<string> logicalNames,
-        string? deprecatedPrefix,
-        IDictionary<string, string> labelMapping)
+    public DataverseMetadataFetcher(ServiceClient serviceClient, XrmFetchConfig config)
+    {
+        this.serviceClient = serviceClient;
+        this.config = config;
+    }
+
+    public async Task<IEnumerable<TableModel>> FetchMetadataAsync()
     {
         var tables = new List<TableModel>();
 
         // Fetch from solutions
-        var metadataFromSolution = await GetEntityMetadataFromSolutionsAsync(serviceClient, solutionUniqueNames ?? []);
+        var metadataFromSolution = await GetEntityMetadataFromSolutionsAsync();
         var fetchedLogicalNames = metadataFromSolution.Select(m => m.LogicalName).ToHashSet(StringComparer.InvariantCulture);
 
         // Fetch by logical names not already fetched
         var toolLogicalNames = new List<string>() { "activityparty" };
         var logicalNamesToFetch =
-            (logicalNames ?? [])
+            config.Entities
             .Concat(toolLogicalNames)
             .Where(name => !string.IsNullOrWhiteSpace(name) && !fetchedLogicalNames.Contains(name))
             .Distinct(StringComparer.InvariantCulture)
             .ToList();
-        var metadataFromLogicalNames = await GetEntityMetadataFromLogicalNamesAsync(serviceClient, logicalNamesToFetch);
+        var metadataFromLogicalNames = await GetEntityMetadataFromLogicalNamesAsync(logicalNamesToFetch);
 
         var allMetadata = metadataFromSolution.Concat(metadataFromLogicalNames).ToList();
 
@@ -38,23 +41,23 @@ public class DataverseMetadataFetcher : IDataverseMetadataFetcher
         // Merge all metadata
         foreach (var metadata in allMetadata)
         {
-            var table = BuildTableModelFromMetadata(logicalNameToMetadata, metadata, deprecatedPrefix, labelMapping);
+            var table = BuildTableModelFromMetadata(logicalNameToMetadata, metadata);
             tables.Add(table);
         }
 
         return tables;
     }
 
-    private static async Task<List<EntityMetadata>> GetEntityMetadataFromSolutionsAsync(ServiceClient serviceClient, IEnumerable<string> solutionUniqueNames)
+    private async Task<List<EntityMetadata>> GetEntityMetadataFromSolutionsAsync()
     {
         var logicalNameToMetadata = new Dictionary<string, EntityMetadata>(StringComparer.InvariantCulture);
-        foreach (var solutionUniqueName in solutionUniqueNames)
+        foreach (var solutionUniqueName in config.Solutions)
         {
-            var solutionId = GetSolutionId(serviceClient, solutionUniqueName);
+            var solutionId = GetSolutionId(solutionUniqueName);
             if (solutionId == Guid.Empty)
                 continue;
 
-            var entityIds = GetEntityIdsFromSolution(serviceClient, solutionId);
+            var entityIds = GetEntityIdsFromSolution(solutionId);
 
             using var semaphore = new SemaphoreSlim(MaxParallelism);
             var metadataTasks = entityIds.Select(async entityId =>
@@ -62,7 +65,7 @@ public class DataverseMetadataFetcher : IDataverseMetadataFetcher
                 await semaphore.WaitAsync();
                 try
                 {
-                    return await GetEntityMetadataFromIdAsync(serviceClient, entityId);
+                    return await GetEntityMetadataFromIdAsync(entityId);
                 }
                 finally
                 {
@@ -81,7 +84,7 @@ public class DataverseMetadataFetcher : IDataverseMetadataFetcher
         return logicalNameToMetadata.Values.ToList();
     }
 
-    private static async Task<List<EntityMetadata>> GetEntityMetadataFromLogicalNamesAsync(ServiceClient serviceClient, IEnumerable<string> logicalNames)
+    private async Task<List<EntityMetadata>> GetEntityMetadataFromLogicalNamesAsync(IEnumerable<string> logicalNames)
     {
         var metadataList = new List<EntityMetadata>();
         using var semaphore = new SemaphoreSlim(MaxParallelism);
@@ -116,7 +119,7 @@ public class DataverseMetadataFetcher : IDataverseMetadataFetcher
         return metadataList;
     }
 
-    private static Guid GetSolutionId(ServiceClient serviceClient, string solutionUniqueName)
+    private Guid GetSolutionId(string solutionUniqueName)
     {
         var solutionQuery = new Microsoft.Xrm.Sdk.Query.QueryExpression("solution")
         {
@@ -133,7 +136,7 @@ public class DataverseMetadataFetcher : IDataverseMetadataFetcher
         return solutionEntity?.Id ?? Guid.Empty;
     }
 
-    private static List<Guid> GetEntityIdsFromSolution(ServiceClient serviceClient, Guid solutionId)
+    private List<Guid> GetEntityIdsFromSolution(Guid solutionId)
     {
         var componentQuery = new Microsoft.Xrm.Sdk.Query.QueryExpression("solutioncomponent")
         {
@@ -153,7 +156,7 @@ public class DataverseMetadataFetcher : IDataverseMetadataFetcher
             .ToList();
     }
 
-    private static async Task<EntityMetadata> GetEntityMetadataFromIdAsync(ServiceClient serviceClient, Guid entityId)
+    private async Task<EntityMetadata> GetEntityMetadataFromIdAsync(Guid entityId)
     {
         var entityRequest = new Microsoft.Xrm.Sdk.Messages.RetrieveEntityRequest
         {
@@ -165,13 +168,13 @@ public class DataverseMetadataFetcher : IDataverseMetadataFetcher
         return entityResponse.EntityMetadata;
     }
 
-    private static TableModel BuildTableModelFromMetadata(Dictionary<string, EntityMetadata> logicalNameToMetadata, EntityMetadata entityMetadata, string? deprecatedPrefix, IDictionary<string, string> labelMapping)
+    private TableModel BuildTableModelFromMetadata(Dictionary<string, EntityMetadata> logicalNameToMetadata, EntityMetadata entityMetadata)
     {
         var table = new TableModel
         {
             LogicalName = entityMetadata.LogicalName,
             SchemaName = entityMetadata.SchemaName,
-            DisplayName = ApplyLabelMapping(entityMetadata.DisplayName?.UserLocalizedLabel?.Label ?? entityMetadata.LogicalName, labelMapping),
+            DisplayName = ApplyLabelMapping(entityMetadata.DisplayName?.UserLocalizedLabel?.Label ?? entityMetadata.LogicalName),
             EntityTypeCode = entityMetadata.ObjectTypeCode ?? 0,
             PrimaryNameAttribute = entityMetadata.PrimaryNameAttribute,
             PrimaryIdAttribute = entityMetadata.PrimaryIdAttribute,
@@ -186,38 +189,38 @@ public class DataverseMetadataFetcher : IDataverseMetadataFetcher
 
         foreach (var attr in validAttributes)
         {
-            var column = BuildColumnModel(attr, deprecatedPrefix, labelMapping);
+            var column = BuildColumnModel(attr);
             if (column != null)
             {
                 table.Columns.Add(column);
             }
         }
 
-        AddPrimaryIdColumn(table, entityMetadata, deprecatedPrefix, labelMapping);
+        AddPrimaryIdColumn(table, entityMetadata);
 
         MapRelationships(logicalNameToMetadata, entityMetadata, table);
 
         return table;
     }
 
-    private static ColumnModel? BuildColumnModel(AttributeMetadata attr, string? deprecatedPrefix, IDictionary<string, string> labelMapping)
+    private ColumnModel? BuildColumnModel(AttributeMetadata attr)
     {
         ColumnModel? column = attr switch
         {
-            StringAttributeMetadata stringAttr => BuildStringColumn(stringAttr, labelMapping),
-            MemoAttributeMetadata memoAttr => BuildMemoColumn(memoAttr, labelMapping),
-            IntegerAttributeMetadata intAttr => BuildIntegerColumn(intAttr, labelMapping),
-            BigIntAttributeMetadata bigIntAttr => BuildBigIntColumn(bigIntAttr, labelMapping),
-            BooleanAttributeMetadata boolAttr => BuildBooleanColumn(boolAttr, labelMapping),
-            DateTimeAttributeMetadata dateAttr => BuildDateTimeColumn(dateAttr, labelMapping),
-            DecimalAttributeMetadata decAttr => BuildDecimalColumn(decAttr, labelMapping),
-            DoubleAttributeMetadata dblAttr => BuildDoubleColumn(dblAttr, labelMapping),
-            MoneyAttributeMetadata moneyAttr => BuildMoneyColumn(moneyAttr, labelMapping),
-            EnumAttributeMetadata enumAttr => BuildEnumColumn(enumAttr, labelMapping),
-            LookupAttributeMetadata lookupAttr when lookupAttr.AttributeType == AttributeTypeCode.PartyList => BuildPartyListColumn(lookupAttr, labelMapping),
-            LookupAttributeMetadata lookupAttr => BuildLookupColumn(lookupAttr, labelMapping),
-            FileAttributeMetadata fileAttr => BuildFileColumn(fileAttr, labelMapping),
-            ImageAttributeMetadata imageAttr => BuildImageColumn(imageAttr, labelMapping),
+            StringAttributeMetadata stringAttr => BuildStringColumn(stringAttr),
+            MemoAttributeMetadata memoAttr => BuildMemoColumn(memoAttr),
+            IntegerAttributeMetadata intAttr => BuildIntegerColumn(intAttr),
+            BigIntAttributeMetadata bigIntAttr => BuildBigIntColumn(bigIntAttr),
+            BooleanAttributeMetadata boolAttr => BuildBooleanColumn(boolAttr),
+            DateTimeAttributeMetadata dateAttr => BuildDateTimeColumn(dateAttr),
+            DecimalAttributeMetadata decAttr => BuildDecimalColumn(decAttr),
+            DoubleAttributeMetadata dblAttr => BuildDoubleColumn(dblAttr),
+            MoneyAttributeMetadata moneyAttr => BuildMoneyColumn(moneyAttr),
+            EnumAttributeMetadata enumAttr => BuildEnumColumn(enumAttr),
+            LookupAttributeMetadata lookupAttr when lookupAttr.AttributeType == AttributeTypeCode.PartyList => BuildPartyListColumn(lookupAttr),
+            LookupAttributeMetadata lookupAttr => BuildLookupColumn(lookupAttr),
+            FileAttributeMetadata fileAttr => BuildFileColumn(fileAttr),
+            ImageAttributeMetadata imageAttr => BuildImageColumn(imageAttr),
             _ => null,
         };
 
@@ -227,19 +230,20 @@ public class DataverseMetadataFetcher : IDataverseMetadataFetcher
             {
                 IsObsolete =
                     !string.IsNullOrEmpty(column.DisplayName) &&
-                    !string.IsNullOrEmpty(deprecatedPrefix) &&
-                    column.DisplayName.StartsWith(deprecatedPrefix, StringComparison.OrdinalIgnoreCase),
+                    !string.IsNullOrEmpty(config.DeprecatedPrefix) &&
+                    column.DisplayName.StartsWith(config.DeprecatedPrefix, StringComparison.OrdinalIgnoreCase),
             };
         }
 
         return column;
     }
 
-    private static string ApplyLabelMapping(string label, IDictionary<string, string> mapping)
+    private string ApplyLabelMapping(string label)
     {
-        if (string.IsNullOrEmpty(label) || mapping == null || mapping.Count == 0)
+        if (string.IsNullOrEmpty(label) || config.LabelMapping.Count == 0)
             return label;
-        foreach (var kvp in mapping)
+
+        foreach (var kvp in config.LabelMapping)
         {
             if (!string.IsNullOrEmpty(kvp.Key))
                 label = label.Replace(kvp.Key, kvp.Value, StringComparison.InvariantCulture);
@@ -248,7 +252,7 @@ public class DataverseMetadataFetcher : IDataverseMetadataFetcher
         return label;
     }
 
-    private static void AddPrimaryIdColumn(TableModel table, EntityMetadata entityMetadata, string? deprecatedPrefix, IDictionary<string, string> labelMapping)
+    private void AddPrimaryIdColumn(TableModel table, EntityMetadata entityMetadata)
     {
         var primaryIdAttribute = Array.Find(entityMetadata.Attributes, x => x.LogicalName == entityMetadata.PrimaryIdAttribute);
 
@@ -256,103 +260,93 @@ public class DataverseMetadataFetcher : IDataverseMetadataFetcher
         {
             LogicalName = entityMetadata.PrimaryIdAttribute,
             SchemaName = primaryIdAttribute?.SchemaName ?? entityMetadata.PrimaryIdAttribute,
-            DisplayName = ApplyLabelMapping(primaryIdAttribute?.DisplayName?.UserLocalizedLabel?.Label ?? entityMetadata.PrimaryIdAttribute, labelMapping),
-            IsNullable = false,
+            DisplayName = ApplyLabelMapping(primaryIdAttribute?.DisplayName?.UserLocalizedLabel?.Label ?? entityMetadata.PrimaryIdAttribute),
             IsObsolete = !string.IsNullOrEmpty(entityMetadata.PrimaryNameAttribute) &&
-                         !string.IsNullOrEmpty(deprecatedPrefix) &&
-                         entityMetadata.PrimaryNameAttribute.StartsWith(deprecatedPrefix, StringComparison.OrdinalIgnoreCase),
+                         !string.IsNullOrEmpty(config.DeprecatedPrefix) &&
+                         entityMetadata.PrimaryNameAttribute.StartsWith(config.DeprecatedPrefix, StringComparison.OrdinalIgnoreCase),
         };
         table.Columns.Add(primaryIdColumn);
     }
 
-    private static StringColumnModel BuildStringColumn(StringAttributeMetadata attr, IDictionary<string, string> labelMapping) => new StringColumnModel
+    private StringColumnModel BuildStringColumn(StringAttributeMetadata attr) => new StringColumnModel
     {
         LogicalName = attr.LogicalName,
         SchemaName = attr.SchemaName,
-        DisplayName = ApplyLabelMapping(attr.DisplayName?.UserLocalizedLabel?.Label ?? attr.LogicalName, labelMapping),
-        Description = ApplyLabelMapping(attr.Description?.UserLocalizedLabel?.Label ?? string.Empty, labelMapping),
-        IsNullable = attr.RequiredLevel?.Value != AttributeRequiredLevel.ApplicationRequired,
+        DisplayName = ApplyLabelMapping(attr.DisplayName?.UserLocalizedLabel?.Label ?? attr.LogicalName),
+        Description = ApplyLabelMapping(attr.Description?.UserLocalizedLabel?.Label ?? string.Empty),
         MaxLength = attr.MaxLength,
     };
 
-    private static MemoColumnModel BuildMemoColumn(MemoAttributeMetadata attr, IDictionary<string, string> labelMapping) => new MemoColumnModel
+    private MemoColumnModel BuildMemoColumn(MemoAttributeMetadata attr) => new MemoColumnModel
     {
         LogicalName = attr.LogicalName,
         SchemaName = attr.SchemaName,
-        DisplayName = ApplyLabelMapping(attr.DisplayName?.UserLocalizedLabel?.Label ?? attr.LogicalName, labelMapping),
-        Description = ApplyLabelMapping(attr.Description?.UserLocalizedLabel?.Label ?? string.Empty, labelMapping),
-        IsNullable = attr.RequiredLevel?.Value != AttributeRequiredLevel.ApplicationRequired,
+        DisplayName = ApplyLabelMapping(attr.DisplayName?.UserLocalizedLabel?.Label ?? attr.LogicalName),
+        Description = ApplyLabelMapping(attr.Description?.UserLocalizedLabel?.Label ?? string.Empty),
         MaxLength = attr.MaxLength,
     };
 
-    private static IntegerColumnModel BuildIntegerColumn(IntegerAttributeMetadata attr, IDictionary<string, string> labelMapping) => new IntegerColumnModel
+    private IntegerColumnModel BuildIntegerColumn(IntegerAttributeMetadata attr) => new IntegerColumnModel
     {
         LogicalName = attr.LogicalName,
         SchemaName = attr.SchemaName,
-        DisplayName = ApplyLabelMapping(attr.DisplayName?.UserLocalizedLabel?.Label ?? attr.LogicalName, labelMapping),
-        Description = ApplyLabelMapping(attr.Description?.UserLocalizedLabel?.Label ?? string.Empty, labelMapping),
-        IsNullable = attr.RequiredLevel?.Value != AttributeRequiredLevel.ApplicationRequired,
+        DisplayName = ApplyLabelMapping(attr.DisplayName?.UserLocalizedLabel?.Label ?? attr.LogicalName),
+        Description = ApplyLabelMapping(attr.Description?.UserLocalizedLabel?.Label ?? string.Empty),
         Min = attr.MinValue ?? int.MinValue,
         Max = attr.MaxValue ?? int.MaxValue,
     };
 
-    private static BigIntColumnModel BuildBigIntColumn(BigIntAttributeMetadata attr, IDictionary<string, string> labelMapping) => new BigIntColumnModel
+    private BigIntColumnModel BuildBigIntColumn(BigIntAttributeMetadata attr) => new BigIntColumnModel
     {
         LogicalName = attr.LogicalName,
         SchemaName = attr.SchemaName,
-        DisplayName = ApplyLabelMapping(attr.DisplayName?.UserLocalizedLabel?.Label ?? attr.LogicalName, labelMapping),
-        Description = ApplyLabelMapping(attr.Description?.UserLocalizedLabel?.Label ?? string.Empty, labelMapping),
-        IsNullable = attr.RequiredLevel?.Value != AttributeRequiredLevel.ApplicationRequired,
+        DisplayName = ApplyLabelMapping(attr.DisplayName?.UserLocalizedLabel?.Label ?? attr.LogicalName),
+        Description = ApplyLabelMapping(attr.Description?.UserLocalizedLabel?.Label ?? string.Empty),
     };
 
-    private static BooleanColumnModel BuildBooleanColumn(BooleanAttributeMetadata attr, IDictionary<string, string> labelMapping) => new BooleanColumnModel
+    private BooleanColumnModel BuildBooleanColumn(BooleanAttributeMetadata attr) => new BooleanColumnModel
     {
         LogicalName = attr.LogicalName,
         SchemaName = attr.SchemaName,
-        DisplayName = ApplyLabelMapping(attr.DisplayName?.UserLocalizedLabel?.Label ?? attr.LogicalName, labelMapping),
-        Description = ApplyLabelMapping(attr.Description?.UserLocalizedLabel?.Label ?? string.Empty, labelMapping),
-        IsNullable = attr.RequiredLevel?.Value != AttributeRequiredLevel.ApplicationRequired,
+        DisplayName = ApplyLabelMapping(attr.DisplayName?.UserLocalizedLabel?.Label ?? attr.LogicalName),
+        Description = ApplyLabelMapping(attr.Description?.UserLocalizedLabel?.Label ?? string.Empty),
     };
 
-    private static DateTimeColumnModel BuildDateTimeColumn(DateTimeAttributeMetadata attr, IDictionary<string, string> labelMapping) => new DateTimeColumnModel
+    private DateTimeColumnModel BuildDateTimeColumn(DateTimeAttributeMetadata attr) => new DateTimeColumnModel
     {
         LogicalName = attr.LogicalName,
         SchemaName = attr.SchemaName,
-        DisplayName = ApplyLabelMapping(attr.DisplayName?.UserLocalizedLabel?.Label ?? attr.LogicalName, labelMapping),
-        Description = ApplyLabelMapping(attr.Description?.UserLocalizedLabel?.Label ?? string.Empty, labelMapping),
-        IsNullable = attr.RequiredLevel?.Value != AttributeRequiredLevel.ApplicationRequired,
+        DisplayName = ApplyLabelMapping(attr.DisplayName?.UserLocalizedLabel?.Label ?? attr.LogicalName),
+        Description = ApplyLabelMapping(attr.Description?.UserLocalizedLabel?.Label ?? string.Empty),
     };
 
-    private static DecimalColumnModel BuildDecimalColumn(DecimalAttributeMetadata attr, IDictionary<string, string> labelMapping) => new DecimalColumnModel
+    private DecimalColumnModel BuildDecimalColumn(DecimalAttributeMetadata attr) => new DecimalColumnModel
     {
         LogicalName = attr.LogicalName,
         SchemaName = attr.SchemaName,
-        DisplayName = ApplyLabelMapping(attr.DisplayName?.UserLocalizedLabel?.Label ?? attr.LogicalName, labelMapping),
-        Description = ApplyLabelMapping(attr.Description?.UserLocalizedLabel?.Label ?? string.Empty, labelMapping),
-        IsNullable = attr.RequiredLevel?.Value != AttributeRequiredLevel.ApplicationRequired,
+        DisplayName = ApplyLabelMapping(attr.DisplayName?.UserLocalizedLabel?.Label ?? attr.LogicalName),
+        Description = ApplyLabelMapping(attr.Description?.UserLocalizedLabel?.Label ?? string.Empty),
         Precision = attr.Precision,
     };
 
-    private static DoubleColumnModel BuildDoubleColumn(DoubleAttributeMetadata attr, IDictionary<string, string> labelMapping) => new DoubleColumnModel
+    private DoubleColumnModel BuildDoubleColumn(DoubleAttributeMetadata attr) => new DoubleColumnModel
     {
         LogicalName = attr.LogicalName,
         SchemaName = attr.SchemaName,
-        DisplayName = ApplyLabelMapping(attr.DisplayName?.UserLocalizedLabel?.Label ?? attr.LogicalName, labelMapping),
-        Description = ApplyLabelMapping(attr.Description?.UserLocalizedLabel?.Label ?? string.Empty, labelMapping),
-        IsNullable = attr.RequiredLevel?.Value != AttributeRequiredLevel.ApplicationRequired,
+        DisplayName = ApplyLabelMapping(attr.DisplayName?.UserLocalizedLabel?.Label ?? attr.LogicalName),
+        Description = ApplyLabelMapping(attr.Description?.UserLocalizedLabel?.Label ?? string.Empty),
     };
 
-    private static MoneyColumnModel BuildMoneyColumn(MoneyAttributeMetadata attr, IDictionary<string, string> labelMapping) => new MoneyColumnModel
+    private MoneyColumnModel BuildMoneyColumn(MoneyAttributeMetadata attr) => new MoneyColumnModel
     {
         LogicalName = attr.LogicalName,
         SchemaName = attr.SchemaName,
-        DisplayName = ApplyLabelMapping(attr.DisplayName?.UserLocalizedLabel?.Label ?? attr.LogicalName, labelMapping),
-        Description = ApplyLabelMapping(attr.Description?.UserLocalizedLabel?.Label ?? string.Empty, labelMapping),
-        IsNullable = attr.RequiredLevel?.Value != AttributeRequiredLevel.ApplicationRequired,
+        DisplayName = ApplyLabelMapping(attr.DisplayName?.UserLocalizedLabel?.Label ?? attr.LogicalName),
+        Description = ApplyLabelMapping(attr.Description?.UserLocalizedLabel?.Label ?? string.Empty),
         Precision = attr.Precision,
     };
 
-    private static EnumColumnModel BuildEnumColumn(EnumAttributeMetadata attr, IDictionary<string, string> labelMapping)
+    private EnumColumnModel BuildEnumColumn(EnumAttributeMetadata attr)
     {
         var optionsetValues = attr.OptionSet?.Options?
             .Where(o => o.Value != null)
@@ -361,7 +355,7 @@ public class DataverseMetadataFetcher : IDataverseMetadataFetcher
                 o =>
                 {
                     var label = o.Label?.UserLocalizedLabel?.Label;
-                    label = ApplyLabelMapping(label ?? string.Empty, labelMapping);
+                    label = ApplyLabelMapping(label ?? string.Empty);
                     if (string.IsNullOrWhiteSpace(label))
                     {
                         label = $"Option_{o.Value.GetValueOrDefault()}";
@@ -391,9 +385,8 @@ public class DataverseMetadataFetcher : IDataverseMetadataFetcher
         {
             LogicalName = attr.LogicalName,
             SchemaName = attr.SchemaName,
-            DisplayName = ApplyLabelMapping(attr.DisplayName?.UserLocalizedLabel?.Label ?? attr.LogicalName, labelMapping),
-            Description = ApplyLabelMapping(attr.Description?.UserLocalizedLabel?.Label ?? string.Empty, labelMapping),
-            IsNullable = attr.RequiredLevel?.Value != AttributeRequiredLevel.ApplicationRequired,
+            DisplayName = ApplyLabelMapping(attr.DisplayName?.UserLocalizedLabel?.Label ?? attr.LogicalName),
+            Description = ApplyLabelMapping(attr.Description?.UserLocalizedLabel?.Label ?? string.Empty),
             OptionsetName = attr.OptionSet?.Name ?? attr.LogicalName,
             IsGlobalOptionset = attr.OptionSet?.IsGlobal ?? false,
             IsMultiSelect = attr.AttributeTypeName == "MultiSelectPicklistType",
@@ -440,41 +433,37 @@ public class DataverseMetadataFetcher : IDataverseMetadataFetcher
         return optionLocalizations;
     }
 
-    private static PartyListColumnModel BuildPartyListColumn(LookupAttributeMetadata attr, IDictionary<string, string> labelMapping) => new PartyListColumnModel
+    private PartyListColumnModel BuildPartyListColumn(LookupAttributeMetadata attr) => new PartyListColumnModel
     {
         LogicalName = attr.LogicalName,
         SchemaName = attr.SchemaName,
-        DisplayName = ApplyLabelMapping(attr.DisplayName?.UserLocalizedLabel?.Label ?? attr.LogicalName, labelMapping),
-        Description = ApplyLabelMapping(attr.Description?.UserLocalizedLabel?.Label ?? string.Empty, labelMapping),
-        IsNullable = attr.RequiredLevel?.Value != AttributeRequiredLevel.ApplicationRequired,
+        DisplayName = ApplyLabelMapping(attr.DisplayName?.UserLocalizedLabel?.Label ?? attr.LogicalName),
+        Description = ApplyLabelMapping(attr.Description?.UserLocalizedLabel?.Label ?? string.Empty),
     };
 
-    private static LookupColumnModel BuildLookupColumn(LookupAttributeMetadata attr, IDictionary<string, string> labelMapping) => new LookupColumnModel
+    private LookupColumnModel BuildLookupColumn(LookupAttributeMetadata attr) => new LookupColumnModel
     {
         LogicalName = attr.LogicalName,
         SchemaName = attr.SchemaName,
-        DisplayName = ApplyLabelMapping(attr.DisplayName?.UserLocalizedLabel?.Label ?? attr.LogicalName, labelMapping),
-        Description = ApplyLabelMapping(attr.Description?.UserLocalizedLabel?.Label ?? string.Empty, labelMapping),
-        IsNullable = attr.RequiredLevel?.Value != AttributeRequiredLevel.ApplicationRequired,
+        DisplayName = ApplyLabelMapping(attr.DisplayName?.UserLocalizedLabel?.Label ?? attr.LogicalName),
+        Description = ApplyLabelMapping(attr.Description?.UserLocalizedLabel?.Label ?? string.Empty),
         TargetTable = attr.Targets?.FirstOrDefault() ?? "Unknown",
     };
 
-    private static FileColumnModel BuildFileColumn(FileAttributeMetadata attr, IDictionary<string, string> labelMapping) => new FileColumnModel
+    private FileColumnModel BuildFileColumn(FileAttributeMetadata attr) => new FileColumnModel
     {
         LogicalName = attr.LogicalName,
         SchemaName = attr.SchemaName,
-        DisplayName = ApplyLabelMapping(attr.DisplayName?.UserLocalizedLabel?.Label ?? attr.LogicalName, labelMapping),
-        Description = ApplyLabelMapping(attr.Description?.UserLocalizedLabel?.Label ?? string.Empty, labelMapping),
-        IsNullable = attr.RequiredLevel?.Value != AttributeRequiredLevel.ApplicationRequired,
+        DisplayName = ApplyLabelMapping(attr.DisplayName?.UserLocalizedLabel?.Label ?? attr.LogicalName),
+        Description = ApplyLabelMapping(attr.Description?.UserLocalizedLabel?.Label ?? string.Empty),
     };
 
-    private static ImageColumnModel BuildImageColumn(ImageAttributeMetadata attr, IDictionary<string, string> labelMapping) => new ImageColumnModel
+    private ImageColumnModel BuildImageColumn(ImageAttributeMetadata attr) => new ImageColumnModel
     {
         LogicalName = attr.LogicalName,
         SchemaName = attr.SchemaName,
-        DisplayName = ApplyLabelMapping(attr.DisplayName?.UserLocalizedLabel?.Label ?? attr.LogicalName, labelMapping),
-        Description = ApplyLabelMapping(attr.Description?.UserLocalizedLabel?.Label ?? string.Empty, labelMapping),
-        IsNullable = attr.RequiredLevel?.Value != AttributeRequiredLevel.ApplicationRequired,
+        DisplayName = ApplyLabelMapping(attr.DisplayName?.UserLocalizedLabel?.Label ?? attr.LogicalName),
+        Description = ApplyLabelMapping(attr.Description?.UserLocalizedLabel?.Label ?? string.Empty),
     };
 
     private static void MapRelationships(Dictionary<string, EntityMetadata> logicalNameToMetadata, EntityMetadata entityMetadata, TableModel table)

@@ -11,8 +11,8 @@ public static class CommandLineParser
         string NamespaceSetting,
         string ServiceContextName,
         string DeprecatedPrefix,
-        Dictionary<string, List<string>> IntersectMapping,
-        Dictionary<string, string> LabelMapping)
+        IReadOnlyDictionary<string, IReadOnlyList<string>> IntersectMapping,
+        IReadOnlyDictionary<string, string> LabelMapping)
 #pragma warning disable MA0051 // Method is too long
         Parse(string[] args)
 #pragma warning restore MA0051 // Method is too long
@@ -52,12 +52,12 @@ public static class CommandLineParser
             aliases: ["--deprecatedprefix", "--dp"],
             description: "Marks all attributes with the given prefix in their display name as deprecated.");
 
-        var intersectOption = new Option<Dictionary<string, List<string>>>(
+        var intersectOption = new Option<Dictionary<string, IReadOnlyList<string>>>(
             aliases: ["--intersect", "--is"],
             parseArgument: result =>
             {
                 var value = result.Tokens.Select(t => t.Value).ToArray();
-                var dict = new Dictionary<string, List<string>>(StringComparer.InvariantCulture);
+                var dict = new Dictionary<string, IReadOnlyList<string>>(StringComparer.InvariantCulture);
                 foreach (var entry in value)
                 {
                     var parts = entry.Split(':', 2);
@@ -65,7 +65,7 @@ public static class CommandLineParser
                     {
                         var interfaceName = parts[0].Trim();
                         var tableList = parts[1].Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-                        dict[interfaceName] = [.. tableList];
+                        dict[interfaceName] = new List<string>(tableList).AsReadOnly();
                     }
                 }
 
@@ -121,8 +121,8 @@ public static class CommandLineParser
             parsedResult.GetValueForOption(namespaceOption) ?? "DataverseContext",
             parsedResult.GetValueForOption(serviceContextNameOption) ?? "Xrm",
             parsedResult.GetValueForOption(deprecatedPrefixOption) ?? string.Empty,
-            parsedResult.GetValueForOption(intersectOption) ?? [],
-            parsedResult.GetValueForOption(labelMappingsOption) ?? []
+            (parsedResult.GetValueForOption(intersectOption) ?? []).AsReadOnly(),
+            (parsedResult.GetValueForOption(labelMappingsOption) ?? []).AsReadOnly()
         );
     }
 

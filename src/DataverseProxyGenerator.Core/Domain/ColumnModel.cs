@@ -10,8 +10,6 @@ public abstract record ColumnModel
 
     public string? Description { get; init; }
 
-    public bool IsNullable { get; init; }
-
     public bool IsObsolete { get; init; }
 
     public string TypeName => GetType().Name;
