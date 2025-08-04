@@ -19,10 +19,7 @@ public static class CommandLineParser
     {
         var outputDirectoryOption = new Option<string>(
             aliases: ["--output", "-o"],
-            description: "Output directory for generated files")
-        {
-            IsRequired = true,
-        };
+            description: "Output directory for generated files");
 
         var solutionsOption = new Option<string[]>(
             aliases: ["--solutions", "--ss"],
@@ -115,7 +112,7 @@ public static class CommandLineParser
         var parsedResult = rootCommand.Parse(args);
 
         return (
-            parsedResult.GetValueForOption(outputDirectoryOption) ?? throw new InvalidOperationException("Output directory is required"),
+            parsedResult.GetValueForOption(outputDirectoryOption) ?? string.Empty,
             parsedResult.GetValueForOption(solutionsOption) ?? [],
             parsedResult.GetValueForOption(entitiesOption) ?? [],
             parsedResult.GetValueForOption(namespaceOption) ?? "DataverseContext",

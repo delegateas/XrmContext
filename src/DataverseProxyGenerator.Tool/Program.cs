@@ -54,6 +54,11 @@ internal static class Program
                 !string.IsNullOrWhiteSpace(serviceContextName) ? serviceContextName : config.Generation.ServiceContextName,
                 (intersectMapping != null && intersectMapping.Count > 0) ? intersectMapping : config.Generation.IntersectMapping));
 
+        if (string.IsNullOrWhiteSpace(mergedConfig.Generation.OutputDirectory))
+        {
+            throw new InvalidOperationException("Output directory is required. Specify it via command line argument --output or in appsettings.json under XrmContext:OutputDirectory");
+        }
+
         var host = BuildHost();
         await RunWorkflowAsync(host, mergedConfig);
         return 0;

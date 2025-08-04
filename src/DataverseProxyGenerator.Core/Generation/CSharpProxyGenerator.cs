@@ -8,37 +8,34 @@ public class CSharpProxyGenerator : ICodeGenerator
     // Helper struct for fast column comparison
     private readonly record struct ColumnSignature(string SchemaName, string TypeName);
 
-    private static string GetTemplatesDirectory()
+    private static string GetEmbeddedResourceText(string resourceName)
     {
-        var assemblyDir = Path.GetDirectoryName(typeof(CSharpProxyGenerator).Assembly.Location);
-        if (assemblyDir == null)
-            throw new DirectoryNotFoundException("Could not determine the directory of the executing assembly.");
-        var dir = new DirectoryInfo(assemblyDir);
-        while (dir != null && !Directory.Exists(Path.Combine(dir.FullName, "src")))
-        {
-            dir = dir.Parent;
-        }
+        var assembly = typeof(CSharpProxyGenerator).Assembly;
+        var fullResourceName = $"DataverseProxyGenerator.Core.Templates.{resourceName}";
 
-        if (dir == null)
-            throw new DirectoryNotFoundException("Could not locate project root for template resolution.");
-        return Path.Combine(dir.FullName, "src", "DataverseProxyGenerator.Core", "Templates");
+        using var stream = assembly.GetManifestResourceStream(fullResourceName);
+        if (stream == null)
+            throw new FileNotFoundException($"Could not find embedded resource: {fullResourceName}");
+
+        using var reader = new StreamReader(stream);
+        return reader.ReadToEnd();
     }
 
-    private static string ProxyClassTemplatePath => Path.Combine(GetTemplatesDirectory(), "ProxyClass.scriban-cs");
+    private static string ProxyClassTemplate => GetEmbeddedResourceText("ProxyClass.scriban-cs");
 
-    private static string EnumTemplatePath => Path.Combine(GetTemplatesDirectory(), "EnumOptionset.scriban-cs");
+    private static string EnumTemplate => GetEmbeddedResourceText("EnumOptionset.scriban-cs");
 
-    private static string IntersectionInterfaceTemplatePath => Path.Combine(GetTemplatesDirectory(), "IntersectionInterface.scriban-cs");
+    private static string IntersectionInterfaceTemplate => GetEmbeddedResourceText("IntersectionInterface.scriban-cs");
 
-    private static string OptionSetMetadataAttributeTemplatePath => Path.Combine(GetTemplatesDirectory(), "OptionSetMetadataAttribute.scriban-cs");
+    private static string OptionSetMetadataAttributeTemplate => GetEmbeddedResourceText("OptionSetMetadataAttribute.scriban-cs");
 
-    private static string RelationshipMetadataAttributeTemplatePath => Path.Combine(GetTemplatesDirectory(), "RelationshipMetadataAttribute.scriban-cs");
+    private static string RelationshipMetadataAttributeTemplate => GetEmbeddedResourceText("RelationshipMetadataAttribute.scriban-cs");
 
-    private static string XrmClassTemplatePath => Path.Combine(GetTemplatesDirectory(), "XrmClass.scriban-cs");
+    private static string XrmClassTemplate => GetEmbeddedResourceText("XrmClass.scriban-cs");
 
-    private static string TableHelperTemplatePath => Path.Combine(GetTemplatesDirectory(), "TableAttributeHelpers.scriban-cs");
+    private static string TableHelperTemplate => GetEmbeddedResourceText("TableAttributeHelpers.scriban-cs");
 
-    private static string ExtendedEntityTemplatePath => Path.Combine(GetTemplatesDirectory(), "ExtendedEntity.scriban-cs");
+    private static string ExtendedEntityTemplate => GetEmbeddedResourceText("ExtendedEntity.scriban-cs");
 
     public IEnumerable<GeneratedFile> GenerateCode(IEnumerable<TableModel> tables, XrmGenerationConfig config)
     {
@@ -145,14 +142,14 @@ public class CSharpProxyGenerator : ICodeGenerator
         Template ExtendedEntityTemplate)
         LoadAllTemplates()
     {
-        var proxyTemplate = LoadTemplate(ProxyClassTemplatePath);
-        var enumTemplate = LoadTemplate(EnumTemplatePath);
-        var interfaceTemplate = LoadTemplate(IntersectionInterfaceTemplatePath);
-        var optionSetMetadataAttributeTemplate = LoadTemplate(OptionSetMetadataAttributeTemplatePath);
-        var relationshipMetadataAttributeTemplate = LoadTemplate(RelationshipMetadataAttributeTemplatePath);
-        var xrmClassTemplate = LoadTemplate(XrmClassTemplatePath);
-        var tableHelperTemplate = LoadTemplate(TableHelperTemplatePath);
-        var extendedEntityTemplate = LoadTemplate(ExtendedEntityTemplatePath);
+        var proxyTemplate = Template.Parse(ProxyClassTemplate);
+        var enumTemplate = Template.Parse(EnumTemplate);
+        var interfaceTemplate = Template.Parse(IntersectionInterfaceTemplate);
+        var optionSetMetadataAttributeTemplate = Template.Parse(OptionSetMetadataAttributeTemplate);
+        var relationshipMetadataAttributeTemplate = Template.Parse(RelationshipMetadataAttributeTemplate);
+        var xrmClassTemplate = Template.Parse(XrmClassTemplate);
+        var tableHelperTemplate = Template.Parse(TableHelperTemplate);
+        var extendedEntityTemplate = Template.Parse(ExtendedEntityTemplate);
 
         return (proxyTemplate,
             enumTemplate,
@@ -162,12 +159,6 @@ public class CSharpProxyGenerator : ICodeGenerator
             xrmClassTemplate,
             tableHelperTemplate,
             extendedEntityTemplate);
-    }
-
-    private static Template LoadTemplate(string templatePath)
-    {
-        var templateText = File.ReadAllText(templatePath);
-        return Template.Parse(templateText);
     }
 
     private static IEnumerable<EnumColumnModel> GetGlobalOptionsets(IEnumerable<TableModel> tables)
