@@ -60,23 +60,23 @@ public class CSharpProxyGenerator : ICodeGenerator
         files.AddRange(GenerateEnumFiles(GetGlobalOptionsets(tables), config.NamespaceSetting, templates.EnumTemplate));
 
         // Generate Xrm context class
-        var xrmClassResult = templates.XrmTemplate.Render(new { tables, config.NamespaceSetting, config.ServiceContextName }, member => member.Name);
+        var xrmClassResult = templates.XrmTemplate.Render(new { tables, @namespace = config.NamespaceSetting, config.ServiceContextName }, member => member.Name);
         files.Add(new GeneratedFile(Path.Combine("queries", "Xrm.cs"), xrmClassResult));
 
         // Generate OptionSetMetadataAttribute
-        var attributeResult = templates.OptionSetMetadataAttributeTemplate.Render(new { config.NamespaceSetting }, member => member.Name);
+        var attributeResult = templates.OptionSetMetadataAttributeTemplate.Render(new { @namespace = config.NamespaceSetting }, member => member.Name);
         files.Add(new GeneratedFile(Path.Combine("attributes", "OptionSetMetadataAttribute.cs"), attributeResult));
 
         // Generate RelationshipMetadataAttribute
-        var relationshipAttributeResult = templates.RelationshipMetadataAttributeTemplate.Render(new { config.NamespaceSetting }, member => member.Name);
+        var relationshipAttributeResult = templates.RelationshipMetadataAttributeTemplate.Render(new { @namespace = config.NamespaceSetting }, member => member.Name);
         files.Add(new GeneratedFile(Path.Combine("attributes", "RelationshipMetadataAttribute.cs"), relationshipAttributeResult));
 
         // Generate TableAttributeHelpers
-        var tableHelperResult = templates.TableHelperTemplate.Render(new { config.NamespaceSetting }, member => member.Name);
+        var tableHelperResult = templates.TableHelperTemplate.Render(new { @namespace = config.NamespaceSetting }, member => member.Name);
         files.Add(new GeneratedFile(Path.Combine("tables", "TableAttributeHelpers.cs"), tableHelperResult));
 
         // Generate ExtendedEntity
-        var extendedEntityResult = templates.ExtendedEntityTemplate.Render(new { config.NamespaceSetting }, member => member.Name);
+        var extendedEntityResult = templates.ExtendedEntityTemplate.Render(new { @namespace = config.NamespaceSetting }, member => member.Name);
         files.Add(new GeneratedFile(Path.Combine("tables", "ExtendedEntity.cs"), extendedEntityResult));
 
         return files;

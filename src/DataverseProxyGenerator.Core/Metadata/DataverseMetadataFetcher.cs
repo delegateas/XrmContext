@@ -482,6 +482,9 @@ public class DataverseMetadataFetcher : IDataverseMetadataFetcher
     {
         foreach (var rel in entityMetadata.ManyToOneRelationships)
         {
+            if (!logicalNameToMetadata.TryGetValue(rel.ReferencedEntity, out var relatedMetadata))
+                continue;
+
             table.Relationships.Add(new RelationshipModel
             {
                 SchemaName = rel.SchemaName,
@@ -490,7 +493,7 @@ public class DataverseMetadataFetcher : IDataverseMetadataFetcher
                 ThisEntityAttribute = rel.ReferencingAttribute,
                 RelatedEntity = rel.ReferencedEntity,
                 RelatedEntityAttribute = rel.ReferencedAttribute,
-                RelatedEntitySchemaName = logicalNameToMetadata.TryGetValue(rel.ReferencedEntity, out var relatedMetadata) ? relatedMetadata.SchemaName : "Entity",
+                RelatedEntitySchemaName = relatedMetadata.SchemaName,
             });
         }
     }
@@ -499,6 +502,9 @@ public class DataverseMetadataFetcher : IDataverseMetadataFetcher
     {
         foreach (var rel in entityMetadata.OneToManyRelationships.Where(x => x.ReferencingEntity != entityMetadata.LogicalName))
         {
+            if (!logicalNameToMetadata.TryGetValue(rel.ReferencingEntity, out var relatedMetadata))
+                continue;
+
             table.Relationships.Add(new RelationshipModel
             {
                 SchemaName = rel.SchemaName,
@@ -507,14 +513,14 @@ public class DataverseMetadataFetcher : IDataverseMetadataFetcher
                 ThisEntityAttribute = rel.ReferencedAttribute,
                 RelatedEntity = rel.ReferencingEntity,
                 RelatedEntityAttribute = rel.ReferencingAttribute,
-                RelatedEntitySchemaName = logicalNameToMetadata.TryGetValue(rel.ReferencingEntity, out var relatedMetadata) ? relatedMetadata.SchemaName : "Entity",
+                RelatedEntitySchemaName = relatedMetadata.SchemaName,
             });
         }
     }
 
     private static void MapManyToMany(Dictionary<string, EntityMetadata> logicalNameToMetadata, EntityMetadata entityMetadata, TableModel table)
     {
-        foreach (var rel in entityMetadata.ManyToManyRelationships)
+        foreach (var rel in entityMetadata.ManyToManyRelationships.Where(x => logicalNameToMetadata.ContainsKey(x.Entity1LogicalName) && logicalNameToMetadata.ContainsKey(x.Entity2LogicalName)))
         {
             if (rel.Entity2LogicalName != entityMetadata.LogicalName)
             {
