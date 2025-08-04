@@ -218,28 +218,7 @@ public class CSharpProxyGenerator : ICodeGenerator
             cleaned = "X" + cleaned;
         }
 
-        cleaned = ConvertSnakeCaseToPascalCase(cleaned);
-
         return cleaned;
-    }
-
-    private static string ConvertSnakeCaseToPascalCase(string input)
-    {
-        if (string.IsNullOrEmpty(input))
-            return input;
-
-        var segments = input.Split('_');
-        for (int i = 0; i < segments.Length; i++)
-        {
-            var segment = segments[i];
-            if (segment.Length == 0)
-                continue;
-
-            // Capitalize first letter, leave rest as-is
-            segments[i] = char.ToUpperInvariant(segment[0]) + segment.Substring(1);
-        }
-
-        return string.Concat(segments);
     }
 
     // --- Extracted Helper Methods ---

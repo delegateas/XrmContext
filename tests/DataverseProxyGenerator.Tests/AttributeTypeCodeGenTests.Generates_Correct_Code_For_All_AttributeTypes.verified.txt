@@ -167,7 +167,7 @@ public partial class TestEntity : ExtendedEntity
     [AttributeLogicalName("prefix_pascalcasetest_withname")]
     [DisplayName("Pascal Test")]
     [MaxLength()]
-    public string? PrefixPascalCaseTestWithName
+    public string? prefix_pascalCaseTest_withName
     {
         get => GetAttributeValue<string>("prefix_pascalcasetest_withname");
         set => SetAttributeValue("prefix_pascalcasetest_withname", value);
