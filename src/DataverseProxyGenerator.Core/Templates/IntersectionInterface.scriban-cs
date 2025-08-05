@@ -1,8 +1,8 @@
-using System;
 using Microsoft.Xrm.Sdk;
 
 namespace {{namespace}};
 
+[System.CodeDom.Compiler.GeneratedCode("DataverseProxyGenerator", "1.0.0")]
 public interface {{interfaceName}}
 {
     {{~ for column in columns | array.sort "LogicalName" ~}}

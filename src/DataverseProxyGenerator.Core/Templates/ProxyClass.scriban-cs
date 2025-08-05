@@ -1,4 +1,3 @@
-using System;
 using Microsoft.Xrm.Sdk;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;

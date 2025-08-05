@@ -1,17 +1,20 @@
-using System.Linq;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Client;
 
 namespace {{ namespace }};
 
-public partial class Xrm : OrganizationServiceContext
+[System.CodeDom.Compiler.GeneratedCode("DataverseProxyGenerator", "1.0.0")]
+public class Xrm : OrganizationServiceContext
 {
-    public {{ serviceContextName }}(IOrganizationService service) : base(service) { }
+    public {{ serviceContextName }}(IOrganizationService service)
+        : base(service)
+    {
+    }
 
 {{~ for table in tables | array.sort "SchemaName" ~}}
     public IQueryable<{{ table.SchemaName }}> {{ table.SchemaName }}Set
     {
         get { return CreateQuery<{{ table.SchemaName }}>(); }
     }
-{{~ end ~}}
+{{ end }}
 }

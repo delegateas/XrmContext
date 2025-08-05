@@ -2,10 +2,9 @@ using System.Runtime.Serialization;
 
 namespace {{namespace}};
 
+[System.CodeDom.Compiler.GeneratedCode("DataverseProxyGenerator", "1.0.0")]
 [DataContract]
-#pragma warning disable CA1008 // Enums should have zero value
 public enum {{optionsetName | string.capitalize}}
-#pragma warning restore CA1008 // Enums should have zero value
 {
     {{~ for pair in optionsetValues | array.sort "Value" ~}}
     [EnumMember]

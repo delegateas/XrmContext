@@ -60,7 +60,7 @@ public class CSharpProxyGenerator : ICodeGenerator
         files.AddRange(GenerateEnumFiles(GetGlobalOptionsets(tables), config.NamespaceSetting, templates.EnumTemplate));
 
         // Generate Xrm context class
-        var xrmClassResult = templates.XrmTemplate.Render(new { tables, @namespace = config.NamespaceSetting, config.ServiceContextName }, member => member.Name);
+        var xrmClassResult = templates.XrmTemplate.Render(new { tables, @namespace = config.NamespaceSetting, serviceContextName = config.ServiceContextName }, member => member.Name);
         files.Add(new GeneratedFile(Path.Combine("queries", "Xrm.cs"), xrmClassResult));
 
         // Generate OptionSetMetadataAttribute

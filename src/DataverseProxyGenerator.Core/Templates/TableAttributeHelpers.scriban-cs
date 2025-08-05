@@ -1,5 +1,3 @@
-// TableAttributeHelpers.cs
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -8,16 +6,24 @@ using Microsoft.Xrm.Sdk;
 
 namespace {{ namespace }};
 
+[System.CodeDom.Compiler.GeneratedCode("DataverseProxyGenerator", "1.0.0")]
 public static class TableAttributeHelpers
 {
     /// <summary>
     /// Gets the logical column name for a property on the entity, using the AttributeLogicalNameAttribute if present.
     /// </summary>
-    public static string GetColumnName<T>(this T entity, Expression<Func<T, object>> lambda) where T : Entity
+    /// <typeparam name="T">Type of Entity</typeparam>
+    /// <param name="entity">Entity to get the column from</param>
+    /// <param name="lambda">Expression to pick the column</param>
+    /// <returns>Name of column</returns>
+    /// <exception cref="ArgumentNullException">If no expression is provided</exception>
+    /// <exception cref="ArgumentException">If the expression is not x => x.column</exception>
+    public static string GetColumnName<T>(this T entity, Expression<Func<T, object>> lambda)
+        where T : Entity
     {
         if (lambda == null) throw new ArgumentNullException(nameof(lambda));
 
-        MemberExpression body = lambda.Body as MemberExpression;
+        MemberExpression? body = lambda.Body as MemberExpression;
         if (body == null)
         {
             var ubody = lambda.Body as UnaryExpression;
@@ -28,7 +34,7 @@ public static class TableAttributeHelpers
         }
 
         if (body == null)
-            throw new ArgumentException("Invalid lambda expression. Expression should point to a property.");
+            throw new ArgumentException("Invalid lambda expression. Expression should point to a property.", nameof(lambda));
 
         var member = body.Member;
         var customAttributes = member.GetCustomAttributesData();
@@ -37,7 +43,7 @@ public static class TableAttributeHelpers
         {
             var arg = neededAttribute.ConstructorArguments.FirstOrDefault().Value;
             if (arg != null)
-                return arg.ToString();
+                return arg.ToString()!;
         }
 
         return member.Name;
@@ -46,7 +52,13 @@ public static class TableAttributeHelpers
     /// <summary>
     /// Checks if all specified attributes are present on the entity.
     /// </summary>
-    public static bool ContainsAttributes<T>(this T entity, params Expression<Func<T, object>>[] attrGetters) where T : Entity
+    /// <typeparam name="T">Type of Entity</typeparam>
+    /// <param name="entity">Entity to check if contains attribute</param>
+    /// <param name="attrGetters">Expression that specify attributes to check</param>
+    /// <returns>Bool for whether all attributes are on the entity</returns>
+    /// <exception cref="ArgumentNullException">If Entity is null</exception>
+    public static bool ContainsAttributes<T>(this T entity, params Expression<Func<T, object>>[] attrGetters)
+        where T : Entity
     {
         if (entity == null) throw new ArgumentNullException(nameof(entity));
         if (attrGetters == null || attrGetters.Length == 0) return false;
@@ -58,7 +70,13 @@ public static class TableAttributeHelpers
     /// <summary>
     /// Removes all specified attributes from the entity. Returns true if any attribute was removed.
     /// </summary>
-    public static bool RemoveAttributes<T>(this T entity, params Expression<Func<T, object>>[] attrGetters) where T : Entity
+    /// <typeparam name="T">Type of Entity</typeparam>
+    /// <param name="entity">Entity to remove attributes from</param>
+    /// <param name="attrGetters">Expression that specify attributes to remove</param>
+    /// <returns>Return true if any attributes were removed</returns>
+    /// <exception cref="ArgumentNullException">If entity is null</exception>
+    public static bool RemoveAttributes<T>(this T entity, params Expression<Func<T, object>>[] attrGetters)
+        where T : Entity
     {
         if (entity == null) throw new ArgumentNullException(nameof(entity));
         if (attrGetters == null || attrGetters.Length == 0) return false;
@@ -68,6 +86,7 @@ public static class TableAttributeHelpers
             var name = entity.GetColumnName(a).ToLowerInvariant();
             anyRemoved |= entity.Attributes.Remove(name);
         }
+
         return anyRemoved;
     }
 }

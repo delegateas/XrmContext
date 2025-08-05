@@ -1,11 +1,10 @@
-// ExtendedEntity.cs
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xrm.Sdk;
 
 namespace {{ namespace }};
-  
+
+[System.CodeDom.Compiler.GeneratedCode("DataverseProxyGenerator", "1.0.0")]
 public class ExtendedEntity : Entity
 {
     public ExtendedEntity(string logicalName)
