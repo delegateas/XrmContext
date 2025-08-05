@@ -3,7 +3,7 @@ using Microsoft.Xrm.Sdk.Client;
 
 namespace {{ namespace }};
 
-[System.CodeDom.Compiler.GeneratedCode("DataverseProxyGenerator", "1.0.0")]
+[System.CodeDom.Compiler.GeneratedCode("DataverseProxyGenerator", "{{version}}")]
 public class Xrm : OrganizationServiceContext
 {
     public {{ serviceContextName }}(IOrganizationService service)

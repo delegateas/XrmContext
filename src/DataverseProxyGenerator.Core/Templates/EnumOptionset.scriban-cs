@@ -2,7 +2,7 @@ using System.Runtime.Serialization;
 
 namespace {{namespace}};
 
-[System.CodeDom.Compiler.GeneratedCode("DataverseProxyGenerator", "1.0.0")]
+[System.CodeDom.Compiler.GeneratedCode("DataverseProxyGenerator", "{{version}}")]
 [DataContract]
 public enum {{optionsetName | string.capitalize}}
 {

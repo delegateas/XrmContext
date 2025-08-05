@@ -12,6 +12,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Extract version from tag
+        id: get_version
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_ENV
+
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
@@ -21,7 +25,7 @@ jobs:
         run: dotnet restore
 
       - name: Build (Release)
-        run: dotnet build --configuration Release --no-restore
+        run: dotnet build --configuration Release --no-restore /p:Version=${{ env.VERSION }} /p:AssemblyVersion=${{ env.VERSION }} /p:FileVersion=${{ env.VERSION }}
 
       - name: Test (Release)
         run: dotnet test --configuration Release --no-build --no-restore
@@ -29,12 +33,8 @@ jobs:
       - name: Format
         run: dotnet format --verify-no-changes
 
-      - name: Extract version from tag
-        id: get_version
-        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_ENV
-
       - name: Pack .NET tool
-        run: dotnet pack src/DataverseProxyGenerator.Tool/DataverseProxyGenerator.Tool.csproj --configuration Release --no-build /p:PackageVersion=${{ env.VERSION }} /p:PackAsTool=true
+        run: dotnet pack src/DataverseProxyGenerator.Tool/DataverseProxyGenerator.Tool.csproj --configuration Release --no-build /p:PackageVersion=${{ env.VERSION }} /p:Version=${{ env.VERSION }} /p:AssemblyVersion=${{ env.VERSION }} /p:FileVersion=${{ env.VERSION }} /p:PackAsTool=true
 
       - name: Publish to NuGet
         run: dotnet nuget push src/DataverseProxyGenerator.Tool/bin/Release/xrmcontext.${{ env.VERSION }}.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json

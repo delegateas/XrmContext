@@ -1,6 +1,6 @@
 namespace {{namespace}};
 
-[System.CodeDom.Compiler.GeneratedCode("DataverseProxyGenerator", "1.0.0")]
+[System.CodeDom.Compiler.GeneratedCode("DataverseProxyGenerator", "{{version}}")]
 [AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
 public sealed class RelationshipMetadataAttribute : Attribute
 {

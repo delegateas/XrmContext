@@ -10,7 +10,7 @@ namespace {{namespace}};
 /// <summary>
 /// <para>Display Name: {{ table.DisplayName }}</para>
 /// </summary>
-[System.CodeDom.Compiler.GeneratedCode("DataverseProxyGenerator", "1.0.0")]
+[System.CodeDom.Compiler.GeneratedCode("DataverseProxyGenerator", "{{version}}")]
 [EntityLogicalName("{{table.LogicalName}}")]
 [DebuggerDisplay("{DebuggerDisplay,nq}")]
 [DataContract]

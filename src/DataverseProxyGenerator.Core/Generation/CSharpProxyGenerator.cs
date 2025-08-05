@@ -37,46 +37,64 @@ public class CSharpProxyGenerator : ICodeGenerator
 
     private static string ExtendedEntityTemplate => GetEmbeddedResourceText("ExtendedEntity.scriban-cs");
 
+    private static string GetAssemblyVersion()
+    {
+        var assembly = typeof(CSharpProxyGenerator).Assembly;
+        var version = assembly.GetName().Version;
+        return version?.ToString() ?? "1.0.0.0";
+    }
+
     public IEnumerable<GeneratedFile> GenerateCode(IEnumerable<TableModel> tables, XrmGenerationConfig config)
     {
         ArgumentNullException.ThrowIfNull(tables);
         ArgumentNullException.ThrowIfNull(config);
 
         var templates = LoadAllTemplates();
-
         var files = new List<GeneratedFile>();
+
+        var version = GetAssemblyVersion();
 
         var tableDict = tables.ToDictionary(t => t.LogicalName, t => t, StringComparer.InvariantCulture);
         var tableColumns = BuildTableColumns(tables);
 
         var (interfaceColumns, tableToInterfaces) = BuildIntersectionData(config.IntersectMapping, tableDict, tableColumns);
 
-        files.AddRange(GenerateIntersectionInterfaceFiles(interfaceColumns, tables, config.NamespaceSetting, templates.InterfaceTemplate));
+        files.AddRange(GenerateIntersectionInterfaceFiles(interfaceColumns, tables, config.NamespaceSetting, templates.InterfaceTemplate, version));
 
         // Generate proxy classes (with interfaces if needed)
-        files.AddRange(GenerateProxyClassFiles(tables, config.NamespaceSetting, tableToInterfaces, templates.ProxyTemplate));
+        files.AddRange(GenerateProxyClassFiles(tables, config.NamespaceSetting, tableToInterfaces, templates.ProxyTemplate, version));
 
         // Generate enums as before
-        files.AddRange(GenerateEnumFiles(GetGlobalOptionsets(tables), config.NamespaceSetting, templates.EnumTemplate));
+        files.AddRange(GenerateEnumFiles(GetGlobalOptionsets(tables), config.NamespaceSetting, templates.EnumTemplate, version));
 
         // Generate Xrm context class
-        var xrmClassResult = templates.XrmTemplate.Render(new { tables, @namespace = config.NamespaceSetting, serviceContextName = config.ServiceContextName }, member => member.Name);
+        var xrmClassResult = templates.XrmTemplate.Render(
+            new { tables, @namespace = config.NamespaceSetting, serviceContextName = config.ServiceContextName, version, },
+            member => member.Name);
         files.Add(new GeneratedFile(Path.Combine("queries", "Xrm.cs"), xrmClassResult));
 
         // Generate OptionSetMetadataAttribute
-        var attributeResult = templates.OptionSetMetadataAttributeTemplate.Render(new { @namespace = config.NamespaceSetting }, member => member.Name);
+        var attributeResult = templates.OptionSetMetadataAttributeTemplate.Render(
+            new { @namespace = config.NamespaceSetting, version, },
+            member => member.Name);
         files.Add(new GeneratedFile(Path.Combine("attributes", "OptionSetMetadataAttribute.cs"), attributeResult));
 
         // Generate RelationshipMetadataAttribute
-        var relationshipAttributeResult = templates.RelationshipMetadataAttributeTemplate.Render(new { @namespace = config.NamespaceSetting }, member => member.Name);
+        var relationshipAttributeResult = templates.RelationshipMetadataAttributeTemplate.Render(
+            new { @namespace = config.NamespaceSetting, version, },
+            member => member.Name);
         files.Add(new GeneratedFile(Path.Combine("attributes", "RelationshipMetadataAttribute.cs"), relationshipAttributeResult));
 
         // Generate TableAttributeHelpers
-        var tableHelperResult = templates.TableHelperTemplate.Render(new { @namespace = config.NamespaceSetting }, member => member.Name);
+        var tableHelperResult = templates.TableHelperTemplate.Render(
+            new { @namespace = config.NamespaceSetting, version, },
+            member => member.Name);
         files.Add(new GeneratedFile(Path.Combine("tables", "TableAttributeHelpers.cs"), tableHelperResult));
 
         // Generate ExtendedEntity
-        var extendedEntityResult = templates.ExtendedEntityTemplate.Render(new { @namespace = config.NamespaceSetting }, member => member.Name);
+        var extendedEntityResult = templates.ExtendedEntityTemplate.Render(
+            new { @namespace = config.NamespaceSetting, version, },
+            member => member.Name);
         files.Add(new GeneratedFile(Path.Combine("tables", "ExtendedEntity.cs"), extendedEntityResult));
 
         return files;
@@ -86,7 +104,8 @@ public class CSharpProxyGenerator : ICodeGenerator
         IEnumerable<TableModel> tables,
         string @namespace,
         Dictionary<string, List<string>> tableToInterfaces,
-        Template proxyTemplate)
+        Template proxyTemplate,
+        string version)
     {
         foreach (var table in tables)
         {
@@ -122,6 +141,7 @@ public class CSharpProxyGenerator : ICodeGenerator
                     InterfacesList = interfaces ?? new List<string>(),
                 },
                 @namespace,
+                version,
             };
             var context = new Scriban.TemplateContext(StringComparer.InvariantCulture);
             context.LoopLimit = 0; // 0 means no limit
@@ -171,7 +191,7 @@ public class CSharpProxyGenerator : ICodeGenerator
             .Select(g => g.First());
     }
 
-    private static IEnumerable<GeneratedFile> GenerateEnumFiles(IEnumerable<EnumColumnModel> globalOptionsets, string @namespace, Template enumTemplate)
+    private static IEnumerable<GeneratedFile> GenerateEnumFiles(IEnumerable<EnumColumnModel> globalOptionsets, string @namespace, Template enumTemplate, string version)
     {
         foreach (var optionset in globalOptionsets)
         {
@@ -189,6 +209,7 @@ public class CSharpProxyGenerator : ICodeGenerator
                             ? value : [],
                     }),
                     @namespace,
+                    version,
                 },
                 member => member.Name);
 
@@ -289,7 +310,8 @@ public class CSharpProxyGenerator : ICodeGenerator
         Dictionary<string, HashSet<ColumnSignature>> interfaceColumns,
         IEnumerable<TableModel> tables,
         string @namespace,
-        Template interfaceTemplate)
+        Template interfaceTemplate,
+        string version)
     {
         foreach (var kvp in interfaceColumns)
         {
@@ -318,6 +340,7 @@ public class CSharpProxyGenerator : ICodeGenerator
                     interfaceName,
                     @namespace,
                     columns,
+                    version,
                 },
                 member => member.Name);
 
