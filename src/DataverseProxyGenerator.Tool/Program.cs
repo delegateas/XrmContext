@@ -1,11 +1,16 @@
+using System.Diagnostics.CodeAnalysis;
 using DataverseConnection;
 using DataverseProxyGenerator.Core;
+using DataverseProxyGenerator.Core.Configuration;
 using DataverseProxyGenerator.Core.Generation;
 using DataverseProxyGenerator.Core.Metadata;
 using DataverseProxyGenerator.Core.Output;
+using DataverseProxyGenerator.Core.Templates;
+using DataverseProxyGenerator.Tool.Options;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace DataverseProxyGenerator.Tool;
 
@@ -16,52 +21,56 @@ internal static class Program
         return RunApplication(args);
     }
 
+    [SuppressMessage("Globalization", "CA1303:Do not pass literals as localized parameters", Justification = "Command-line tool with acceptable hardcoded strings")]
     private static async Task<int> RunApplication(string[] args)
     {
-        var (outputDirectory, solutions, entities, namespaceSetting, serviceContextName, deprecatedPrefix, intersectMapping, labelMapping) = CommandLineParser.Parse(args);
-
-        var configuration = new ConfigurationBuilder()
-            .SetBasePath(Directory.GetCurrentDirectory())
-            .AddJsonFile("appsettings.json", optional: true)
-            .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ?? "Production"}.json", optional: true)
-            .AddEnvironmentVariables()
-            .Build();
-
-        // Bind flat config
-        var configSection = configuration.GetSection("XrmContext");
-        var config = new XrmContextConfig(
-            new XrmFetchConfig(
-                configSection.GetSection("Solutions").Get<string[]>() ?? System.Array.Empty<string>(),
-                configSection.GetSection("Entities").Get<string[]>() ?? System.Array.Empty<string>(),
-                configSection.GetValue<string>("DeprecatedPrefix") ?? string.Empty,
-                configSection.GetSection("LabelMapping").Get<IReadOnlyDictionary<string, string>>() ?? new Dictionary<string, string>(StringComparer.InvariantCulture)),
-            new XrmGenerationConfig(
-                configSection.GetValue<string>("OutputDirectory") ?? string.Empty,
-                configSection.GetValue<string>("NamespaceSetting") ?? string.Empty,
-                configSection.GetValue<string>("ServiceContextName") ?? string.Empty,
-                configSection.GetSection("IntersectMapping").Get<IReadOnlyDictionary<string, IReadOnlyList<string>>>() ?? new Dictionary<string, IReadOnlyList<string>>(StringComparer.InvariantCulture)));
-
-        // Merge: command-line args override config
-        var mergedConfig = new XrmContextConfig(
-            new XrmFetchConfig(
-                (solutions != null && solutions.Length > 0) ? solutions : config.Fetch.Solutions,
-                (entities != null && entities.Length > 0) ? entities : config.Fetch.Entities,
-                !string.IsNullOrWhiteSpace(deprecatedPrefix) ? deprecatedPrefix : config.Fetch.DeprecatedPrefix,
-                (labelMapping != null && labelMapping.Count > 0) ? labelMapping : config.Fetch.LabelMapping),
-            new XrmGenerationConfig(
-                !string.IsNullOrWhiteSpace(outputDirectory) ? outputDirectory : config.Generation.OutputDirectory,
-                !string.IsNullOrWhiteSpace(namespaceSetting) ? namespaceSetting : config.Generation.NamespaceSetting,
-                !string.IsNullOrWhiteSpace(serviceContextName) ? serviceContextName : config.Generation.ServiceContextName,
-                (intersectMapping != null && intersectMapping.Count > 0) ? intersectMapping : config.Generation.IntersectMapping));
-
-        if (string.IsNullOrWhiteSpace(mergedConfig.Generation.OutputDirectory))
+        try
         {
-            throw new InvalidOperationException("Output directory is required. Specify it via command line argument --output or in appsettings.json under XrmContext:OutputDirectory");
-        }
+            var baseConfig = SimpleXrmContextConfigBuilder.BuildFromConfiguration();
 
-        var host = BuildHost();
-        await RunWorkflowAsync(host, mergedConfig);
-        return 0;
+            // Parse command line args and merge
+            var (outputDirectory, solutions, entities, namespaceSetting, serviceContextName, deprecatedPrefix, intersectMapping, labelMapping) = CommandLineParser.Parse(args);
+
+            var config = new XrmContextConfig(
+                new XrmFetchConfig(
+                    (solutions.Count > 0) ? solutions : baseConfig.Fetch.Solutions,
+                    (entities.Count > 0) ? entities : baseConfig.Fetch.Entities,
+                    !string.IsNullOrWhiteSpace(deprecatedPrefix) ? deprecatedPrefix : baseConfig.Fetch.DeprecatedPrefix,
+                    (labelMapping.Count > 0) ? labelMapping : baseConfig.Fetch.LabelMapping),
+                new XrmGenerationConfig(
+                    !string.IsNullOrWhiteSpace(outputDirectory) ? outputDirectory : baseConfig.Generation.OutputDirectory,
+                    !string.IsNullOrWhiteSpace(namespaceSetting) ? namespaceSetting : baseConfig.Generation.NamespaceSetting ?? "DataverseContext",
+                    !string.IsNullOrWhiteSpace(serviceContextName) ? serviceContextName : baseConfig.Generation.ServiceContextName ?? "Xrm",
+                    (intersectMapping.Count > 0) ? intersectMapping : baseConfig.Generation.IntersectMapping));
+
+            if (string.IsNullOrWhiteSpace(config.Generation.OutputDirectory))
+            {
+                Console.WriteLine("Error: Output directory is required. Specify it via command line argument --output or in appsettings.json under XrmContext:OutputDirectory");
+                return 1;
+            }
+
+            var validator = new XrmContextConfigValidator();
+            var validationResult = validator.Validate(config);
+            if (!validationResult.IsValid)
+            {
+                foreach (var error in validationResult.Errors)
+                {
+                    Console.WriteLine($"Error: {error}");
+                }
+
+                return 1;
+            }
+
+            var host = BuildHost();
+            await RunWorkflowAsync(host, config);
+            return 0;
+        }
+        catch (Exception ex) when (ex is not OutOfMemoryException and not AccessViolationException)
+        {
+            Console.WriteLine($"Fatal error: {ex.Message}");
+            Console.WriteLine($"Details: {ex}");
+            return 1;
+        }
     }
 
     private static IHost BuildHost()
@@ -70,7 +79,7 @@ internal static class Program
             .ConfigureServices((context, services) =>
             {
                 var configuration = new ConfigurationBuilder()
-                    .SetBasePath(Directory.GetCurrentDirectory()) // Current working directory
+                    .SetBasePath(Directory.GetCurrentDirectory())
                     .AddJsonFile("appsettings.json", optional: true)
                     .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ?? "Production"}.json", optional: true)
                     .AddEnvironmentVariables()
@@ -78,46 +87,51 @@ internal static class Program
 
                 services.AddSingleton<IConfiguration>(configuration);
                 services.AddDataverse();
+
+                // Register new services
+                services.AddSingleton<ITemplateProvider, EmbeddedTemplateProvider>();
                 services.AddSingleton<ICodeGenerator, CSharpProxyGenerator>();
                 services.AddSingleton<IOutputWriter, FileSystemOutputWriter>();
-            }).Build();
+                services.AddSingleton<IMetadataSourceFactory, DataverseMetadataSourceFactory>();
+                services.AddSingleton<XrmContextConfigValidator>();
+                services.AddSingleton<GeneratorOptionsValidator>();
+            })
+            .ConfigureLogging(logging =>
+            {
+                logging.AddConsole();
+                logging.SetMinimumLevel(LogLevel.Information);
+            })
+            .Build();
     }
 
     private static async Task RunWorkflowAsync(
         IHost host,
         XrmContextConfig config)
     {
-        var serviceClient = host.Services.GetRequiredService<Microsoft.PowerPlatform.Dataverse.Client.ServiceClient>();
-        var generator = new CSharpProxyGenerator();
-        var fetcher = new DataverseMetadataFetcher(serviceClient, config.Fetch);
+        var loggerFactory = host.Services.GetRequiredService<ILoggerFactory>();
+        var logger = loggerFactory.CreateLogger("DataverseProxyGenerator");
+        var generator = host.Services.GetRequiredService<ICodeGenerator>();
         var writer = host.Services.GetRequiredService<IOutputWriter>();
+        var metadataFactory = host.Services.GetRequiredService<IMetadataSourceFactory>();
 
-#pragma warning disable CA1031 // Do not catch general exception types
         try
         {
-#pragma warning disable CA1303 // Do not pass literals as localized parameters
-            Console.WriteLine("Fetching Dataverse metadata...");
-#pragma warning restore CA1303 // Do not pass literals as localized parameters
+            logger.LogInformation("Fetching Dataverse metadata...");
+            var fetcher = metadataFactory.CreateFetcher(MetadataSourceType.Dataverse, config.Fetch);
             var tables = await fetcher.FetchMetadataAsync();
 
-#pragma warning disable CA1303 // Do not pass literals as localized parameters
-            Console.WriteLine("Generating proxy classes and intersection interfaces...");
-#pragma warning restore CA1303 // Do not pass literals as localized parameters
-            var files = generator.GenerateCode(
-                tables,
-                config.Generation);
+            logger.LogInformation("Generating proxy classes and intersection interfaces...");
+            var files = generator.GenerateCode(tables, config.Generation);
 
-            Console.WriteLine($"Writing files to {config.Generation.OutputDirectory}...");
+            logger.LogInformation("Writing files to {OutputDirectory}...", config.Generation.OutputDirectory);
             writer.WriteFiles(files, config.Generation.OutputDirectory);
 
-#pragma warning disable CA1303 // Do not pass literals as localized parameters
-            Console.WriteLine("Proxy class and intersection interface generation complete.");
-#pragma warning restore CA1303 // Do not pass literals as localized parameters
+            logger.LogInformation("Proxy class and intersection interface generation complete.");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error: {ex.Message}");
+            logger.LogError(ex, "Error during code generation: {ErrorMessage}", ex.Message);
+            throw new InvalidOperationException("Code generation workflow failed. See inner exception for details.", ex);
         }
-#pragma warning restore CA1031 // Do not catch general exception types
     }
 }

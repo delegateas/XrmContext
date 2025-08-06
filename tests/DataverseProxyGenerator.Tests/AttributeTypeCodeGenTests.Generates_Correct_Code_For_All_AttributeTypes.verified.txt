@@ -1,5 +1,4 @@
-﻿using System;
-using Microsoft.Xrm.Sdk;
+﻿using Microsoft.Xrm.Sdk;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
@@ -11,7 +10,7 @@ namespace TestNamespace;
 /// <summary>
 /// <para>Display Name: Test Entity</para>
 /// </summary>
-[System.CodeDom.Compiler.GeneratedCode("DataverseProxyGenerator", "1.0.0")]
+[System.CodeDom.Compiler.GeneratedCode("DataverseProxyGenerator", "1.0.0.0")]
 [EntityLogicalName("testentity")]
 [DebuggerDisplay("{DebuggerDisplay,nq}")]
 [DataContract]

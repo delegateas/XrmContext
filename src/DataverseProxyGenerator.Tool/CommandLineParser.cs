@@ -6,8 +6,8 @@ namespace DataverseProxyGenerator.Tool;
 public static class CommandLineParser
 {
     public static (string OutputDirectory,
-        string[] Solutions,
-        string[] Entities,
+        IReadOnlyList<string> Solutions,
+        IReadOnlyList<string> Entities,
         string NamespaceSetting,
         string ServiceContextName,
         string DeprecatedPrefix,
@@ -115,8 +115,8 @@ public static class CommandLineParser
             parsedResult.GetValueForOption(outputDirectoryOption) ?? string.Empty,
             parsedResult.GetValueForOption(solutionsOption) ?? [],
             parsedResult.GetValueForOption(entitiesOption) ?? [],
-            parsedResult.GetValueForOption(namespaceOption) ?? "DataverseContext",
-            parsedResult.GetValueForOption(serviceContextNameOption) ?? "Xrm",
+            parsedResult.GetValueForOption(namespaceOption) ?? string.Empty,
+            parsedResult.GetValueForOption(serviceContextNameOption) ?? string.Empty,
             parsedResult.GetValueForOption(deprecatedPrefixOption) ?? string.Empty,
             (parsedResult.GetValueForOption(intersectOption) ?? []).AsReadOnly(),
             (parsedResult.GetValueForOption(labelMappingsOption) ?? []).AsReadOnly()
