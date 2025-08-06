@@ -1,4 +1,4 @@
-using DataverseProxyGenerator.Core.Configuration;
+using DataverseProxyGenerator.Tool.Configuration;
 
 namespace DataverseProxyGenerator.Tool.Options;
 

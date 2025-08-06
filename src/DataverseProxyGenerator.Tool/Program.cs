@@ -1,7 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using DataverseConnection;
 using DataverseProxyGenerator.Core;
-using DataverseProxyGenerator.Core.Configuration;
 using DataverseProxyGenerator.Core.Generation;
 using DataverseProxyGenerator.Core.Metadata;
 using DataverseProxyGenerator.Core.Output;

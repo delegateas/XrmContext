@@ -1,4 +1,4 @@
-namespace DataverseProxyGenerator.Core.Configuration;
+namespace DataverseProxyGenerator.Tool.Configuration;
 
 public interface IOptionsValidator<in T>
 {

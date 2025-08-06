@@ -18,11 +18,12 @@ public class EnumGenerator : BaseFileGenerator, IFileGenerator<EnumColumnModel>
         ValidateContext(context);
 
         var template = context.Templates.GetTemplate("EnumOptionset.scriban-cs");
+        var sanitizedOptionSetName = SanitizeName(input.OptionsetName, "UnknownOptionSet");
 
         var enumResult = template.Render(
             new
             {
-                optionsetName = SanitizeName(input.OptionsetName, "UnknownOptionSet"),
+                optionsetName = sanitizedOptionSetName,
                 optionsetValues = input.OptionsetValues.Select(kvp => new
                 {
                     Value = kvp.Key,
@@ -37,7 +38,6 @@ public class EnumGenerator : BaseFileGenerator, IFileGenerator<EnumColumnModel>
             },
             member => member.Name);
 
-        var sanitizedOptionSetName = SanitizeName(input.OptionsetName, "UnknownOptionSet");
         yield return new GeneratedFile(FilePathHelper.GetOptionSetFilePath(sanitizedOptionSetName), enumResult);
     }
 }

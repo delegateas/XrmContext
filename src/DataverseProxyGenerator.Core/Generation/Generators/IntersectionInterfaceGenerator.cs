@@ -18,6 +18,7 @@ public class IntersectionInterfaceGenerator : BaseFileGenerator, IFileGenerator<
         ValidateContext(context);
         var (interfaceName, columns) = input;
         var template = context.Templates.GetTemplate("IntersectionInterface.scriban-cs");
+        var sanitizedInterfaceName = SanitizeName(interfaceName);
 
         var columnData = columns.Select(col => new
         {
@@ -30,14 +31,13 @@ public class IntersectionInterfaceGenerator : BaseFileGenerator, IFileGenerator<
         var interfaceResult = template.Render(
             new
             {
-                interfaceName,
+                interfaceName = sanitizedInterfaceName,
                 @namespace = context.Namespace,
                 columns = columnData,
                 version = context.Version,
             },
             member => member.Name);
 
-        var sanitizedInterfaceName = SanitizeName(interfaceName);
         yield return new GeneratedFile(FilePathHelper.GetIntersectionInterfaceFilePath(sanitizedInterfaceName), interfaceResult);
     }
 }

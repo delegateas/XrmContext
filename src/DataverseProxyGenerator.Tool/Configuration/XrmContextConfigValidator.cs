@@ -1,4 +1,6 @@
-namespace DataverseProxyGenerator.Core.Configuration;
+using DataverseProxyGenerator.Core;
+
+namespace DataverseProxyGenerator.Tool.Configuration;
 
 public class XrmContextConfigValidator : IOptionsValidator<XrmContextConfig>
 {

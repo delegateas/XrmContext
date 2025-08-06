@@ -18,6 +18,7 @@ public class ProxyClassGenerator : BaseFileGenerator, IFileGenerator<(TableModel
         ValidateContext(context);
         var (table, interfaces) = input;
         var template = context.Templates.GetTemplate("ProxyClass.scriban-cs");
+        var sanitizedSchemaName = SanitizeName(table.SchemaName);
 
         var model = new
         {
@@ -55,7 +56,6 @@ public class ProxyClassGenerator : BaseFileGenerator, IFileGenerator<(TableModel
 
         var templateContext = CreateTemplateContext(model);
         var result = template.Render(templateContext);
-        var sanitizedSchemaName = SanitizeName(table.SchemaName);
         yield return new GeneratedFile(FilePathHelper.GetTableFilePath(sanitizedSchemaName), result);
     }
 }
