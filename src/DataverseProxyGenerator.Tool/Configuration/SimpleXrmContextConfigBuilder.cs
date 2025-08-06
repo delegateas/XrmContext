@@ -1,8 +1,9 @@
+using DataverseProxyGenerator.Core;
 using DataverseProxyGenerator.Core.Generation;
 using DataverseProxyGenerator.Core.Metadata;
 using Microsoft.Extensions.Configuration;
 
-namespace DataverseProxyGenerator.Core.Configuration;
+namespace DataverseProxyGenerator.Tool.Configuration;
 
 public static class SimpleXrmContextConfigBuilder
 {

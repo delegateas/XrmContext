@@ -6,29 +6,24 @@ namespace DataverseProxyGenerator.Core.Generation;
 
 public class CSharpProxyGenerator : ICodeGenerator
 {
-    private readonly ITemplateProvider templateProvider;
+    private readonly EmbeddedTemplateProvider templateProvider;
     private readonly ProxyClassGenerator proxyClassGenerator;
     private readonly EnumGenerator enumGenerator;
     private readonly IntersectionInterfaceGenerator intersectionInterfaceGenerator;
     private readonly XrmContextGenerator xrmContextGenerator;
-    private readonly AttributeGenerator attributeGenerator;
+    private readonly HelperFileGenerator helperFileGenerator;
 
     // Helper struct for fast column comparison
     private readonly record struct ColumnSignature(string SchemaName, string TypeName);
 
     public CSharpProxyGenerator()
-        : this(new EmbeddedTemplateProvider())
     {
-    }
-
-    public CSharpProxyGenerator(ITemplateProvider templateProvider)
-    {
-        this.templateProvider = templateProvider;
+        templateProvider = new EmbeddedTemplateProvider();
         proxyClassGenerator = new ProxyClassGenerator();
         enumGenerator = new EnumGenerator();
         intersectionInterfaceGenerator = new IntersectionInterfaceGenerator();
         xrmContextGenerator = new XrmContextGenerator();
-        attributeGenerator = new AttributeGenerator();
+        helperFileGenerator = new HelperFileGenerator();
     }
 
     private static string GetAssemblyVersion()
@@ -91,11 +86,11 @@ public class CSharpProxyGenerator : ICodeGenerator
         // Generate Xrm context class
         files.AddRange(xrmContextGenerator.Generate(tablesList, context));
 
-        // Generate attribute classes
-        files.AddRange(attributeGenerator.Generate("OptionSetMetadataAttribute", context));
-        files.AddRange(attributeGenerator.Generate("RelationshipMetadataAttribute", context));
-        files.AddRange(attributeGenerator.Generate("TableAttributeHelpers", context));
-        files.AddRange(attributeGenerator.Generate("ExtendedEntity", context));
+        // Generate helper files
+        files.AddRange(helperFileGenerator.Generate("OptionSetMetadataAttribute", context));
+        files.AddRange(helperFileGenerator.Generate("RelationshipMetadataAttribute", context));
+        files.AddRange(helperFileGenerator.Generate("TableAttributeHelpers", context));
+        files.AddRange(helperFileGenerator.Generate("ExtendedEntity", context));
 
         return files;
     }

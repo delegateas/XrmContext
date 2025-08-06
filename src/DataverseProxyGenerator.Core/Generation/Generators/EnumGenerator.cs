@@ -37,6 +37,7 @@ public class EnumGenerator : BaseFileGenerator, IFileGenerator<EnumColumnModel>
             },
             member => member.Name);
 
-        yield return new GeneratedFile(FilePathHelper.GetOptionSetFilePath(input.OptionsetName), enumResult);
+        var sanitizedOptionSetName = SanitizeName(input.OptionsetName, "UnknownOptionSet");
+        yield return new GeneratedFile(FilePathHelper.GetOptionSetFilePath(sanitizedOptionSetName), enumResult);
     }
 }

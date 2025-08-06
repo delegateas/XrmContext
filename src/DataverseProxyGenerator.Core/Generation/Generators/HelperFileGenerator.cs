@@ -3,7 +3,7 @@ using DataverseProxyGenerator.Core.Generation.Utilities;
 
 namespace DataverseProxyGenerator.Core.Generation.Generators;
 
-public class AttributeGenerator : BaseFileGenerator, IFileGenerator<string>
+public class HelperFileGenerator : BaseFileGenerator, IFileGenerator<string>
 {
     public IEnumerable<GeneratedFile> Generate(string templateName, GenerationContext context)
     {
@@ -26,6 +26,6 @@ public class AttributeGenerator : BaseFileGenerator, IFileGenerator<string>
             },
             member => member.Name);
 
-        yield return new GeneratedFile(FilePathHelper.GetAttributeFilePath(templateName), result);
+        yield return new GeneratedFile(FilePathHelper.GetHelperFilePath(templateName), result);
     }
 }

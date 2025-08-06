@@ -5,7 +5,7 @@ using DataverseProxyGenerator.Core.Configuration;
 using DataverseProxyGenerator.Core.Generation;
 using DataverseProxyGenerator.Core.Metadata;
 using DataverseProxyGenerator.Core.Output;
-using DataverseProxyGenerator.Core.Templates;
+using DataverseProxyGenerator.Tool.Configuration;
 using DataverseProxyGenerator.Tool.Options;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -89,7 +89,6 @@ internal static class Program
                 services.AddDataverse();
 
                 // Register new services
-                services.AddSingleton<ITemplateProvider, EmbeddedTemplateProvider>();
                 services.AddSingleton<ICodeGenerator, CSharpProxyGenerator>();
                 services.AddSingleton<IOutputWriter, FileSystemOutputWriter>();
                 services.AddSingleton<IMetadataSourceFactory, DataverseMetadataSourceFactory>();

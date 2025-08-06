@@ -8,7 +8,7 @@ public record GenerationContext
 
     public required string Version { get; init; }
 
-    public required ITemplateProvider Templates { get; init; }
+    public required EmbeddedTemplateProvider Templates { get; init; }
 
     public string? ServiceContextName { get; init; }
 

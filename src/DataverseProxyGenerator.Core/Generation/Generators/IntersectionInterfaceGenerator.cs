@@ -37,6 +37,7 @@ public class IntersectionInterfaceGenerator : BaseFileGenerator, IFileGenerator<
             },
             member => member.Name);
 
-        yield return new GeneratedFile(FilePathHelper.GetIntersectionInterfaceFilePath(interfaceName), interfaceResult);
+        var sanitizedInterfaceName = SanitizeName(interfaceName);
+        yield return new GeneratedFile(FilePathHelper.GetIntersectionInterfaceFilePath(sanitizedInterfaceName), interfaceResult);
     }
 }

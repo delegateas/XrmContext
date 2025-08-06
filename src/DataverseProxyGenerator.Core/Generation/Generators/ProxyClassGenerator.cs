@@ -55,6 +55,7 @@ public class ProxyClassGenerator : BaseFileGenerator, IFileGenerator<(TableModel
 
         var templateContext = CreateTemplateContext(model);
         var result = template.Render(templateContext);
-        yield return new GeneratedFile(FilePathHelper.GetTableFilePath(table.SchemaName), result);
+        var sanitizedSchemaName = SanitizeName(table.SchemaName);
+        yield return new GeneratedFile(FilePathHelper.GetTableFilePath(sanitizedSchemaName), result);
     }
 }

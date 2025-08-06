@@ -5,33 +5,30 @@ public static class FilePathHelper
     /// <summary>
     /// Gets the output path for a table/entity proxy class file.
     /// </summary>
-    /// <param name="schemaName">The schema name of the table.</param>
+    /// <param name="sanitizedName">The sanitized schema name of the table.</param>
     /// <returns>The relative file path.</returns>
-    public static string GetTableFilePath(string schemaName)
+    public static string GetTableFilePath(string sanitizedName)
     {
-        var sanitizedName = NameSanitizer.SanitizeName(schemaName, "UnknownTable");
         return Path.Combine("tables", $"{sanitizedName}.cs");
     }
 
     /// <summary>
     /// Gets the output path for an option set enum file.
     /// </summary>
-    /// <param name="optionSetName">The name of the option set.</param>
+    /// <param name="sanitizedName">The sanitized name of the option set.</param>
     /// <returns>The relative file path.</returns>
-    public static string GetOptionSetFilePath(string optionSetName)
+    public static string GetOptionSetFilePath(string sanitizedName)
     {
-        var sanitizedName = NameSanitizer.SanitizeName(optionSetName, "UnknownOptionSet");
         return Path.Combine("optionsets", $"{sanitizedName}.cs");
     }
 
     /// <summary>
     /// Gets the output path for an intersection interface file.
     /// </summary>
-    /// <param name="interfaceName">The name of the interface.</param>
+    /// <param name="sanitizedName">The sanitized name of the interface.</param>
     /// <returns>The relative file path.</returns>
-    public static string GetIntersectionInterfaceFilePath(string interfaceName)
+    public static string GetIntersectionInterfaceFilePath(string sanitizedName)
     {
-        var sanitizedName = NameSanitizer.SanitizeName(interfaceName, "IUnknownInterface");
         return Path.Combine("intersections", $"{sanitizedName}.cs");
     }
 
@@ -45,18 +42,18 @@ public static class FilePathHelper
     }
 
     /// <summary>
-    /// Gets the output path for an attribute class file.
+    /// Gets the output path for a helper file.
     /// </summary>
-    /// <param name="attributeName">The name of the attribute class.</param>
+    /// <param name="fileName">The name of the helper file.</param>
     /// <returns>The relative file path.</returns>
-    public static string GetAttributeFilePath(string attributeName)
+    public static string GetHelperFilePath(string fileName)
     {
-        var folder = attributeName switch
+        var folder = fileName switch
         {
             "TableAttributeHelpers" or "ExtendedEntity" => "tables",
             _ => "attributes",
         };
 
-        return Path.Combine(folder, $"{attributeName}.cs");
+        return Path.Combine(folder, $"{fileName}.cs");
     }
 }

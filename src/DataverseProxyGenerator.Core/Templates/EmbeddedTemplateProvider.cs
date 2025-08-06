@@ -3,7 +3,7 @@ using System.Reflection;
 
 namespace DataverseProxyGenerator.Core.Templates;
 
-public class EmbeddedTemplateProvider : ITemplateProvider
+public class EmbeddedTemplateProvider
 {
     private readonly Dictionary<string, Template> templateCache = new(StringComparer.InvariantCultureIgnoreCase);
     private readonly Assembly assembly;
