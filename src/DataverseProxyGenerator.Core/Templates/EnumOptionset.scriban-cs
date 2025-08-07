@@ -4,7 +4,7 @@ namespace {{namespace}};
 
 [System.CodeDom.Compiler.GeneratedCode("DataverseProxyGenerator", "{{version}}")]
 [DataContract]
-public enum {{optionsetName | string.capitalize}}
+public enum {{optionsetName}}
 {
     {{~ for pair in optionsetValues | array.sort "Value" ~}}
     [EnumMember]
