@@ -14,7 +14,9 @@ namespace TestNamespace;
 [EntityLogicalName("testentity")]
 [DebuggerDisplay("{DebuggerDisplay,nq}")]
 [DataContract]
+#pragma warning disable CS8981
 public partial class TestEntity : ExtendedEntity
+#pragma warning restore CS8981
 {
     public const string EntityLogicalName = "testentity";
     public const int EntityTypeCode = 0;
