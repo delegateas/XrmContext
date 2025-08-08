@@ -1,6 +1,6 @@
 ---
 description: Main entry point for AI-based development and developer reference
-globs: 
+globs:
 alwaysApply: true
 ---
 
@@ -28,7 +28,8 @@ Always consult the relevant rule files before each code change.
 
 Please note that I often correct or even revert code you generated. If you notice that, take special care not to revert my changes.
 
-**Testing Requirements:**
+## Testing Requirements
+
 - Never perform manual or visual testing through browsers
 - Always write automated tests
 
@@ -36,4 +37,4 @@ Commit messages should be in imperative form, start with a capital letter, avoid
 
 Be very careful with comments, and add them only very sparingly. Never add comments about changes made (these belong in pull requests).
 
-When making changes, always take speial care not to change parts of the code that are not in scope.
+When making changes, always take special care not to change parts of the code that are not in scope.
