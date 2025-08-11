@@ -2,10 +2,10 @@
 [System.Runtime.Serialization.DataContractAttribute(Namespace="http://schemas.microsoft.com/xrm/2011/new/")]
 [Microsoft.Xrm.Sdk.Client.ResponseProxyAttribute("{{ unique_name }}")]
 [System.CodeDom.Compiler.GeneratedCodeAttribute("DataverseProxyGenerator", "{{ version }}")]
-public partial class {{ unique_name }}Response : Microsoft.Xrm.Sdk.OrganizationResponse
+public partial class {{ sanitized_unique_name }}Response : Microsoft.Xrm.Sdk.OrganizationResponse
 {
     
-    public {{ unique_name }}Response()
+    public {{ sanitized_unique_name }}Response()
     {
     }
     
@@ -15,9 +15,9 @@ public partial class {{ unique_name }}Response : Microsoft.Xrm.Sdk.OrganizationR
     {
         get
         {
-            if (this.Results.Contains("{{ prop.name }}"))
+            if (this.Results.Contains("{{ prop.original_name }}"))
             {
-                return (({{ prop.csharp_type }})(this.Results["{{ prop.name }}"]));
+                return (({{ prop.csharp_type }})(this.Results["{{ prop.original_name }}"]));
             }
             else
             {
@@ -26,7 +26,7 @@ public partial class {{ unique_name }}Response : Microsoft.Xrm.Sdk.OrganizationR
         }
         set
         {
-            this.Results["{{ prop.name }}"] = value;
+            this.Results["{{ prop.original_name }}"] = value;
         }
     }
 {{~ end ~}}

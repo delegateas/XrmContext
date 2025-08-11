@@ -18,7 +18,8 @@ public class CustomApiGenerator : BaseFileGenerator, IFileGenerator<CustomApiMod
         var requestTemplate = context.Templates.GetTemplate("CustomApiRequest.scriban-cs");
         var requestModel = CreateTemplateModel(customApi, context);
         var requestContent = requestTemplate.Render(requestModel);
-        var requestFilename = Path.Combine(FilePathHelper.CustomApiPath, $"{customApi.UniqueName}Request.cs");
+        var sanitizedUniqueName = SanitizeName(customApi.UniqueName);
+        var requestFilename = Path.Combine(FilePathHelper.CustomApiPath, $"{sanitizedUniqueName}Request.cs");
 
         files.Add(new GeneratedFile(requestFilename, requestContent));
 
@@ -26,7 +27,7 @@ public class CustomApiGenerator : BaseFileGenerator, IFileGenerator<CustomApiMod
         var responseTemplate = context.Templates.GetTemplate("CustomApiResponse.scriban-cs");
         var responseModel = CreateTemplateModel(customApi, context);
         var responseContent = responseTemplate.Render(responseModel);
-        var responseFilename = Path.Combine(FilePathHelper.CustomApiPath, $"{customApi.UniqueName}Response.cs");
+        var responseFilename = Path.Combine(FilePathHelper.CustomApiPath, $"{sanitizedUniqueName}Response.cs");
 
         files.Add(new GeneratedFile(responseFilename, responseContent));
 
@@ -37,7 +38,8 @@ public class CustomApiGenerator : BaseFileGenerator, IFileGenerator<CustomApiMod
     {
         return new
         {
-            unique_name = customApi.UniqueName,
+            unique_name = customApi.UniqueName, // Original for RequestName/ResponseName
+            sanitized_unique_name = SanitizeName(customApi.UniqueName), // Sanitized for class names
             display_name = customApi.DisplayName,
             description = customApi.Description,
             is_function = customApi.IsFunction,
@@ -45,7 +47,8 @@ public class CustomApiGenerator : BaseFileGenerator, IFileGenerator<CustomApiMod
             @namespace = context.Namespace,
             request_parameters = customApi.RequestParameters.Select(p => new
             {
-                name = p.Name,
+                name = SanitizeName(p.Name), // Sanitized for C# property names
+                original_name = p.Name, // Original for Parameters collection access
                 unique_name = p.UniqueName,
                 display_name = p.DisplayName,
                 description = p.Description,
@@ -56,7 +59,8 @@ public class CustomApiGenerator : BaseFileGenerator, IFileGenerator<CustomApiMod
             }).ToList(),
             response_properties = customApi.ResponseProperties.Select(p => new
             {
-                name = p.Name,
+                name = SanitizeName(p.Name), // Sanitized for C# property names
+                original_name = p.Name, // Original for Results collection access
                 unique_name = p.UniqueName,
                 display_name = p.DisplayName,
                 description = p.Description,
