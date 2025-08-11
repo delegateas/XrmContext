@@ -6,18 +6,18 @@ public partial class {{ unique_name }}Request : Microsoft.Xrm.Sdk.OrganizationRe
 {
 {{~ for param in request_parameters ~}}
     
-    {{ get_xml_doc_comment param.description }}
-    public {{ get_csharp_type param.type param.logical_entity_name }}{{ if param.is_optional }}?{{ end }} {{ param.name }}
+    {{ param.xml_doc_comment }}
+    public {{ param.csharp_type }}{{ if param.is_optional }}?{{ end }} {{ param.name }}
     {
         get
         {
             if (this.Parameters.Contains("{{ param.name }}"))
             {
-                return (({{ get_csharp_type param.type param.logical_entity_name }}{{ if param.is_optional }}?{{ end }})(this.Parameters["{{ param.name }}"]));
+                return (({{ param.csharp_type }}{{ if param.is_optional }}?{{ end }})(this.Parameters["{{ param.name }}"]));
             }
             else
             {
-                return default({{ get_csharp_type param.type param.logical_entity_name }}{{ if param.is_optional }}?{{ end }});
+                return default({{ param.csharp_type }}{{ if param.is_optional }}?{{ end }});
             }
         }
         set
@@ -32,7 +32,7 @@ public partial class {{ unique_name }}Request : Microsoft.Xrm.Sdk.OrganizationRe
         this.RequestName = "{{ unique_name }}";
 {{~ for param in request_parameters ~}}
 {{~ if !param.is_optional ~}}
-        this.{{ param.name }} = default({{ get_csharp_type param.type param.logical_entity_name }});
+        this.{{ param.name }} = default({{ param.csharp_type }});
 {{~ end ~}}
 {{~ end ~}}
     }

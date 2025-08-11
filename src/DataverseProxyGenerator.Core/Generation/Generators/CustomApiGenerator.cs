@@ -43,14 +43,32 @@ public class CustomApiGenerator : BaseFileGenerator, IFileGenerator<CustomApiMod
             is_function = customApi.IsFunction,
             version = context.Version,
             @namespace = context.Namespace,
-            request_parameters = customApi.RequestParameters,
-            response_properties = customApi.ResponseProperties,
-            get_csharp_type = new Func<CustomApiParameterType, string?, string>(GetCSharpType),
-            get_xml_doc_comment = new Func<string, string>(GetXmlDocComment),
+            request_parameters = customApi.RequestParameters.Select(p => new
+            {
+                name = p.Name,
+                unique_name = p.UniqueName,
+                display_name = p.DisplayName,
+                description = p.Description,
+                csharp_type = GetCSharpType(p.Type),
+                is_optional = p.IsOptional,
+                logical_entity_name = p.LogicalEntityName,
+                xml_doc_comment = GetXmlDocComment(p.Description),
+            }).ToList(),
+            response_properties = customApi.ResponseProperties.Select(p => new
+            {
+                name = p.Name,
+                unique_name = p.UniqueName,
+                display_name = p.DisplayName,
+                description = p.Description,
+                csharp_type = GetCSharpType(p.Type),
+                is_optional = p.IsOptional,
+                logical_entity_name = p.LogicalEntityName,
+                xml_doc_comment = GetXmlDocComment(p.Description),
+            }).ToList(),
         };
     }
 
-    private static string GetCSharpType(CustomApiParameterType type, string? logicalEntityName)
+    private static string GetCSharpType(CustomApiParameterType type)
     {
         return type switch
         {
@@ -76,6 +94,6 @@ public class CustomApiGenerator : BaseFileGenerator, IFileGenerator<CustomApiMod
         if (string.IsNullOrEmpty(description))
             return string.Empty;
 
-        return $"/// <summary>\n    /// {description}\n    /// </summary>";
+        return $"/// <summary>\n/// {description}\n/// </summary>";
     }
 }

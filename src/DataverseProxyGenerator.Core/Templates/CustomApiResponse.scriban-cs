@@ -10,23 +10,23 @@ public partial class {{ unique_name }}Response : Microsoft.Xrm.Sdk.OrganizationR
     }
     
 {{~ for prop in response_properties ~}}
-    {{ get_xml_doc_comment prop.description }}
-    public {{ get_csharp_type prop.type prop.logical_entity_name }} {{ prop.name }}
+    {{ prop.xml_doc_comment }}
+    public {{ prop.csharp_type }} {{ prop.name }}
     {
         get
         {
             if (this.Results.Contains("{{ prop.name }}"))
             {
-                return (({{ get_csharp_type prop.type prop.logical_entity_name }})(this.Results["{{ prop.name }}"]));
+                return (({{ prop.csharp_type }})(this.Results["{{ prop.name }}"]));
             }
             else
             {
-                return default({{ get_csharp_type prop.type prop.logical_entity_name }});
+                return default({{ prop.csharp_type }});
             }
         }
         set
         {
-            this.Parameters["{{ prop.name }}"] = value;
+            this.Results["{{ prop.name }}"] = value;
         }
     }
 {{~ end ~}}
