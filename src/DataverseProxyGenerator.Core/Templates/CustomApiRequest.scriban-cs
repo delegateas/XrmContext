@@ -1,0 +1,40 @@
+#pragma warning disable CS1591
+[System.Runtime.Serialization.DataContractAttribute(Namespace="http://schemas.microsoft.com/xrm/2011/new/")]
+[Microsoft.Xrm.Sdk.Client.RequestProxyAttribute("{{ unique_name }}")]
+[System.CodeDom.Compiler.GeneratedCodeAttribute("DataverseProxyGenerator", "{{ version }}")]
+public partial class {{ unique_name }}Request : Microsoft.Xrm.Sdk.OrganizationRequest
+{
+{{~ for param in request_parameters ~}}
+    
+    {{ get_xml_doc_comment param.description }}
+    public {{ get_csharp_type param.type param.logical_entity_name }}{{ if param.is_optional }}?{{ end }} {{ param.name }}
+    {
+        get
+        {
+            if (this.Parameters.Contains("{{ param.name }}"))
+            {
+                return (({{ get_csharp_type param.type param.logical_entity_name }}{{ if param.is_optional }}?{{ end }})(this.Parameters["{{ param.name }}"]));
+            }
+            else
+            {
+                return default({{ get_csharp_type param.type param.logical_entity_name }}{{ if param.is_optional }}?{{ end }});
+            }
+        }
+        set
+        {
+            this.Parameters["{{ param.name }}"] = value;
+        }
+    }
+{{~ end ~}}
+    
+    public {{ unique_name }}Request()
+    {
+        this.RequestName = "{{ unique_name }}";
+{{~ for param in request_parameters ~}}
+{{~ if !param.is_optional ~}}
+        this.{{ param.name }} = default({{ get_csharp_type param.type param.logical_entity_name }});
+{{~ end ~}}
+{{~ end ~}}
+    }
+}
+#pragma warning restore CS1591

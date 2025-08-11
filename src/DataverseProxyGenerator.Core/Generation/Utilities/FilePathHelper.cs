@@ -56,4 +56,9 @@ public static class FilePathHelper
 
         return Path.Combine(folder, $"{fileName}.cs");
     }
+
+    /// <summary>
+    /// Gets the output path for custom API files.
+    /// </summary>
+    public static string CustomApiPath => "customapis";
 }

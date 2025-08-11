@@ -1,6 +1,7 @@
 using DataverseProxyGenerator.Core.Domain;
 using Microsoft.PowerPlatform.Dataverse.Client;
 using Microsoft.Xrm.Sdk.Metadata;
+using Microsoft.Xrm.Sdk.Query;
 
 namespace DataverseProxyGenerator.Core.Metadata;
 
@@ -548,5 +549,168 @@ public class DataverseMetadataFetcher : IDataverseMetadataFetcher
                 RelatedEntitySchemaName = logicalNameToMetadata.TryGetValue(rel.Entity1LogicalName, out var relatedMetadata1) ? relatedMetadata1.SchemaName : "Entity",
             });
         }
+    }
+
+    public async Task<IEnumerable<CustomApiModel>> FetchCustomApisAsync()
+    {
+        var customApis = new List<CustomApiModel>();
+
+        // Fetch custom APIs from solutions
+        foreach (var solutionUniqueName in config.Solutions)
+        {
+            var solutionId = GetSolutionId(solutionUniqueName);
+            if (solutionId == Guid.Empty)
+                continue;
+
+            var customApiIds = await GetCustomApiIdsFromSolutionAsync(solutionId);
+            using var semaphore = new SemaphoreSlim(MaxParallelism);
+            var customApiTasks = customApiIds.Select(async customApiId =>
+            {
+                await semaphore.WaitAsync();
+                try
+                {
+                    return await GetCustomApiFromIdAsync(customApiId);
+                }
+                finally
+                {
+                    semaphore.Release();
+                }
+            });
+
+            var results = await Task.WhenAll(customApiTasks);
+            customApis.AddRange(results.Where(api => api != null)!);
+        }
+
+        return customApis;
+    }
+
+    private async Task<List<Guid>> GetCustomApiIdsFromSolutionAsync(Guid solutionId)
+    {
+        var componentQuery = new QueryExpression("solutioncomponent")
+        {
+            ColumnSet = new ColumnSet("objectid"),
+            Criteria = new FilterExpression
+            {
+                Conditions =
+                {
+                    new ConditionExpression("solutionid", ConditionOperator.Equal, solutionId),
+                    new ConditionExpression("componenttype", ConditionOperator.Equal, 10085), // Custom API component type
+                },
+            },
+        };
+        var result = await serviceClient.RetrieveMultipleAsync(componentQuery);
+        return result.Entities
+            .Where(c => c.Contains("objectid") && c["objectid"] is Guid)
+            .Select(c => (Guid)c["objectid"])
+            .ToList();
+    }
+
+    private async Task<CustomApiModel?> GetCustomApiFromIdAsync(Guid customApiId)
+    {
+        try
+        {
+            // Fetch the custom API
+            var customApiQuery = new QueryExpression("customapi")
+            {
+                ColumnSet = new ColumnSet("uniquename", "displayname", "description", "isfunction"),
+                Criteria = new FilterExpression
+                {
+                    Conditions =
+                    {
+                        new ConditionExpression("customapiid", ConditionOperator.Equal, customApiId),
+                    },
+                },
+            };
+
+            var customApiResult = await serviceClient.RetrieveMultipleAsync(customApiQuery);
+            var customApiEntity = customApiResult.Entities.FirstOrDefault();
+            if (customApiEntity == null)
+                return null;
+
+            var customApi = new CustomApiModel
+            {
+                UniqueName = customApiEntity.GetAttributeValue<string>("uniquename") ?? string.Empty,
+                DisplayName = customApiEntity.GetAttributeValue<string>("displayname") ?? string.Empty,
+                Description = customApiEntity.GetAttributeValue<string>("description") ?? string.Empty,
+                IsFunction = customApiEntity.GetAttributeValue<bool>("isfunction"),
+            };
+
+            var requestParameters = await FetchCustomApiRequestParametersAsync(customApiId);
+            var responseProperties = await FetchCustomApiResponsePropertiesAsync(customApiId);
+
+            return customApi with
+            {
+                RequestParameters = requestParameters,
+                ResponseProperties = responseProperties,
+            };
+        }
+        catch (InvalidOperationException)
+        {
+            // Log or handle the exception as needed
+            return null;
+        }
+        catch (ArgumentException)
+        {
+            // Log or handle the exception as needed
+            return null;
+        }
+    }
+
+    private async Task<IList<CustomApiParameterModel>> FetchCustomApiRequestParametersAsync(Guid customApiId)
+    {
+        var requestParametersQuery = new QueryExpression("customapirequestparameter")
+        {
+            ColumnSet = new ColumnSet("name", "uniquename", "displayname", "description", "type", "isoptional", "logicalentityname"),
+            Criteria = new FilterExpression
+            {
+                Conditions =
+                {
+                    new ConditionExpression("customapiid", ConditionOperator.Equal, customApiId),
+                },
+            },
+        };
+
+        var requestParametersResult = await serviceClient.RetrieveMultipleAsync(requestParametersQuery);
+        return requestParametersResult.Entities
+            .Select(param => new CustomApiParameterModel
+            {
+                Name = param.GetAttributeValue<string>("name") ?? string.Empty,
+                UniqueName = param.GetAttributeValue<string>("uniquename") ?? string.Empty,
+                DisplayName = param.GetAttributeValue<string>("displayname") ?? string.Empty,
+                Description = param.GetAttributeValue<string>("description") ?? string.Empty,
+                Type = (CustomApiParameterType)param.GetAttributeValue<int>("type"),
+                IsOptional = param.GetAttributeValue<bool>("isoptional"),
+                LogicalEntityName = param.GetAttributeValue<string>("logicalentityname"),
+            })
+            .ToList();
+    }
+
+    private async Task<IList<CustomApiParameterModel>> FetchCustomApiResponsePropertiesAsync(Guid customApiId)
+    {
+        var responsePropertiesQuery = new QueryExpression("customapiresponseproperty")
+        {
+            ColumnSet = new ColumnSet("name", "uniquename", "displayname", "description", "type", "logicalentityname"),
+            Criteria = new FilterExpression
+            {
+                Conditions =
+                {
+                    new ConditionExpression("customapiid", ConditionOperator.Equal, customApiId),
+                },
+            },
+        };
+
+        var responsePropertiesResult = await serviceClient.RetrieveMultipleAsync(responsePropertiesQuery);
+        return responsePropertiesResult.Entities
+            .Select(prop => new CustomApiParameterModel
+            {
+                Name = prop.GetAttributeValue<string>("name") ?? string.Empty,
+                UniqueName = prop.GetAttributeValue<string>("uniquename") ?? string.Empty,
+                DisplayName = prop.GetAttributeValue<string>("displayname") ?? string.Empty,
+                Description = prop.GetAttributeValue<string>("description") ?? string.Empty,
+                Type = (CustomApiParameterType)prop.GetAttributeValue<int>("type"),
+                IsOptional = false, // Response properties are always required
+                LogicalEntityName = prop.GetAttributeValue<string>("logicalentityname"),
+            })
+            .ToList();
     }
 }

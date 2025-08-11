@@ -1,4 +1,7 @@
 using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk.Client;
+
+[assembly: ProxyTypesAssembly]
 
 namespace {{ namespace }};
 
@@ -33,7 +36,7 @@ public class ExtendedEntity : Entity
 
     protected void SetId(string primaryIdAttribute, Guid? id)
     {
-        this.Id = id.GetValueOrDefault();
+        base.Id = id.GetValueOrDefault();
         this.SetAttributeValue(primaryIdAttribute, id);
     }
 
@@ -66,7 +69,7 @@ public class ExtendedEntity : Entity
 
     protected decimal? GetMoneyValue(string attributeName)
     {
-        var money = this.GetAttributeValue<Money>(attributeName);
+        var money = this.GetAttributeValue<Money?>(attributeName);
         if (money != null)
         {
             return money.Value;
@@ -121,7 +124,7 @@ public class ExtendedEntity : Entity
     protected T? GetOptionSetValue<T>(string attributeName)
         where T : struct, IComparable, IConvertible, IFormattable
     {
-        var optionSet = this.GetAttributeValue<OptionSetValue>(attributeName);
+        var optionSet = this.GetAttributeValue<OptionSetValue?>(attributeName);
         if (optionSet != null)
         {
             return (T)Enum.ToObject(typeof(T), optionSet.Value);

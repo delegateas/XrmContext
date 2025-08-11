@@ -44,7 +44,7 @@ public partial class TestEntity : ExtendedEntity
     [Range(0, 0)]
     public int? Age
     {
-        get => GetAttributeValue<int>("age");
+        get => GetAttributeValue<int?>("age");
         set => SetAttributeValue("age", value);
     }
 
@@ -55,7 +55,7 @@ public partial class TestEntity : ExtendedEntity
     [DisplayName("Amount")]
     public decimal? Amount
     {
-        get => GetAttributeValue<decimal>("amount");
+        get => GetAttributeValue<decimal?>("amount");
         set => SetAttributeValue("amount", value);
     }
 
@@ -66,7 +66,7 @@ public partial class TestEntity : ExtendedEntity
     [DisplayName("Contact")]
     public EntityReference? ContactId
     {
-        get => GetAttributeValue<EntityReference>("contactid");
+        get => GetAttributeValue<EntityReference?>("contactid");
         set => SetAttributeValue("contactid", value);
     }
 
@@ -77,7 +77,7 @@ public partial class TestEntity : ExtendedEntity
     [DisplayName("Created On")]
     public DateTime? CreatedOn
     {
-        get => GetAttributeValue<DateTime>("createdon");
+        get => GetAttributeValue<DateTime?>("createdon");
         set => SetAttributeValue("createdon", value);
     }
 
@@ -110,7 +110,7 @@ public partial class TestEntity : ExtendedEntity
     [DisplayName("Is Active")]
     public bool? IsActive
     {
-        get => GetAttributeValue<bool>("isactive");
+        get => GetAttributeValue<bool?>("isactive");
         set => SetAttributeValue("isactive", value);
     }
 
@@ -122,7 +122,7 @@ public partial class TestEntity : ExtendedEntity
     [MaxLength()]
     public string? Name
     {
-        get => GetAttributeValue<string>("name");
+        get => GetAttributeValue<string?>("name");
         set => SetAttributeValue("name", value);
     }
 
@@ -134,7 +134,7 @@ public partial class TestEntity : ExtendedEntity
     [MaxLength()]
     public string? Notes
     {
-        get => GetAttributeValue<string>("notes");
+        get => GetAttributeValue<string?>("notes");
         set => SetAttributeValue("notes", value);
     }
 
@@ -147,7 +147,7 @@ public partial class TestEntity : ExtendedEntity
     [MaxLength()]
     public string? ObsoleteAttribute
     {
-        get => GetAttributeValue<string>("obsoleteattribute");
+        get => GetAttributeValue<string?>("obsoleteattribute");
         set => SetAttributeValue("obsoleteattribute", value);
     }
 
@@ -170,7 +170,7 @@ public partial class TestEntity : ExtendedEntity
     [MaxLength()]
     public string? prefix_pascalCaseTest_withName
     {
-        get => GetAttributeValue<string>("prefix_pascalcasetest_withname");
+        get => GetAttributeValue<string?>("prefix_pascalcasetest_withname");
         set => SetAttributeValue("prefix_pascalcasetest_withname", value);
     }
 
@@ -192,7 +192,7 @@ public partial class TestEntity : ExtendedEntity
     [DisplayName("Ratio")]
     public double? Ratio
     {
-        get => GetAttributeValue<double>("ratio");
+        get => GetAttributeValue<double?>("ratio");
         set => SetAttributeValue("ratio", value);
     }
 
@@ -215,7 +215,7 @@ public partial class TestEntity : ExtendedEntity
     [Range(0, 0)]
     public int? Score
     {
-        get => GetAttributeValue<int>("score");
+        get => GetAttributeValue<int?>("score");
         set => SetAttributeValue("score", value);
     }
 

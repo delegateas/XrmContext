@@ -58,44 +58,44 @@ public partial class {{table.SchemaName}} : ExtendedEntity{{ if table.Interfaces
     [MaxLength({{ column.MaxLength }})]
     public string? {{column.SchemaName}}
     {
-        get => GetAttributeValue<string>("{{column.LogicalName}}");
+        get => GetAttributeValue<string?>("{{column.LogicalName}}");
         set => SetAttributeValue("{{column.LogicalName}}", value);
     }
     {{~ else if column.TypeName == "IntegerColumnModel" ~}}
     [Range({{ column.Min }}, {{ column.Max }})]
     public int? {{column.SchemaName}}
     {
-        get => GetAttributeValue<int>("{{column.LogicalName}}");
+        get => GetAttributeValue<int?>("{{column.LogicalName}}");
         set => SetAttributeValue("{{column.LogicalName}}", value);
     }
     {{~ else if column.TypeName == "BigIntColumnModel" ~}}
     public long? {{column.SchemaName}}
     {
-        get => GetAttributeValue<long>("{{column.LogicalName}}");
+        get => GetAttributeValue<long?>("{{column.LogicalName}}");
         set => SetAttributeValue("{{column.LogicalName}}", value);
     }
     {{~ else if column.TypeName == "BooleanColumnModel" ~}}
     public bool? {{column.SchemaName}}
     {
-        get => GetAttributeValue<bool>("{{column.LogicalName}}");
+        get => GetAttributeValue<bool?>("{{column.LogicalName}}");
         set => SetAttributeValue("{{column.LogicalName}}", value);
     }
     {{~ else if column.TypeName == "DateTimeColumnModel" ~}}
     public DateTime? {{column.SchemaName}}
     {
-        get => GetAttributeValue<DateTime>("{{column.LogicalName}}");
+        get => GetAttributeValue<DateTime?>("{{column.LogicalName}}");
         set => SetAttributeValue("{{column.LogicalName}}", value);
     }
     {{~ else if column.TypeName == "DecimalColumnModel" ~}}
     public decimal? {{column.SchemaName}}
     {
-        get => GetAttributeValue<decimal>("{{column.LogicalName}}");
+        get => GetAttributeValue<decimal?>("{{column.LogicalName}}");
         set => SetAttributeValue("{{column.LogicalName}}", value);
     }
     {{~ else if column.TypeName == "DoubleColumnModel" ~}}
     public double? {{column.SchemaName}}
     {
-        get => GetAttributeValue<double>("{{column.LogicalName}}");
+        get => GetAttributeValue<double?>("{{column.LogicalName}}");
         set => SetAttributeValue("{{column.LogicalName}}", value);
     }
     {{~ else if column.TypeName == "MoneyColumnModel" ~}}
@@ -121,7 +121,7 @@ public partial class {{table.SchemaName}} : ExtendedEntity{{ if table.Interfaces
     {{~ else if column.TypeName == "LookupColumnModel" ~}}
     public EntityReference? {{column.SchemaName}}
     {
-        get => GetAttributeValue<EntityReference>("{{column.LogicalName}}");
+        get => GetAttributeValue<EntityReference?>("{{column.LogicalName}}");
         set => SetAttributeValue("{{column.LogicalName}}", value);
     }
     {{~ else if column.TypeName == "PartyListColumnModel" ~}}

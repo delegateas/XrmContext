@@ -27,6 +27,7 @@ public static class SimpleXrmContextConfigBuilder
                 configSection.GetValue<string>("OutputDirectory") ?? string.Empty,
                 configSection.GetValue<string>("NamespaceSetting") ?? "DataverseContext",
                 configSection.GetValue<string>("ServiceContextName") ?? "Xrm",
-                configSection.GetSection("IntersectMapping").Get<IReadOnlyDictionary<string, IReadOnlyList<string>>>() ?? new Dictionary<string, IReadOnlyList<string>>(StringComparer.InvariantCulture)));
+                configSection.GetSection("IntersectMapping").Get<IReadOnlyDictionary<string, IReadOnlyList<string>>>() ?? new Dictionary<string, IReadOnlyList<string>>(StringComparer.InvariantCulture),
+                configSection.GetValue<bool>("GenerateCustomApis", true)));
     }
 }

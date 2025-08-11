@@ -12,6 +12,7 @@ public class CSharpProxyGenerator : ICodeGenerator
     private readonly IntersectionInterfaceGenerator intersectionInterfaceGenerator;
     private readonly XrmContextGenerator xrmContextGenerator;
     private readonly HelperFileGenerator helperFileGenerator;
+    private readonly CustomApiGenerator customApiGenerator;
 
     // Helper struct for fast column comparison
     private readonly record struct ColumnSignature(string SchemaName, string TypeName);
@@ -24,6 +25,7 @@ public class CSharpProxyGenerator : ICodeGenerator
         intersectionInterfaceGenerator = new IntersectionInterfaceGenerator();
         xrmContextGenerator = new XrmContextGenerator();
         helperFileGenerator = new HelperFileGenerator();
+        customApiGenerator = new CustomApiGenerator();
     }
 
     private static string GetAssemblyVersion()
@@ -167,5 +169,31 @@ public class CSharpProxyGenerator : ICodeGenerator
         }
 
         return (interfaceColumns, tableToInterfaces);
+    }
+
+    public IEnumerable<GeneratedFile> GenerateCustomApiCode(IEnumerable<CustomApiModel> customApis, XrmGenerationConfig config)
+    {
+        ArgumentNullException.ThrowIfNull(customApis);
+        ArgumentNullException.ThrowIfNull(config);
+
+        var files = new List<GeneratedFile>();
+        var version = GetAssemblyVersion();
+
+        var context = new GenerationContext
+        {
+            Namespace = config.NamespaceSetting ?? "DataverseContext",
+            Version = version,
+            Templates = templateProvider,
+            ServiceContextName = config.ServiceContextName,
+            IntersectMapping = config.IntersectMapping,
+        };
+
+        // Generate custom API request/response classes
+        foreach (var customApi in customApis)
+        {
+            files.AddRange(customApiGenerator.Generate(customApi, context));
+        }
+
+        return files;
     }
 }
