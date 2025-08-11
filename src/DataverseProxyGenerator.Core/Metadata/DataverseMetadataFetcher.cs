@@ -1,5 +1,6 @@
 using DataverseProxyGenerator.Core.Domain;
 using Microsoft.PowerPlatform.Dataverse.Client;
+using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Metadata;
 using Microsoft.Xrm.Sdk.Query;
 
@@ -594,7 +595,7 @@ public class DataverseMetadataFetcher : IDataverseMetadataFetcher
                 Conditions =
                 {
                     new ConditionExpression("solutionid", ConditionOperator.Equal, solutionId),
-                    new ConditionExpression("componenttype", ConditionOperator.Equal, 10085), // Custom API component type
+                    new ConditionExpression("componenttype", ConditionOperator.Equal, 10026), // Custom API component type
                 },
             },
         };
@@ -678,7 +679,7 @@ public class DataverseMetadataFetcher : IDataverseMetadataFetcher
                 UniqueName = param.GetAttributeValue<string>("uniquename") ?? string.Empty,
                 DisplayName = param.GetAttributeValue<string>("displayname") ?? string.Empty,
                 Description = param.GetAttributeValue<string>("description") ?? string.Empty,
-                Type = (CustomApiParameterType)param.GetAttributeValue<int>("type"),
+                Type = (CustomApiParameterType)param.GetAttributeValue<OptionSetValue>("type").Value,
                 IsOptional = param.GetAttributeValue<bool>("isoptional"),
                 LogicalEntityName = param.GetAttributeValue<string>("logicalentityname"),
             })
@@ -707,7 +708,7 @@ public class DataverseMetadataFetcher : IDataverseMetadataFetcher
                 UniqueName = prop.GetAttributeValue<string>("uniquename") ?? string.Empty,
                 DisplayName = prop.GetAttributeValue<string>("displayname") ?? string.Empty,
                 Description = prop.GetAttributeValue<string>("description") ?? string.Empty,
-                Type = (CustomApiParameterType)prop.GetAttributeValue<int>("type"),
+                Type = (CustomApiParameterType)prop.GetAttributeValue<OptionSetValue>("type").Value,
                 IsOptional = false, // Response properties are always required
                 LogicalEntityName = prop.GetAttributeValue<string>("logicalentityname"),
             })
