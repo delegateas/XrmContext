@@ -1,4 +1,5 @@
 using DataverseProxyGenerator.Core.Generation.Common;
+using DataverseProxyGenerator.Core.Generation.Mappers;
 using DataverseProxyGenerator.Core.Generation.Utilities;
 
 namespace DataverseProxyGenerator.Core.Generation.Generators;
@@ -16,15 +17,9 @@ public class HelperFileGenerator : BaseFileGenerator, IFileGenerator<string>
     {
         ValidateContext(context);
 
+        var templateModel = HelperFileMapper.MapToTemplateModel(templateName, context);
         var template = context.Templates.GetTemplate($"{templateName}.scriban-cs");
-
-        var result = template.Render(
-            new
-            {
-                @namespace = context.Namespace,
-                version = context.Version,
-            },
-            member => member.Name);
+        var result = template.Render(templateModel, member => member.Name);
 
         yield return new GeneratedFile(FilePathHelper.GetHelperFilePath(templateName), result);
     }

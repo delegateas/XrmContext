@@ -1,5 +1,6 @@
 using DataverseProxyGenerator.Core.Domain;
 using DataverseProxyGenerator.Core.Generation.Common;
+using DataverseProxyGenerator.Core.Generation.Mappers;
 using DataverseProxyGenerator.Core.Generation.Utilities;
 
 namespace DataverseProxyGenerator.Core.Generation.Generators;
@@ -17,27 +18,11 @@ public class EnumGenerator : BaseFileGenerator, IFileGenerator<EnumColumnModel>
     {
         ValidateContext(context);
 
+        var templateModel = EnumMapper.MapToTemplateModel(input, context);
         var template = context.Templates.GetTemplate("EnumOptionset.scriban-cs");
-        var sanitizedOptionSetName = SanitizeName(input.OptionsetName, "UnknownOptionSet");
+        var enumResult = template.Render(templateModel, member => member.Name);
 
-        var enumResult = template.Render(
-            new
-            {
-                optionsetName = sanitizedOptionSetName,
-                optionsetValues = input.OptionsetValues.Select(kvp => new
-                {
-                    Value = kvp.Key,
-                    Name = NameSanitizer.SanitizeEnumOptionName(kvp.Value, kvp.Key),
-                    Localizations =
-                        input.OptionLocalizations != null &&
-                        input.OptionLocalizations.TryGetValue(kvp.Key, out var value)
-                        ? value : new Dictionary<int, string>(),
-                }),
-                @namespace = context.Namespace,
-                version = context.Version,
-            },
-            member => member.Name);
-
+        var sanitizedOptionSetName = DataverseProxyGenerator.Core.Generation.Utilities.GenerationUtilities.SanitizeName(input.OptionsetName, "UnknownOptionSet");
         yield return new GeneratedFile(FilePathHelper.GetOptionSetFilePath(sanitizedOptionSetName), enumResult);
     }
 }

@@ -1,5 +1,6 @@
 using DataverseProxyGenerator.Core.Domain;
 using DataverseProxyGenerator.Core.Generation.Common;
+using DataverseProxyGenerator.Core.Generation.Mappers;
 using DataverseProxyGenerator.Core.Generation.Utilities;
 
 namespace DataverseProxyGenerator.Core.Generation.Generators;
@@ -17,17 +18,9 @@ public class XrmContextGenerator : BaseFileGenerator, IFileGenerator<IEnumerable
     {
         ValidateContext(context);
 
+        var templateModel = XrmContextMapper.MapToTemplateModel(input, context);
         var template = context.Templates.GetTemplate("XrmClass.scriban-cs");
-
-        var xrmClassResult = template.Render(
-            new
-            {
-                tables = input,
-                @namespace = context.Namespace,
-                serviceContextName = context.ServiceContextName ?? "Xrm",
-                version = context.Version,
-            },
-            member => member.Name);
+        var xrmClassResult = template.Render(templateModel, member => member.Name);
 
         yield return new GeneratedFile(FilePathHelper.GetXrmContextFilePath(), xrmClassResult);
     }

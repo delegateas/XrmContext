@@ -12,7 +12,8 @@ public static class CommandLineParser
         string ServiceContextName,
         string DeprecatedPrefix,
         IReadOnlyDictionary<string, IReadOnlyList<string>> IntersectMapping,
-        IReadOnlyDictionary<string, string> LabelMapping)
+        IReadOnlyDictionary<string, string> LabelMapping,
+        bool SingleFile)
 #pragma warning disable MA0051 // Method is too long
         Parse(string[] args)
 #pragma warning restore MA0051 // Method is too long
@@ -97,6 +98,10 @@ public static class CommandLineParser
             Arity = ArgumentArity.ZeroOrMore,
         };
 
+        var singleFileOption = new Option<bool>(
+            aliases: ["--singlefile"],
+            description: "If set, all output will be written to a single file named XrmContext.cs");
+
         var rootCommand = new RootCommand("Dataverse Proxy Generator CLI")
         {
             outputDirectoryOption,
@@ -107,6 +112,7 @@ public static class CommandLineParser
             deprecatedPrefixOption,
             intersectOption,
             labelMappingsOption,
+            singleFileOption,
         };
 
         var parsedResult = rootCommand.Parse(args);
@@ -119,7 +125,8 @@ public static class CommandLineParser
             parsedResult.GetValueForOption(serviceContextNameOption) ?? string.Empty,
             parsedResult.GetValueForOption(deprecatedPrefixOption) ?? string.Empty,
             (parsedResult.GetValueForOption(intersectOption) ?? []).AsReadOnly(),
-            (parsedResult.GetValueForOption(labelMappingsOption) ?? []).AsReadOnly()
+            (parsedResult.GetValueForOption(labelMappingsOption) ?? []).AsReadOnly(),
+            parsedResult.GetValueForOption(singleFileOption)
         );
     }
 

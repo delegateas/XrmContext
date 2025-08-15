@@ -38,22 +38,125 @@ public class CSharpProxyGenerator : ICodeGenerator
         ArgumentNullException.ThrowIfNull(tables);
         ArgumentNullException.ThrowIfNull(config);
 
-        var files = new List<GeneratedFile>();
-        var version = GetAssemblyVersion();
+        var context = CreateGenerationContext(config);
+        var tablesList = tables.ToList();
+        var (interfaceColumns, tableToInterfaces) = PrepareIntersectionData(tablesList, config);
 
-        var context = new GenerationContext
+        if (config.SingleFile)
+        {
+            return GenerateSingleFile(tablesList, interfaceColumns, tableToInterfaces, context);
+        }
+
+        return GenerateMultipleFiles(tablesList, interfaceColumns, tableToInterfaces, context);
+    }
+
+    private GenerationContext CreateGenerationContext(XrmGenerationConfig config)
+    {
+        return new GenerationContext
         {
             Namespace = config.NamespaceSetting ?? "DataverseContext",
-            Version = version,
+            Version = GetAssemblyVersion(),
             Templates = templateProvider,
             ServiceContextName = config.ServiceContextName,
             IntersectMapping = config.IntersectMapping,
         };
+    }
 
-        var tablesList = tables.ToList();
+    private static (Dictionary<string, HashSet<ColumnSignature>> InterfaceColumns, Dictionary<string, List<string>> TableToInterfaces)
+        PrepareIntersectionData(List<TableModel> tablesList, XrmGenerationConfig config)
+    {
         var tableDict = tablesList.ToDictionary(t => t.LogicalName, t => t, StringComparer.InvariantCulture);
         var tableColumns = BuildTableColumns(tablesList);
-        var (interfaceColumns, tableToInterfaces) = BuildIntersectionData(config.IntersectMapping, tableDict, tableColumns);
+        return BuildIntersectionData(config.IntersectMapping, tableDict, tableColumns);
+    }
+
+    private IEnumerable<GeneratedFile> GenerateSingleFile(
+        List<TableModel> tablesList,
+        Dictionary<string, HashSet<ColumnSignature>> interfaceColumns,
+        Dictionary<string, List<string>> tableToInterfaces,
+        GenerationContext context)
+    {
+        var templateModel = CreateSingleFileTemplateModel(tablesList, interfaceColumns, tableToInterfaces, context);
+
+        var templateName = "SingleFile.scriban-cs";
+        var template = context.Templates.GetTemplate(templateName);
+        var content = template.Render(templateModel, member => member.Name);
+
+        yield return new GeneratedFile($"{context.ServiceContextName}.cs", content);
+    }
+
+    private static object CreateSingleFileTemplateModel(
+        List<TableModel> tablesList,
+        Dictionary<string, HashSet<ColumnSignature>> interfaceColumns,
+        Dictionary<string, List<string>> tableToInterfaces,
+        GenerationContext context)
+    {
+        var globalOptionsets = GetGlobalOptionsets(tablesList).ToList();
+        var interfaces = CreateInterfaceModels(interfaceColumns, tablesList);
+
+        // Add interface lists to tables (without modifying TableModel structure)
+        var tablesWithInterfaces = tablesList.Select(table =>
+        {
+            var tableInterfaces = tableToInterfaces.TryGetValue(table.LogicalName, out var ifaces) ? ifaces : new List<string>();
+            return new
+            {
+                table,
+                InterfacesList = tableInterfaces,
+            };
+        }).ToList();
+
+        // Prepare the template model with correct property names
+        return new
+        {
+            @namespace = context.Namespace,
+            version = context.Version,
+            serviceContextName = context.ServiceContextName,
+            tables = tablesWithInterfaces.Select(t => new
+            {
+                t.table.SchemaName,
+                t.table.LogicalName,
+                t.table.DisplayName,
+                t.table.EntityTypeCode,
+                t.table.PrimaryNameAttribute,
+                t.table.PrimaryIdAttribute,
+                t.table.IsIntersect,
+                t.table.Columns,
+                t.table.Relationships,
+                InterfacesList = t.InterfacesList,
+            }).ToList(),
+            optionsets = globalOptionsets,
+            interfaces = interfaces,
+        };
+    }
+
+    private static List<object> CreateInterfaceModels(
+        Dictionary<string, HashSet<ColumnSignature>> interfaceColumns,
+        List<TableModel> tablesList)
+    {
+        return interfaceColumns.Select(kvp => new
+        {
+            Name = kvp.Key,
+            Columns = kvp.Value.Select(sig => FindMatchingColumn(sig, tablesList))
+                .Where(c => c != null)
+                .ToList(),
+        }).ToList<object>();
+    }
+
+    private static ColumnModel? FindMatchingColumn(ColumnSignature sig, List<TableModel> tablesList)
+    {
+        return tablesList.SelectMany(t => t.Columns)
+            .FirstOrDefault(c => c.SchemaName == sig.SchemaName &&
+                (c.TypeName == sig.TypeName ||
+                 (c is EnumColumnModel enumCol && sig.TypeName == $"EnumColumnModel:{enumCol.OptionsetName}")));
+    }
+
+    private IEnumerable<GeneratedFile> GenerateMultipleFiles(
+        List<TableModel> tablesList,
+        Dictionary<string, HashSet<ColumnSignature>> interfaceColumns,
+        Dictionary<string, List<string>> tableToInterfaces,
+        GenerationContext context)
+    {
+        var files = new List<GeneratedFile>();
 
         // Generate intersection interfaces
         foreach (var kvp in interfaceColumns)
@@ -77,8 +180,8 @@ public class CSharpProxyGenerator : ICodeGenerator
         }
 
         // Generate enums
-        var globalOptionsets = GetGlobalOptionsets(tablesList);
-        foreach (var optionset in globalOptionsets)
+        var globalOptionsetsMulti = GetGlobalOptionsets(tablesList);
+        foreach (var optionset in globalOptionsetsMulti)
         {
             files.AddRange(enumGenerator.Generate(optionset, context));
         }
@@ -92,7 +195,8 @@ public class CSharpProxyGenerator : ICodeGenerator
         files.AddRange(helperFileGenerator.Generate("TableAttributeHelpers", context));
         files.AddRange(helperFileGenerator.Generate("ExtendedEntity", context));
 
-        return files;
+        foreach (var file in files)
+            yield return file;
     }
 
     private static IEnumerable<EnumColumnModel> GetGlobalOptionsets(IEnumerable<TableModel> tables)
