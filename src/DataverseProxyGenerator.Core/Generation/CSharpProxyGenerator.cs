@@ -1,5 +1,6 @@
 using DataverseProxyGenerator.Core.Domain;
 using DataverseProxyGenerator.Core.Generation.Generators;
+using DataverseProxyGenerator.Core.Generation.Mappers;
 using DataverseProxyGenerator.Core.Templates;
 
 namespace DataverseProxyGenerator.Core.Generation;
@@ -72,7 +73,7 @@ public class CSharpProxyGenerator : ICodeGenerator
         return BuildIntersectionData(config.IntersectMapping, tableDict, tableColumns);
     }
 
-    private IEnumerable<GeneratedFile> GenerateSingleFile(
+    private static IEnumerable<GeneratedFile> GenerateSingleFile(
         List<TableModel> tablesList,
         Dictionary<string, HashSet<ColumnSignature>> interfaceColumns,
         Dictionary<string, List<string>> tableToInterfaces,
@@ -93,7 +94,9 @@ public class CSharpProxyGenerator : ICodeGenerator
         Dictionary<string, List<string>> tableToInterfaces,
         GenerationContext context)
     {
-        var globalOptionsets = GetGlobalOptionsets(tablesList).ToList();
+        var globalOptionsets = GetGlobalOptionsets(tablesList)
+            .Select(enumCol => EnumMapper.MapToTemplateModel(enumCol, context))
+            .ToList();
         var interfaces = CreateInterfaceModels(interfaceColumns, tablesList);
 
         // Add interface lists to tables (without modifying TableModel structure)
@@ -140,6 +143,14 @@ public class CSharpProxyGenerator : ICodeGenerator
             Name = kvp.Key,
             Columns = kvp.Value.Select(sig => FindMatchingColumn(sig, tablesList))
                 .Where(c => c != null)
+                .Select(col => new
+                {
+                    SchemaName = Utilities.GenerationUtilities.SanitizeName(col!.SchemaName),
+                    col!.LogicalName,
+                    col.DisplayName,
+                    col.Description,
+                    TypeSignature = Utilities.GenerationUtilities.GetTypeSignature(col),
+                })
                 .ToList(),
         }).ToList<object>();
     }

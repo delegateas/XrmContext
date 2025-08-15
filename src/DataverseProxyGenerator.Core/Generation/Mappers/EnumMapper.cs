@@ -10,7 +10,7 @@ public static class EnumMapper
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(input);
 
-        var sanitizedOptionSetName = DataverseProxyGenerator.Core.Generation.Utilities.GenerationUtilities.SanitizeName(input.OptionsetName, "UnknownOptionSet");
+        var sanitizedOptionSetName = GenerationUtilities.SanitizeName(input.OptionsetName, "UnknownOptionSet");
 
         // Generate unique enum member names to handle duplicate labels using groupBy approach
         var sanitizedOptions = input.OptionsetValues

@@ -35,6 +35,7 @@ public static class FilePathHelper
     /// <summary>
     /// Gets the output path for the Xrm context class file.
     /// </summary>
+    /// <param name="sanitizedName">The sanitized name for the context file.</param>
     /// <returns>The relative file path.</returns>
     public static string GetXrmContextFilePath(string sanitizedName)
     {

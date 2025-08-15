@@ -216,19 +216,22 @@ public interface {{interface.Name}}
 [System.CodeDom.Compiler.GeneratedCode("DataverseProxyGenerator", "{{version}}")]
 [DataContract]
 #pragma warning disable CS8981
-public enum {{optionsetName}}
+public enum {{optionset.optionsetName}}
 #pragma warning restore CS8981
 {
-    {{~ for pair in optionset.Values | array.sort "Value" ~}}
+    {{~ for pair in optionset.optionsetValues | array.sort "Value" ~}}
     [EnumMember]
     {{~ for loc in pair.Localizations ~}}
     [OptionSetMetadata("{{ loc.Value }}", {{ loc.Key }})]
     {{~ end ~}}
     {{ pair.Name }} = {{ pair.Value }},
+    {{~ if !for.last ~}}
+
+    {{~ end ~}}
     {{~ end ~}}
 }
-{{~ end ~}}
 
+{{~ end ~}}
 // ============================================================================
 // ATTRIBUTE CLASSES
 // ============================================================================
