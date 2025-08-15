@@ -160,12 +160,15 @@ public partial class {{table.SchemaName}} : ExtendedEntity{{ if table.Interfaces
         get => GetRelatedEntities<{{ rel.RelatedEntitySchemaName }}>("{{ rel.SchemaName }}", null);
         set => SetRelatedEntities("{{ rel.SchemaName }}", null, value);
     }
-    {{ else if rel.RelationshipType == "ManyToOne" }}{{ rel.RelatedEntitySchemaName }} {{ rel.SchemaName }}
+    {{~ else if rel.RelationshipType == "ManyToOne" }}{{ rel.RelatedEntitySchemaName }} {{ rel.SchemaName }}
     {
         get => GetRelatedEntity<{{ rel.RelatedEntitySchemaName }}>("{{ rel.SchemaName }}", null);
         set => SetRelatedEntity("{{ rel.SchemaName }}", null, value);
     }
-    {{ end }}
+    {{~ end ~}}
+    {{~ if !for.last ~}}
+
+    {{~ end ~}}
     {{~ end ~}}
     {{~ end ~}}
 }

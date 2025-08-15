@@ -1,5 +1,6 @@
 using DataverseProxyGenerator.Core.Domain;
 using DataverseProxyGenerator.Core.Generation.Common;
+using DataverseProxyGenerator.Core.Generation.Mappers;
 using DataverseProxyGenerator.Core.Generation.Utilities;
 
 namespace DataverseProxyGenerator.Core.Generation.Generators;
@@ -17,41 +18,11 @@ public class EnumGenerator : BaseFileGenerator, IFileGenerator<EnumColumnModel>
     {
         ValidateContext(context);
 
+        var templateModel = EnumMapper.MapToTemplateModel(input, context);
         var template = context.Templates.GetTemplate("EnumOptionset.scriban-cs");
-        var sanitizedOptionSetName = SanitizeName(input.OptionsetName, "UnknownOptionSet");
+        var enumResult = template.Render(templateModel, member => member.Name);
 
-        // Generate unique enum member names to handle duplicate labels using groupBy approach
-        var sanitizedOptions = input.OptionsetValues
-            .Select(kvp => new { kvp.Key, kvp.Value, SanitizedName = NameSanitizer.SanitizeEnumOptionName(kvp.Value, kvp.Key) })
-            .ToList();
-
-        var optionsetValuesWithUniqueNames = sanitizedOptions
-            .GroupBy(item => item.SanitizedName, StringComparer.OrdinalIgnoreCase)
-            .SelectMany(group =>
-            {
-                var items = group.ToList();
-                return items.Select((item, index) => new
-                {
-                    Value = item.Key,
-                    Name = index == 0 ? item.SanitizedName : $"{item.SanitizedName}_{index}",
-                    Localizations =
-                        input.OptionLocalizations != null &&
-                        input.OptionLocalizations.TryGetValue(item.Key, out var value)
-                        ? value : new Dictionary<int, string>(),
-                });
-            })
-            .ToList();
-
-        var enumResult = template.Render(
-            new
-            {
-                optionsetName = sanitizedOptionSetName,
-                optionsetValues = optionsetValuesWithUniqueNames,
-                @namespace = context.Namespace,
-                version = context.Version,
-            },
-            member => member.Name);
-
+        var sanitizedOptionSetName = DataverseProxyGenerator.Core.Generation.Utilities.GenerationUtilities.SanitizeName(input.OptionsetName, "UnknownOptionSet");
         yield return new GeneratedFile(FilePathHelper.GetOptionSetFilePath(sanitizedOptionSetName), enumResult);
     }
 }

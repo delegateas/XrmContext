@@ -4,11 +4,11 @@
 [System.CodeDom.Compiler.GeneratedCodeAttribute("DataverseProxyGenerator", "{{ version }}")]
 public partial class {{ sanitized_unique_name }}Response : Microsoft.Xrm.Sdk.OrganizationResponse
 {
-    
+
     public {{ sanitized_unique_name }}Response()
     {
     }
-    
+
 {{~ for prop in response_properties ~}}
     {{ prop.xml_doc_comment }}
     public {{ prop.csharp_type }} {{ prop.name }}

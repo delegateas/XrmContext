@@ -1,5 +1,6 @@
 using DataverseProxyGenerator.Core.Domain;
 using DataverseProxyGenerator.Core.Generation.Common;
+using DataverseProxyGenerator.Core.Generation.Mappers;
 using DataverseProxyGenerator.Core.Generation.Utilities;
 
 namespace DataverseProxyGenerator.Core.Generation.Generators;
@@ -16,28 +17,12 @@ public class IntersectionInterfaceGenerator : BaseFileGenerator, IFileGenerator<
     private static IEnumerable<GeneratedFile> GenerateInternal((string InterfaceName, IEnumerable<ColumnModel> Columns) input, GenerationContext context)
     {
         ValidateContext(context);
-        var (interfaceName, columns) = input;
+
+        var templateModel = IntersectionInterfaceMapper.MapToTemplateModel(input, context);
         var template = context.Templates.GetTemplate("IntersectionInterface.scriban-cs");
-        var sanitizedInterfaceName = SanitizeName(interfaceName);
+        var interfaceResult = template.Render(templateModel, member => member.Name);
 
-        var columnData = columns.Select(col => new
-        {
-            SchemaName = SanitizeName(col.SchemaName),
-            col.DisplayName,
-            col.Description,
-            TypeSignature = GetTypeSignature(col),
-        });
-
-        var interfaceResult = template.Render(
-            new
-            {
-                interfaceName = sanitizedInterfaceName,
-                @namespace = context.Namespace,
-                columns = columnData,
-                version = context.Version,
-            },
-            member => member.Name);
-
+        var sanitizedInterfaceName = DataverseProxyGenerator.Core.Generation.Utilities.GenerationUtilities.SanitizeName(input.InterfaceName);
         yield return new GeneratedFile(FilePathHelper.GetIntersectionInterfaceFilePath(sanitizedInterfaceName), interfaceResult);
     }
 }

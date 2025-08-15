@@ -1,4 +1,3 @@
-using DataverseProxyGenerator.Core.Generation.Utilities;
 using Scriban;
 
 namespace DataverseProxyGenerator.Core.Generation.Common;
@@ -43,26 +42,5 @@ public abstract class BaseFileGenerator
         };
         templateContext.PushGlobal(Scriban.Runtime.ScriptObject.From(model));
         return templateContext;
-    }
-
-    /// <summary>
-    /// Sanitizes a name using the shared utility.
-    /// </summary>
-    /// <param name="name">The name to sanitize.</param>
-    /// <param name="fallbackPrefix">Optional fallback prefix.</param>
-    /// <returns>A sanitized name.</returns>
-    protected static string SanitizeName(string name, string fallbackPrefix = "Item")
-    {
-        return NameSanitizer.SanitizeName(name, fallbackPrefix);
-    }
-
-    /// <summary>
-    /// Gets the type signature for a column using the shared utility.
-    /// </summary>
-    /// <param name="column">The column model.</param>
-    /// <returns>The type signature.</returns>
-    protected static string GetTypeSignature(Domain.ColumnModel column)
-    {
-        return TypeSignatureHelper.GetPropertyTypeSignature(column);
     }
 }
