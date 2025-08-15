@@ -9,4 +9,10 @@ public interface IDataverseMetadataFetcher
     /// </summary>
     /// <returns>A list of TableModel objects representing the Dataverse schema.</returns>
     Task<IEnumerable<TableModel>> FetchMetadataAsync();
+
+    /// <summary>
+    /// Fetches metadata for custom APIs within the specified solutions.
+    /// </summary>
+    /// <returns>A list of CustomApiModel objects representing the custom APIs.</returns>
+    Task<IEnumerable<CustomApiModel>> FetchCustomApisAsync();
 }

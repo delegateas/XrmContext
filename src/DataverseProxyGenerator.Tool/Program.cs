@@ -41,8 +41,8 @@ internal static class Program
                     !string.IsNullOrWhiteSpace(namespaceSetting) ? namespaceSetting : baseConfig.Generation.NamespaceSetting ?? "DataverseContext",
                     !string.IsNullOrWhiteSpace(serviceContextName) ? serviceContextName : baseConfig.Generation.ServiceContextName ?? "Xrm",
                     (intersectMapping.Count > 0) ? intersectMapping : baseConfig.Generation.IntersectMapping,
-                    singleFile
-                ));
+                    singleFile,
+                    baseConfig.Generation.GenerateCustomApis));
 
             if (string.IsNullOrWhiteSpace(config.Generation.OutputDirectory))
             {
@@ -121,12 +121,23 @@ internal static class Program
             var tables = await fetcher.FetchMetadataAsync();
 
             logger.LogInformation("Generating proxy classes and intersection interfaces...");
-            var files = generator.GenerateCode(tables, config.Generation);
+            var files = generator.GenerateCode(tables, config.Generation).ToList();
+
+            // Generate custom APIs if enabled
+            if (config.Generation.GenerateCustomApis)
+            {
+                logger.LogInformation("Fetching custom API metadata...");
+                var customApis = await fetcher.FetchCustomApisAsync();
+
+                logger.LogInformation("Generating custom API classes...");
+                var customApiFiles = generator.GenerateCustomApiCode(customApis, config.Generation);
+                files.AddRange(customApiFiles);
+            }
 
             logger.LogInformation("Writing files to {OutputDirectory}...", config.Generation.OutputDirectory);
             writer.WriteFiles(files, config.Generation.OutputDirectory);
 
-            logger.LogInformation("Proxy class and intersection interface generation complete.");
+            logger.LogInformation("Code generation complete.");
         }
         catch (Exception ex)
         {

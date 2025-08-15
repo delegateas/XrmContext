@@ -18,10 +18,12 @@ public class XrmContextGenerator : BaseFileGenerator, IFileGenerator<IEnumerable
     {
         ValidateContext(context);
 
+        var serviceContextName = context.ServiceContextName ?? "Xrm";
+
         var templateModel = XrmContextMapper.MapToTemplateModel(input, context);
         var template = context.Templates.GetTemplate("XrmClass.scriban-cs");
         var xrmClassResult = template.Render(templateModel, member => member.Name);
 
-        yield return new GeneratedFile(FilePathHelper.GetXrmContextFilePath(), xrmClassResult);
+        yield return new GeneratedFile(FilePathHelper.GetXrmContextFilePath(serviceContextName), xrmClassResult);
     }
 }

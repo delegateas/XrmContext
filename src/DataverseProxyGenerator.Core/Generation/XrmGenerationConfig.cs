@@ -5,5 +5,5 @@ public record XrmGenerationConfig(
     string NamespaceSetting,
     string ServiceContextName,
     IReadOnlyDictionary<string, IReadOnlyList<string>> IntersectMapping,
-    bool SingleFile = false
-);
+    bool SingleFile = false,
+    bool GenerateCustomApis = true);

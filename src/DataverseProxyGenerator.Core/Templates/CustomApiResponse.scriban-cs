@@ -1,0 +1,34 @@
+#pragma warning disable CS1591
+[System.Runtime.Serialization.DataContractAttribute(Namespace="http://schemas.microsoft.com/xrm/2011/new/")]
+[Microsoft.Xrm.Sdk.Client.ResponseProxyAttribute("{{ unique_name }}")]
+[System.CodeDom.Compiler.GeneratedCodeAttribute("DataverseProxyGenerator", "{{ version }}")]
+public partial class {{ sanitized_unique_name }}Response : Microsoft.Xrm.Sdk.OrganizationResponse
+{
+    
+    public {{ sanitized_unique_name }}Response()
+    {
+    }
+    
+{{~ for prop in response_properties ~}}
+    {{ prop.xml_doc_comment }}
+    public {{ prop.csharp_type }} {{ prop.name }}
+    {
+        get
+        {
+            if (this.Results.Contains("{{ prop.original_name }}"))
+            {
+                return (({{ prop.csharp_type }})(this.Results["{{ prop.original_name }}"]));
+            }
+            else
+            {
+                return default({{ prop.csharp_type }});
+            }
+        }
+        set
+        {
+            this.Results["{{ prop.original_name }}"] = value;
+        }
+    }
+{{~ end ~}}
+}
+#pragma warning restore CS1591
