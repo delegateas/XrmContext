@@ -4,7 +4,7 @@ using Microsoft.Xrm.Sdk.Client;
 namespace {{ namespace }};
 
 [System.CodeDom.Compiler.GeneratedCode("DataverseProxyGenerator", "{{version}}")]
-public class Xrm : OrganizationServiceContext
+public class {{ serviceContextName }} : OrganizationServiceContext
 {
     public {{ serviceContextName }}(IOrganizationService service)
         : base(service)

@@ -36,9 +36,9 @@ public static class FilePathHelper
     /// Gets the output path for the Xrm context class file.
     /// </summary>
     /// <returns>The relative file path.</returns>
-    public static string GetXrmContextFilePath()
+    public static string GetXrmContextFilePath(string sanitizedName)
     {
-        return Path.Combine("queries", "Xrm.cs");
+        return Path.Combine("queries", $"{sanitizedName}.cs");
     }
 
     /// <summary>
