@@ -29,7 +29,8 @@ public static class EnumMapper
                     Localizations =
                         input.OptionLocalizations != null &&
                         input.OptionLocalizations.TryGetValue(item.Key, out var value)
-                        ? value : new Dictionary<int, string>(),
+                        ? value.Select( kvp => new KeyValuePair<int, string>(kvp.Key, NameSanitizer.SanitizeString(kvp.Value)))
+                        : new Dictionary<int, string>(),
                 });
             })
             .ToList();

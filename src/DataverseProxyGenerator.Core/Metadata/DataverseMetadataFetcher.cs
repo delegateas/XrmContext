@@ -358,25 +358,6 @@ public class DataverseMetadataFetcher : IDataverseMetadataFetcher
                 {
                     var label = o.Label?.UserLocalizedLabel?.Label;
                     label = ApplyLabelMapping(label ?? string.Empty);
-                    if (string.IsNullOrWhiteSpace(label))
-                    {
-                        label = $"Option_{o.Value.GetValueOrDefault()}";
-                    }
-
-                    // Make label a valid C# identifier
-                    label = label.Replace(" ", "_", StringComparison.InvariantCulture)
-                                 .Replace("-", "_", StringComparison.InvariantCulture)
-                                 .Replace(".", "_", StringComparison.InvariantCulture)
-                                 .Replace(",", "_", StringComparison.InvariantCulture)
-                                 .Replace(":", "_", StringComparison.InvariantCulture)
-                                 .Replace(";", "_", StringComparison.InvariantCulture)
-                                 .Replace("/", "_", StringComparison.InvariantCulture)
-                                 .Replace("\\", "_", StringComparison.InvariantCulture);
-                    if (char.IsDigit(label[0]))
-                    {
-                        label = "_" + label;
-                    }
-
                     return label;
                 }) ?? [];
 
@@ -419,7 +400,7 @@ public class DataverseMetadataFetcher : IDataverseMetadataFetcher
                     }
                 }
 
-                // Always include the userlocalized label if present
+                // Always include the user localized label if present
                 if (o.Label?.UserLocalizedLabel != null && !string.IsNullOrWhiteSpace(o.Label.UserLocalizedLabel.Label))
                 {
                     localizations[o.Label.UserLocalizedLabel.LanguageCode] = o.Label.UserLocalizedLabel.Label;

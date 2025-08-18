@@ -188,4 +188,47 @@ public class EnumGeneratorDuplicateTests
         Assert.Contains("Pending_1 = 5,", generatedCode, StringComparison.Ordinal);
         Assert.Contains("Active_2 = 6,", generatedCode, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void Generate_WithSpecialCharactersInLabels_SanitizesEnumMemberNames()
+    {
+        // Arrange
+        var generator = new DataverseProxyGenerator.Core.Generation.Generators.EnumGenerator();
+        var context = new GenerationContext
+        {
+            Templates = new EmbeddedTemplateProvider(),
+            Namespace = "TestNamespace",
+            Version = "1.0.0",
+        };
+
+        var enumColumn = new EnumColumnModel
+        {
+            LogicalName = "paymenttermscode",
+            SchemaName = "PaymentTermsCode",
+            DisplayName = "Payment Terms",
+            OptionsetName = "TestOptionSet",
+            OptionsetValues = new Dictionary<int, string>
+            {
+                { 1, "Løbende måned + 14 dage" },   // Contains + character
+                { 2, "Field\nWith\nNewlines" },     // Contains newline characters
+                { 3, "Tab\tSeparated\tValue" },     // Contains tab characters
+                { 4, "Multiple+Special\nChars." },  // Contains multiple special chars
+                { 5, "Normal Value" },              // Normal case for comparison
+            },
+        };
+
+        // Act
+        var result = generator.Generate(enumColumn, context).ToList();
+
+        // Assert
+        Assert.Single(result);
+        var generatedCode = result[0].Content;
+
+        // Verify that special characters are removed entirely from enum member names
+        Assert.Contains("Løbendemåned14dage = 1,", generatedCode, StringComparison.Ordinal);
+        Assert.Contains("FieldWithNewlines = 2,", generatedCode, StringComparison.Ordinal);
+        Assert.Contains("TabSeparatedValue = 3,", generatedCode, StringComparison.Ordinal);
+        Assert.Contains("MultipleSpecialChars = 4,", generatedCode, StringComparison.Ordinal);
+        Assert.Contains("NormalValue = 5,", generatedCode, StringComparison.Ordinal);
+    }
 }

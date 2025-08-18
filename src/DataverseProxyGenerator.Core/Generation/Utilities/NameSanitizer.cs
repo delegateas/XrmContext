@@ -2,7 +2,7 @@ namespace DataverseProxyGenerator.Core.Generation.Utilities;
 
 public static class NameSanitizer
 {
-    private static readonly char[] DisallowedCharacters = { '(', ')', '\'', '-', '–', '%', ' ', '.', ',', ':', ';', '/', '\\' };
+    private static readonly char[] DisallowedCharacters = { '(', ')', '\'', '-', '–', '%', ' ', '.', ',', ':', ';', '/', '\\', '+', '\n', '\r', '\t', '&' };
     private static readonly string[] ReservedKeywords =
     {
         "abstract", "as", "base", "bool", "break", "byte", "case", "catch", "char", "checked",
@@ -29,8 +29,8 @@ public static class NameSanitizer
             return GenerateFallbackName(fallbackPrefix);
         }
 
-        // Remove disallowed characters and replace with underscores
-        var cleaned = string.Concat(name.Select(c => DisallowedCharacters.Contains(c) ? '_' : c));
+        // Remove disallowed characters entirely
+        var cleaned = string.Concat(name.Where(c => !DisallowedCharacters.Contains(c)));
 
         // Ensure it doesn't start with a digit
         if (cleaned.Length > 0 && char.IsDigit(cleaned[0]))
@@ -68,6 +68,19 @@ public static class NameSanitizer
         }
 
         return SanitizeName(label, $"Option_{optionValue}");
+    }
+
+    /// <summary>
+    /// Sanitizes a string to make it a valid single line string.
+    /// </summary>
+    /// <param name="input">The string to sanitize.</param>
+    /// <returns>A single line string.</returns>
+    public static string SanitizeString(string input)
+    {
+        input ??= string.Empty;
+        return input
+            .Replace("\r", string.Empty, StringComparison.OrdinalIgnoreCase)
+            .Replace("\n", string.Empty, StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>
