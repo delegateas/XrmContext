@@ -9,6 +9,8 @@ using System.Runtime.Serialization;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Client;
 
+[assembly: ProxyTypesAssembly]
+
 namespace {{namespace}};
 
 // ============================================================================
