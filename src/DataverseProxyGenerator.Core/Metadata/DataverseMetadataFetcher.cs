@@ -1,6 +1,7 @@
 using DataverseProxyGenerator.Core.Domain;
 using Microsoft.PowerPlatform.Dataverse.Client;
 using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Metadata;
 using Microsoft.Xrm.Sdk.Query;
 
@@ -95,14 +96,14 @@ public class DataverseMetadataFetcher : IDataverseMetadataFetcher
             await semaphore.WaitAsync();
             try
             {
-                var entityRequest = new Microsoft.Xrm.Sdk.Messages.RetrieveEntityRequest
+                var entityRequest = new RetrieveEntityRequest
                 {
                     LogicalName = logicalName,
                     EntityFilters = EntityFilters.Entity | EntityFilters.Attributes | EntityFilters.Relationships,
                     RetrieveAsIfPublished = true,
                 };
 
-                var entityResponse = (Microsoft.Xrm.Sdk.Messages.RetrieveEntityResponse)await serviceClient.ExecuteAsync(entityRequest);
+                var entityResponse = (RetrieveEntityResponse)await serviceClient.ExecuteAsync(entityRequest);
                 if (entityResponse?.EntityMetadata != null)
                 {
                     return entityResponse.EntityMetadata;
@@ -123,14 +124,14 @@ public class DataverseMetadataFetcher : IDataverseMetadataFetcher
 
     private Guid GetSolutionId(string solutionUniqueName)
     {
-        var solutionQuery = new Microsoft.Xrm.Sdk.Query.QueryExpression("solution")
+        var solutionQuery = new QueryExpression("solution")
         {
-            ColumnSet = new Microsoft.Xrm.Sdk.Query.ColumnSet("solutionid"),
-            Criteria = new Microsoft.Xrm.Sdk.Query.FilterExpression
+            ColumnSet = new ColumnSet("solutionid"),
+            Criteria = new FilterExpression
             {
                 Conditions =
                 {
-                    new Microsoft.Xrm.Sdk.Query.ConditionExpression("uniquename", Microsoft.Xrm.Sdk.Query.ConditionOperator.Equal, solutionUniqueName),
+                    new ConditionExpression("uniquename", ConditionOperator.Equal, solutionUniqueName),
                 },
             },
         };
@@ -140,15 +141,15 @@ public class DataverseMetadataFetcher : IDataverseMetadataFetcher
 
     private List<Guid> GetEntityIdsFromSolution(Guid solutionId)
     {
-        var componentQuery = new Microsoft.Xrm.Sdk.Query.QueryExpression("solutioncomponent")
+        var componentQuery = new QueryExpression("solutioncomponent")
         {
-            ColumnSet = new Microsoft.Xrm.Sdk.Query.ColumnSet("objectid"),
-            Criteria = new Microsoft.Xrm.Sdk.Query.FilterExpression
+            ColumnSet = new ColumnSet("objectid"),
+            Criteria = new FilterExpression
             {
                 Conditions =
                 {
-                    new Microsoft.Xrm.Sdk.Query.ConditionExpression("solutionid", Microsoft.Xrm.Sdk.Query.ConditionOperator.Equal, solutionId),
-                    new Microsoft.Xrm.Sdk.Query.ConditionExpression("componenttype", Microsoft.Xrm.Sdk.Query.ConditionOperator.Equal, 1), // 1 = Entity
+                    new ConditionExpression("solutionid", ConditionOperator.Equal, solutionId),
+                    new ConditionExpression("componenttype", ConditionOperator.Equal, 1), // 1 = Entity
                 },
             },
         };
