@@ -22,7 +22,7 @@ public class IntersectionInterfaceGenerator : BaseFileGenerator, IFileGenerator<
         var template = context.Templates.GetTemplate("IntersectionInterface.scriban-cs");
         var interfaceResult = template.Render(templateModel, member => member.Name);
 
-        var sanitizedInterfaceName = DataverseProxyGenerator.Core.Generation.Utilities.GenerationUtilities.SanitizeName(input.InterfaceName);
+        var sanitizedInterfaceName = GenerationUtilities.SanitizeName(input.InterfaceName);
         yield return new GeneratedFile(FilePathHelper.GetIntersectionInterfaceFilePath(sanitizedInterfaceName), interfaceResult);
     }
 }

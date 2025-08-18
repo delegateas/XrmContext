@@ -24,7 +24,7 @@ public class ProxyClassGenerator : BaseFileGenerator, IFileGenerator<(TableModel
         var templateContext = CreateTemplateContext(model);
         var result = template.Render(templateContext);
 
-        var sanitizedSchemaName = DataverseProxyGenerator.Core.Generation.Utilities.GenerationUtilities.SanitizeName(input.Table.SchemaName);
+        var sanitizedSchemaName = GenerationUtilities.SanitizeName(input.Table.SchemaName);
         yield return new GeneratedFile(FilePathHelper.GetTableFilePath(sanitizedSchemaName), result);
     }
 }

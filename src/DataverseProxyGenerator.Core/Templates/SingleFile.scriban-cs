@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
@@ -112,15 +113,15 @@ public partial class {{table.SchemaName}} : ExtendedEntity{{ if table.Interfaces
     }
     {{~ else if column.TypeName == "EnumColumnModel" ~}}
     {{~ if column.IsMultiSelect ~}}
-    public IEnumerable<{{ column.OptionsetName | string.capitalize }}> {{column.SchemaName}}
+    public IEnumerable<{{ column.OptionsetName }}> {{column.SchemaName}}
     {
-        get => this.GetOptionSetCollectionValue<{{ column.OptionsetName | string.capitalize }}>("{{column.LogicalName}}");
+        get => this.GetOptionSetCollectionValue<{{ column.OptionsetName }}>("{{column.LogicalName}}");
         set => this.SetOptionSetCollectionValue("{{column.LogicalName}}", value);
     }
     {{~ else ~}}
-    public {{ column.OptionsetName | string.capitalize }}? {{column.SchemaName}}
+    public {{ column.OptionsetName }}? {{column.SchemaName}}
     {
-        get => this.GetOptionSetValue<{{ column.OptionsetName | string.capitalize }}>("{{column.LogicalName}}");
+        get => this.GetOptionSetValue<{{ column.OptionsetName }}>("{{column.LogicalName}}");
         set => this.SetOptionSetValue("{{column.LogicalName}}", value);
     }
     {{~ end ~}}

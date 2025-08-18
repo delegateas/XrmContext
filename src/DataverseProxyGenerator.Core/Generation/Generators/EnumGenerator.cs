@@ -22,7 +22,7 @@ public class EnumGenerator : BaseFileGenerator, IFileGenerator<EnumColumnModel>
         var template = context.Templates.GetTemplate("EnumOptionset.scriban-cs");
         var enumResult = template.Render(templateModel, member => member.Name);
 
-        var sanitizedOptionSetName = DataverseProxyGenerator.Core.Generation.Utilities.GenerationUtilities.SanitizeName(input.OptionsetName, "UnknownOptionSet");
+        var sanitizedOptionSetName = GenerationUtilities.SanitizeName(input.OptionsetName, "UnknownOptionSet");
         yield return new GeneratedFile(FilePathHelper.GetOptionSetFilePath(sanitizedOptionSetName), enumResult);
     }
 }
