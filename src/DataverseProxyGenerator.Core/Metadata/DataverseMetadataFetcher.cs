@@ -178,6 +178,7 @@ public class DataverseMetadataFetcher : IDataverseMetadataFetcher
             LogicalName = entityMetadata.LogicalName,
             SchemaName = entityMetadata.SchemaName,
             DisplayName = ApplyLabelMapping(entityMetadata.DisplayName?.UserLocalizedLabel?.Label ?? entityMetadata.LogicalName),
+            Description = entityMetadata.Description?.UserLocalizedLabel?.Label ?? string.Empty,
             EntityTypeCode = entityMetadata.ObjectTypeCode ?? 0,
             PrimaryNameAttribute = entityMetadata.PrimaryNameAttribute,
             PrimaryIdAttribute = entityMetadata.PrimaryIdAttribute,

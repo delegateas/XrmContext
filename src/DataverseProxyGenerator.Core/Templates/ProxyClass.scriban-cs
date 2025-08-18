@@ -8,6 +8,9 @@ using Microsoft.Xrm.Sdk.Client;
 namespace {{namespace}};
 
 /// <summary>
+{{~ for line in table.Description | string.split '\n' ~}}
+/// <para>{{ line | string.strip }}</para>
+{{~ end ~}}
 /// <para>Display Name: {{ table.DisplayName }}</para>
 /// </summary>
 [System.CodeDom.Compiler.GeneratedCode("DataverseProxyGenerator", "{{version}}")]

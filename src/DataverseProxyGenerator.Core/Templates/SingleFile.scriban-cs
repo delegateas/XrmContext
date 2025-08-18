@@ -19,6 +19,9 @@ namespace {{namespace}};
 
 {{~ for table in tables | array.sort "SchemaName" ~}}
 /// <summary>
+{{~ for line in table.Description | string.split '\n' ~}}
+/// <para>{{ line | string.strip }}</para>
+{{~ end ~}}
 /// <para>Display Name: {{ table.DisplayName }}</para>
 /// </summary>
 [System.CodeDom.Compiler.GeneratedCode("DataverseProxyGenerator", "{{version}}")]

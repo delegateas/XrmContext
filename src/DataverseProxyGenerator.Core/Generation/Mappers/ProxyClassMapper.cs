@@ -36,6 +36,7 @@ public static class ProxyClassMapper
                 }),
                 LogicalName = table.LogicalName,
                 DisplayName = table.DisplayName,
+                Description = table.Description,
                 EntityTypeCode = table.EntityTypeCode,
                 PrimaryNameAttribute = table.PrimaryNameAttribute,
                 PrimaryIdAttribute = table.PrimaryIdAttribute,

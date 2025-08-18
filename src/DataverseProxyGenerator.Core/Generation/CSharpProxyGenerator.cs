@@ -121,6 +121,7 @@ public class CSharpProxyGenerator : ICodeGenerator
                 t.table.SchemaName,
                 t.table.LogicalName,
                 t.table.DisplayName,
+                t.table.Description,
                 t.table.EntityTypeCode,
                 t.table.PrimaryNameAttribute,
                 t.table.PrimaryIdAttribute,

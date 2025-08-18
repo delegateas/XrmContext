@@ -8,6 +8,8 @@ public record TableModel
 
     public string DisplayName { get; init; } = string.Empty;
 
+    public string Description { get; init; } = string.Empty;
+
     public int EntityTypeCode { get; init; }
 
     public string PrimaryNameAttribute { get; init; } = string.Empty;
