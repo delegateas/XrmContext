@@ -29,7 +29,7 @@ public static class EnumMapper
                     Localizations =
                         input.OptionLocalizations != null &&
                         input.OptionLocalizations.TryGetValue(item.Key, out var value)
-                        ? value.Select( kvp => new KeyValuePair<int, string>(kvp.Key, NameSanitizer.SanitizeString(kvp.Value)))
+                        ? value.Select(kvp => new KeyValuePair<int, string>(kvp.Key, NameSanitizer.SanitizeString(kvp.Value)))
                         : new Dictionary<int, string>(),
                 });
             })
@@ -37,10 +37,8 @@ public static class EnumMapper
 
         return new
         {
-            optionsetName = sanitizedOptionSetName,
-            optionsetValues = optionsetValuesWithUniqueNames,
-            @namespace = context.Namespace,
-            version = context.Version,
+            Name = sanitizedOptionSetName,
+            Values = optionsetValuesWithUniqueNames,
         };
     }
 }

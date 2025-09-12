@@ -1,6 +1,7 @@
 using DataverseProxyGenerator.Core.Domain;
+using DataverseProxyGenerator.Core.Generation.Common;
 using DataverseProxyGenerator.Core.Generation.Generators;
-using DataverseProxyGenerator.Core.Generation.Mappers;
+using DataverseProxyGenerator.Core.Generation.Utilities;
 using DataverseProxyGenerator.Core.Templates;
 
 namespace DataverseProxyGenerator.Core.Generation;
@@ -14,9 +15,7 @@ public class CSharpProxyGenerator : ICodeGenerator
     private readonly XrmContextGenerator xrmContextGenerator;
     private readonly HelperFileGenerator helperFileGenerator;
     private readonly CustomApiGenerator customApiGenerator;
-
-    // Helper struct for fast column comparison
-    private readonly record struct ColumnSignature(string SchemaName, string TypeName);
+    private readonly SingleFileGenerator singleFileGenerator;
 
     public CSharpProxyGenerator()
     {
@@ -27,6 +26,7 @@ public class CSharpProxyGenerator : ICodeGenerator
         xrmContextGenerator = new XrmContextGenerator();
         helperFileGenerator = new HelperFileGenerator();
         customApiGenerator = new CustomApiGenerator();
+        singleFileGenerator = new SingleFileGenerator();
     }
 
     private static string GetAssemblyVersion()
@@ -47,7 +47,15 @@ public class CSharpProxyGenerator : ICodeGenerator
 
         if (config.SingleFile)
         {
-            return GenerateSingleFile(tablesList, interfaceColumns, tableToInterfaces, context);
+            var interfaceColumnsReadOnly = interfaceColumns.ToDictionary(
+                kvp => kvp.Key,
+                kvp => (IReadOnlySet<ColumnSignature>)kvp.Value,
+                StringComparer.InvariantCulture);
+            var tableToInterfacesReadOnly = tableToInterfaces.ToDictionary(
+                kvp => kvp.Key,
+                kvp => (IReadOnlyList<string>)kvp.Value,
+                StringComparer.InvariantCulture);
+            return singleFileGenerator.Generate((tablesList, interfaceColumnsReadOnly, tableToInterfacesReadOnly), context);
         }
 
         return GenerateMultipleFiles(tablesList, interfaceColumns, tableToInterfaces, context);
@@ -60,7 +68,7 @@ public class CSharpProxyGenerator : ICodeGenerator
             Namespace = config.NamespaceSetting ?? "DataverseContext",
             Version = GetAssemblyVersion(),
             Templates = templateProvider,
-            ServiceContextName = config.ServiceContextName,
+            ServiceContextName = string.IsNullOrEmpty(config.ServiceContextName) ? "Xrm" : config.ServiceContextName,
             IntersectMapping = config.IntersectMapping,
         };
     }
@@ -71,97 +79,6 @@ public class CSharpProxyGenerator : ICodeGenerator
         var tableDict = tablesList.ToDictionary(t => t.LogicalName, t => t, StringComparer.InvariantCulture);
         var tableColumns = BuildTableColumns(tablesList);
         return BuildIntersectionData(config.IntersectMapping, tableDict, tableColumns);
-    }
-
-    private static IEnumerable<GeneratedFile> GenerateSingleFile(
-        List<TableModel> tablesList,
-        Dictionary<string, HashSet<ColumnSignature>> interfaceColumns,
-        Dictionary<string, List<string>> tableToInterfaces,
-        GenerationContext context)
-    {
-        var templateModel = CreateSingleFileTemplateModel(tablesList, interfaceColumns, tableToInterfaces, context);
-
-        var templateName = "SingleFile.scriban-cs";
-        var template = context.Templates.GetTemplate(templateName);
-        var content = template.Render(templateModel, member => member.Name);
-
-        yield return new GeneratedFile($"{context.ServiceContextName}.cs", content);
-    }
-
-    private static object CreateSingleFileTemplateModel(
-        List<TableModel> tablesList,
-        Dictionary<string, HashSet<ColumnSignature>> interfaceColumns,
-        Dictionary<string, List<string>> tableToInterfaces,
-        GenerationContext context)
-    {
-        var globalOptionsets = GetGlobalOptionsets(tablesList)
-            .Select(enumCol => EnumMapper.MapToTemplateModel(enumCol, context))
-            .ToList();
-        var interfaces = CreateInterfaceModels(interfaceColumns, tablesList);
-
-        // Add interface lists to tables (without modifying TableModel structure)
-        var tablesWithInterfaces = tablesList.Select(table =>
-        {
-            var tableInterfaces = tableToInterfaces.TryGetValue(table.LogicalName, out var ifaces) ? ifaces : new List<string>();
-            return new
-            {
-                table,
-                InterfacesList = tableInterfaces,
-            };
-        }).ToList();
-
-        // Prepare the template model with correct property names
-        return new
-        {
-            @namespace = context.Namespace,
-            version = context.Version,
-            serviceContextName = context.ServiceContextName,
-            tables = tablesWithInterfaces.Select(t => new
-            {
-                t.table.SchemaName,
-                t.table.LogicalName,
-                t.table.DisplayName,
-                t.table.Description,
-                t.table.EntityTypeCode,
-                t.table.PrimaryNameAttribute,
-                t.table.PrimaryIdAttribute,
-                t.table.IsIntersect,
-                t.table.Columns,
-                t.table.Relationships,
-                InterfacesList = t.InterfacesList,
-            }).ToList(),
-            optionsets = globalOptionsets,
-            interfaces = interfaces,
-        };
-    }
-
-    private static List<object> CreateInterfaceModels(
-        Dictionary<string, HashSet<ColumnSignature>> interfaceColumns,
-        List<TableModel> tablesList)
-    {
-        return interfaceColumns.Select(kvp => new
-        {
-            Name = kvp.Key,
-            Columns = kvp.Value.Select(sig => FindMatchingColumn(sig, tablesList))
-                .Where(c => c != null)
-                .Select(col => new
-                {
-                    SchemaName = Utilities.GenerationUtilities.SanitizeName(col!.SchemaName),
-                    col!.LogicalName,
-                    col.DisplayName,
-                    col.Description,
-                    TypeSignature = Utilities.GenerationUtilities.GetTypeSignature(col),
-                })
-                .ToList(),
-        }).ToList<object>();
-    }
-
-    private static ColumnModel? FindMatchingColumn(ColumnSignature sig, List<TableModel> tablesList)
-    {
-        return tablesList.SelectMany(t => t.Columns)
-            .FirstOrDefault(c => c.SchemaName == sig.SchemaName &&
-                (c.TypeName == sig.TypeName ||
-                 (c is EnumColumnModel enumCol && sig.TypeName == $"EnumColumnModel:{enumCol.OptionsetName}")));
     }
 
     private IEnumerable<GeneratedFile> GenerateMultipleFiles(
@@ -177,8 +94,10 @@ public class CSharpProxyGenerator : ICodeGenerator
         {
             var interfaceName = kvp.Key;
             var colSigs = kvp.Value;
-            var columns = colSigs.Select(sig =>
-                tablesList.SelectMany(t => t.Columns)
+            var columns = colSigs
+                .Select(sig =>
+                    tablesList
+                    .SelectMany(t => t.Columns)
                     .FirstOrDefault(c => c.SchemaName == sig.SchemaName && c.TypeName == sig.TypeName))
                 .Where(c => c != null)
                 .Cast<ColumnModel>();
@@ -194,7 +113,7 @@ public class CSharpProxyGenerator : ICodeGenerator
         }
 
         // Generate enums
-        var globalOptionsetsMulti = GetGlobalOptionsets(tablesList);
+        var globalOptionsetsMulti = GenerationUtilities.GetGlobalOptionsets(tablesList);
         foreach (var optionset in globalOptionsetsMulti)
         {
             files.AddRange(enumGenerator.Generate(optionset, context));
@@ -211,16 +130,6 @@ public class CSharpProxyGenerator : ICodeGenerator
 
         foreach (var file in files)
             yield return file;
-    }
-
-    private static IEnumerable<EnumColumnModel> GetGlobalOptionsets(IEnumerable<TableModel> tables)
-    {
-        return tables
-            .SelectMany(t => t.Columns)
-            .OfType<EnumColumnModel>()
-            .Where(c => !string.IsNullOrEmpty(c.OptionsetName) && c.OptionsetValues != null)
-            .GroupBy(c => c.OptionsetName, StringComparer.InvariantCulture)
-            .Select(g => g.First());
     }
 
     // --- Extracted Helper Methods ---

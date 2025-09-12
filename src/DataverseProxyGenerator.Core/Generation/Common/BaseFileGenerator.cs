@@ -1,4 +1,5 @@
 using Scriban;
+using Scriban.Runtime;
 
 namespace DataverseProxyGenerator.Core.Generation.Common;
 
@@ -29,18 +30,26 @@ public abstract class BaseFileGenerator
     }
 
     /// <summary>
-    /// Creates a template context with standard settings.
+    /// Creates a template context with standard settings and optional TemplateLoader.
     /// </summary>
     /// <param name="model">The model to use for rendering.</param>
+    /// <param name="loader">Optional template loader for includes.</param>
     /// <returns>A configured template context.</returns>
-    protected static TemplateContext CreateTemplateContext(object model)
+    protected static TemplateContext CreateTemplateContext(object model, ITemplateLoader? loader = null)
     {
         var templateContext = new TemplateContext(StringComparer.InvariantCulture)
         {
             LoopLimit = 0, // No limit
-            MemberRenamer = member => member.Name,
+            MemberRenamer = member => member.Name, // Preserve original member names
         };
-        templateContext.PushGlobal(Scriban.Runtime.ScriptObject.From(model));
+
+        // Use a ScriptObject that preserves original property names
+        var scriptObject = new ScriptObject(StringComparer.InvariantCulture);
+        scriptObject.Import(model, renamer: member => member.Name);
+        templateContext.PushGlobal(scriptObject);
+
+        if (loader != null)
+            templateContext.TemplateLoader = loader;
         return templateContext;
     }
 }

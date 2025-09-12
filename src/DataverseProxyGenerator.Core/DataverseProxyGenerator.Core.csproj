@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Templates\*.scriban-cs" />
+    <EmbeddedResource Include="Templates\**\*.scriban-cs" />
   </ItemGroup>
 
 </Project>

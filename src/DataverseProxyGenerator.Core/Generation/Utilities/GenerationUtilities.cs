@@ -24,4 +24,19 @@ public static class GenerationUtilities
     {
         return TypeSignatureHelper.GetPropertyTypeSignature(column);
     }
+
+    /// <summary>
+    /// Extracts unique global optionsets from a collection of tables.
+    /// </summary>
+    /// <param name="tables">The collection of tables to extract optionsets from.</param>
+    /// <returns>A collection of unique global optionsets.</returns>
+    public static IEnumerable<EnumColumnModel> GetGlobalOptionsets(IEnumerable<TableModel> tables)
+    {
+        return tables
+            .SelectMany(t => t.Columns)
+            .OfType<EnumColumnModel>()
+            .Where(c => !string.IsNullOrEmpty(c.OptionsetName) && c.OptionsetValues != null)
+            .GroupBy(c => c.OptionsetName, StringComparer.InvariantCulture)
+            .Select(g => g.First());
+    }
 }

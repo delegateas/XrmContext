@@ -20,7 +20,9 @@ public class IntersectionInterfaceGenerator : BaseFileGenerator, IFileGenerator<
 
         var templateModel = IntersectionInterfaceMapper.MapToTemplateModel(input, context);
         var template = context.Templates.GetTemplate("IntersectionInterface.scriban-cs");
-        var interfaceResult = template.Render(templateModel, member => member.Name);
+
+        var templateContext = CreateTemplateContext(templateModel, context.Templates);
+        var interfaceResult = template.Render(templateContext);
 
         var sanitizedInterfaceName = GenerationUtilities.SanitizeName(input.InterfaceName);
         yield return new GeneratedFile(FilePathHelper.GetIntersectionInterfaceFilePath(sanitizedInterfaceName), interfaceResult);

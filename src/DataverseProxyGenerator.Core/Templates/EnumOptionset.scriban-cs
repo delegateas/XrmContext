@@ -2,17 +2,4 @@ using System.Runtime.Serialization;
 
 namespace {{namespace}};
 
-[System.CodeDom.Compiler.GeneratedCode("DataverseProxyGenerator", "{{version}}")]
-[DataContract]
-#pragma warning disable CS8981
-public enum {{optionsetName}}
-#pragma warning restore CS8981
-{
-    {{~ for pair in optionsetValues | array.sort "Value" ~}}
-    [EnumMember]
-    {{~ for loc in pair.Localizations ~}}
-    [OptionSetMetadata("{{ loc.Value }}", {{ loc.Key }})]
-    {{~ end ~}}
-    {{ pair.Name }} = {{ pair.Value }},
-    {{~ end ~}}
-}
+{{ include "Body/EnumOptionset.scriban-cs" }}

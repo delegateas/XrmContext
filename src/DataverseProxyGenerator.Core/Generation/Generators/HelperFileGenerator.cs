@@ -19,7 +19,8 @@ public class HelperFileGenerator : BaseFileGenerator, IFileGenerator<string>
 
         var templateModel = HelperFileMapper.MapToTemplateModel(templateName, context);
         var template = context.Templates.GetTemplate($"{templateName}.scriban-cs");
-        var result = template.Render(templateModel, member => member.Name);
+        var templateContext = CreateTemplateContext(templateModel, context.Templates);
+        var result = template.Render(templateContext);
 
         yield return new GeneratedFile(FilePathHelper.GetHelperFilePath(templateName), result);
     }

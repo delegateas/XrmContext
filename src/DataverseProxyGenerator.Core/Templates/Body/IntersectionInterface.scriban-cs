@@ -1,0 +1,19 @@
+[System.CodeDom.Compiler.GeneratedCode("DataverseProxyGenerator", "{{version}}")]
+public interface {{interface.Name}}
+{
+    {{~ for column in interface.Columns | array.sort "SchemaName" ~}}
+    {{~ if column.Description || column.DisplayName ~}}
+    /// <summary>
+    {{~ if column.Description && column.Description != "" && column.Description != " " && column.Description != "  " && column.Description != "\t" && column.Description != "\n" && column.Description != "\r\n" ~}}
+    {{~ for line in column.Description | string.split '\n' ~}}
+    /// <para>{{ line | string.strip }}</para>
+    {{~ end ~}}
+    {{~ end ~}}
+    {{~ if column.DisplayName ~}}
+    /// <para>Display Name: {{ column.DisplayName }}</para>
+    {{~ end ~}}
+    /// </summary>
+    {{~ end ~}}
+    {{ column.TypeSignature }} {{column.SchemaName}} { get; set; }
+    {{~ end ~}}
+}

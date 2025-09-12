@@ -21,7 +21,7 @@ public class ProxyClassGenerator : BaseFileGenerator, IFileGenerator<(TableModel
         var model = ProxyClassMapper.MapToTemplateModel(input, context);
         var template = context.Templates.GetTemplate("ProxyClass.scriban-cs");
 
-        var templateContext = CreateTemplateContext(model);
+        var templateContext = CreateTemplateContext(model, context.Templates);
         var result = template.Render(templateContext);
 
         var sanitizedSchemaName = GenerationUtilities.SanitizeName(input.Table.SchemaName);

@@ -1,0 +1,15 @@
+[System.CodeDom.Compiler.GeneratedCode("DataverseProxyGenerator", "{{version}}")]
+public class {{ serviceContextName }} : OrganizationServiceContext
+{
+    public {{ serviceContextName }}(IOrganizationService service)
+        : base(service)
+    {
+    }
+{{~ for table in tables | array.sort "SchemaName" ~}}
+
+    public IQueryable<{{ table.SchemaName }}> {{ table.SchemaName }}Set
+    {
+        get { return CreateQuery<{{ table.SchemaName }}>(); }
+    }
+{{~ end ~}}
+}

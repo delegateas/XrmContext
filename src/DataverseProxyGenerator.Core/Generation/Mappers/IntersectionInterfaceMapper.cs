@@ -23,9 +23,12 @@ public static class IntersectionInterfaceMapper
 
         return new
         {
-            interfaceName = sanitizedInterfaceName,
+            @interface = new
+            {
+                Name = sanitizedInterfaceName,
+                Columns = columnData,
+            },
             @namespace = context.Namespace,
-            columns = columnData,
             version = context.Version,
         };
     }

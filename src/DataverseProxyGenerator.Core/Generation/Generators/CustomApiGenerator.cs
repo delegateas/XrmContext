@@ -17,7 +17,10 @@ public class CustomApiGenerator : BaseFileGenerator, IFileGenerator<CustomApiMod
         // Generate request class
         var requestTemplate = context.Templates.GetTemplate("CustomApiRequest.scriban-cs");
         var requestModel = CreateTemplateModel(customApi, context);
-        var requestContent = requestTemplate.Render(requestModel);
+
+        // Use TemplateContext with loader to support includes
+        var requestTemplateContext = CreateTemplateContext(requestModel, context.Templates);
+        var requestContent = requestTemplate.Render(requestTemplateContext);
         var sanitizedUniqueName = GenerationUtilities.SanitizeName(customApi.UniqueName);
         var requestFilename = Path.Combine(FilePathHelper.CustomApiPath, $"{sanitizedUniqueName}Request.cs");
 
@@ -26,7 +29,10 @@ public class CustomApiGenerator : BaseFileGenerator, IFileGenerator<CustomApiMod
         // Generate response class
         var responseTemplate = context.Templates.GetTemplate("CustomApiResponse.scriban-cs");
         var responseModel = CreateTemplateModel(customApi, context);
-        var responseContent = responseTemplate.Render(responseModel);
+
+        // Use TemplateContext with loader to support includes
+        var responseTemplateContext = CreateTemplateContext(responseModel, context.Templates);
+        var responseContent = responseTemplate.Render(responseTemplateContext);
         var responseFilename = Path.Combine(FilePathHelper.CustomApiPath, $"{sanitizedUniqueName}Response.cs");
 
         files.Add(new GeneratedFile(responseFilename, responseContent));

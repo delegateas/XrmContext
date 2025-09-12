@@ -18,9 +18,17 @@ public class EnumGenerator : BaseFileGenerator, IFileGenerator<EnumColumnModel>
     {
         ValidateContext(context);
 
-        var templateModel = EnumMapper.MapToTemplateModel(input, context);
+        var optionsetModel = EnumMapper.MapToTemplateModel(input, context);
+        var templateModel = new
+        {
+            optionset = optionsetModel,
+            @namespace = context.Namespace,
+            version = context.Version,
+        };
+
         var template = context.Templates.GetTemplate("EnumOptionset.scriban-cs");
-        var enumResult = template.Render(templateModel, member => member.Name);
+        var templateContext = CreateTemplateContext(templateModel, context.Templates);
+        var enumResult = template.Render(templateContext);
 
         var sanitizedOptionSetName = GenerationUtilities.SanitizeName(input.OptionsetName, "UnknownOptionSet");
         yield return new GeneratedFile(FilePathHelper.GetOptionSetFilePath(sanitizedOptionSetName), enumResult);
