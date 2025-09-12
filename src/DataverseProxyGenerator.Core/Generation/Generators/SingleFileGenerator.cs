@@ -11,7 +11,6 @@ public class SingleFileGenerator : BaseFileGenerator, IFileGenerator<(IReadOnlyL
         GenerationContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
-        ArgumentNullException.ThrowIfNull(input);
         return GenerateInternal(input.Tables, input.InterfaceColumns, input.TableToInterfaces, context);
     }
 

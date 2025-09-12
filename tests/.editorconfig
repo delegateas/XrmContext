@@ -10,6 +10,8 @@
 ##########################################
 [*.{cs,csx,cake}]
 
+dotnet_diagnostic.MA0051.severity = none	        # Test methods are allowed to be longer than 60 lines
+
 # AsyncFixer
 # http://www.asyncfixer.com
 
