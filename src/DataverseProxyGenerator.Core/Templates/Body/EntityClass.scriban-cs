@@ -8,7 +8,7 @@
 [EntityLogicalName("{{table.LogicalName}}")]
 [DebuggerDisplay("{DebuggerDisplay,nq}")]
 [DataContract]
-#pragma warning disable CS8981
+#pragma warning disable CS8981 // Allows: Only lowercase characters
 public partial class {{table.SchemaName}} : ExtendedEntity{{ if table.InterfacesList.size > 0 }}, {{ table.InterfacesList | array.join ", " }}{{ end }}
 #pragma warning restore CS8981
 {

@@ -108,7 +108,7 @@ public class CSharpProxyGenerator : ICodeGenerator
         // Generate proxy classes
         foreach (var table in tablesList)
         {
-            var interfaces = tableToInterfaces.TryGetValue(table.LogicalName, out var ifaces) ? ifaces : new List<string>();
+            var interfaces = tableToInterfaces.TryGetValue(table.LogicalName, out var iFaces) ? iFaces : new List<string>();
             files.AddRange(proxyClassGenerator.Generate((table, interfaces), context));
         }
 

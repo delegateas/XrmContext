@@ -23,15 +23,7 @@ public static class SingleFileMapper
         var interfaces = CreateInterfaceModels(interfaceColumns, tablesList);
 
         // Add interface lists to tables (without modifying TableModel structure)
-        var tablesWithInterfaces = tablesList.Select(table =>
-        {
-            var tableInterfaces = tableToInterfaces.TryGetValue(table.LogicalName, out var ifaces) ? ifaces : new List<string>();
-            return new
-            {
-                table,
-                InterfacesList = tableInterfaces,
-            };
-        }).ToList();
+        var tablesWithInterfaces = tablesList.Select(table => ProxyClassMapper.MapToTemplateModel((table, tableToInterfaces.TryGetValue(table.LogicalName, out var iFaces) ? iFaces : new List<string>()), context)).ToList();
 
         // Prepare the template model with correct property names
         return new
@@ -39,20 +31,7 @@ public static class SingleFileMapper
             @namespace = context.Namespace,
             version = context.Version,
             serviceContextName = string.IsNullOrEmpty(context.ServiceContextName) ? "Xrm" : context.ServiceContextName,
-            tables = tablesWithInterfaces.Select(t => new
-            {
-                t.table.SchemaName,
-                t.table.LogicalName,
-                t.table.DisplayName,
-                t.table.Description,
-                t.table.EntityTypeCode,
-                t.table.PrimaryNameAttribute,
-                t.table.PrimaryIdAttribute,
-                t.table.IsIntersect,
-                t.table.Columns,
-                t.table.Relationships,
-                InterfacesList = t.InterfacesList,
-            }).ToList(),
+            tables = tablesWithInterfaces,
             optionsets = globalOptionsets,
             interfaces = interfaces,
         };
