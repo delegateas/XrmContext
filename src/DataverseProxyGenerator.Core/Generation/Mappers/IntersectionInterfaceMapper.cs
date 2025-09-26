@@ -1,16 +1,25 @@
 using DataverseProxyGenerator.Core.Domain;
+using DataverseProxyGenerator.Core.Generation.Common;
 using DataverseProxyGenerator.Core.Generation.Utilities;
 
 namespace DataverseProxyGenerator.Core.Generation.Mappers;
 
 public static class IntersectionInterfaceMapper
 {
-    public static object MapToTemplateModel((string InterfaceName, IEnumerable<ColumnModel> Columns) input, GenerationContext context)
+    public static object MapToTemplateModel((string InterfaceName, IEnumerable<ColumnSignature> Columns, IList<TableModel> Tables) input, GenerationContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(input.InterfaceName);
 
-        var (interfaceName, columns) = input;
+        var (interfaceName, colSigs, tables) = input;
+        var columns = colSigs
+            .Select(sig =>
+                tables
+                .SelectMany(t => t.Columns)
+                .FirstOrDefault(c => c.SchemaName == sig.SchemaName && c.TypeName == sig.TypeName))
+            .Where(c => c != null)
+            .Cast<ColumnModel>();
+
         var sanitizedInterfaceName = GenerationUtilities.SanitizeName(interfaceName);
 
         var columnData = columns.Select(col => new
@@ -23,13 +32,8 @@ public static class IntersectionInterfaceMapper
 
         return new
         {
-            @interface = new
-            {
-                Name = sanitizedInterfaceName,
-                Columns = columnData,
-            },
-            @namespace = context.Namespace,
-            version = context.Version,
+            Name = sanitizedInterfaceName,
+            Columns = columnData,
         };
     }
 }

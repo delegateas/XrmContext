@@ -94,15 +94,8 @@ public class CSharpProxyGenerator : ICodeGenerator
         {
             var interfaceName = kvp.Key;
             var colSigs = kvp.Value;
-            var columns = colSigs
-                .Select(sig =>
-                    tablesList
-                    .SelectMany(t => t.Columns)
-                    .FirstOrDefault(c => c.SchemaName == sig.SchemaName && c.TypeName == sig.TypeName))
-                .Where(c => c != null)
-                .Cast<ColumnModel>();
 
-            files.AddRange(intersectionInterfaceGenerator.Generate((interfaceName, columns), context));
+            files.AddRange(intersectionInterfaceGenerator.Generate((interfaceName, colSigs, tablesList), context));
         }
 
         // Generate proxy classes

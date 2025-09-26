@@ -20,7 +20,8 @@ public static class SingleFileMapper
         var globalOptionsets = GenerationUtilities.GetGlobalOptionsets(tablesList)
             .Select(enumCol => EnumMapper.MapToTemplateModel(enumCol, context))
             .ToList();
-        var interfaces = CreateInterfaceModels(interfaceColumns, tablesList);
+
+        var interfaces = interfaceColumns.Select(@interface => IntersectionInterfaceMapper.MapToTemplateModel((@interface.Key, @interface.Value, (IList<TableModel>)tablesList), context)).ToList();
 
         // Add interface lists to tables (without modifying TableModel structure)
         var tablesWithInterfaces = tablesList.Select(table => ProxyClassMapper.MapToTemplateModel((table, tableToInterfaces.TryGetValue(table.LogicalName, out var iFaces) ? iFaces : new List<string>()), context)).ToList();
@@ -35,33 +36,5 @@ public static class SingleFileMapper
             optionsets = globalOptionsets,
             interfaces = interfaces,
         };
-    }
-
-    private static List<object> CreateInterfaceModels(
-        IReadOnlyDictionary<string, IReadOnlySet<ColumnSignature>> interfaceColumns,
-        IReadOnlyList<TableModel> tablesList)
-    {
-        return interfaceColumns.Select(kvp => new
-        {
-            Name = kvp.Key,
-            Columns = kvp.Value.Select(sig => FindMatchingColumn(sig, tablesList))
-                .Where(c => c != null)
-                .Select(col => new
-                {
-                    SchemaName = GenerationUtilities.SanitizeName(col!.SchemaName),
-                    col.DisplayName,
-                    col.Description,
-                    TypeSignature = GenerationUtilities.GetTypeSignature(col),
-                })
-                .ToList(),
-        }).ToList<object>();
-    }
-
-    private static ColumnModel? FindMatchingColumn(ColumnSignature sig, IReadOnlyList<TableModel> tablesList)
-    {
-        return tablesList.SelectMany(t => t.Columns)
-            .FirstOrDefault(c => c.SchemaName == sig.SchemaName &&
-                (c.TypeName == sig.TypeName ||
-                 (c is EnumColumnModel enumCol && sig.TypeName == $"EnumColumnModel:{enumCol.OptionsetName}")));
     }
 }

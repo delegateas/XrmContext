@@ -15,5 +15,8 @@ public interface {{interface.Name}}
     /// </summary>
     {{~ end ~}}
     {{ column.TypeSignature }} {{column.SchemaName}} { get; set; }
+    {{~ if !for.last ~}}
+
+    {{~ end ~}}
     {{~ end ~}}
 }
