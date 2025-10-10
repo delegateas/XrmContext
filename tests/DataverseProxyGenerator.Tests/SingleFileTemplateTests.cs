@@ -138,7 +138,10 @@ public sealed class SingleFileTemplateTests
             startIndex = content.LastIndexOf(startMarker, StringComparison.Ordinal);
         }
 
-        if (startIndex == -1) return string.Empty;
+        if (startIndex == -1)
+        {
+            return string.Empty;
+        }
 
         var substring = content.Substring(startIndex);
         var lines = substring.Split('\n');

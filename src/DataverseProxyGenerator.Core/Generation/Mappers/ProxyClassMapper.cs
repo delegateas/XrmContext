@@ -12,22 +12,12 @@ public static class ProxyClassMapper
 
         var (table, interfaces) = input;
 
+        var processedColumns = ProcessColumnsWithClassNameConflictResolution(table.Columns, table.SchemaName);
+
         return new
         {
             SchemaName = table.SchemaName,
-            Columns = table.Columns.Select(c =>
-                c switch
-                {
-                    EnumColumnModel enumCol => enumCol with
-                    {
-                        SchemaName = GenerationUtilities.SanitizeName(enumCol.SchemaName),
-                        OptionsetName = GenerationUtilities.SanitizeName(enumCol.OptionsetName),
-                    },
-                    _ => c with
-                    {
-                        SchemaName = GenerationUtilities.SanitizeName(c.SchemaName),
-                    },
-                }),
+            Columns = processedColumns,
             Relationships = table.Relationships.Select(r => r with
             {
                 SchemaName = GenerationUtilities.SanitizeName(r.SchemaName),
@@ -41,5 +31,33 @@ public static class ProxyClassMapper
             IsIntersect = table.IsIntersect,
             InterfacesList = interfaces ?? new List<string>(),
         };
+    }
+
+    private static IEnumerable<ColumnModel> ProcessColumnsWithClassNameConflictResolution(IEnumerable<ColumnModel> columns, string className)
+    {
+        return columns.Select(c =>
+        {
+            var sanitizedColumn = c switch
+            {
+                EnumColumnModel enumCol => enumCol with
+                {
+                    SchemaName = GenerationUtilities.SanitizeName(enumCol.SchemaName),
+                    OptionsetName = GenerationUtilities.SanitizeName(enumCol.OptionsetName),
+                },
+                _ => c with
+                {
+                    SchemaName = GenerationUtilities.SanitizeName(c.SchemaName),
+                },
+            };
+
+            // Check if sanitized schema name conflicts with class name (case-sensitive)
+            if (string.Equals(sanitizedColumn.SchemaName, className, StringComparison.Ordinal))
+            {
+                var finalName = $"{sanitizedColumn.SchemaName}_1";
+                return sanitizedColumn with { SchemaName = finalName };
+            }
+
+            return sanitizedColumn;
+        });
     }
 }

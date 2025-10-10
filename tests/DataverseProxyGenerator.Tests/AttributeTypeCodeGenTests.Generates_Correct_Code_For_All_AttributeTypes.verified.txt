@@ -14,7 +14,7 @@ namespace TestNamespace;
 [EntityLogicalName("testentity")]
 [DebuggerDisplay("{DebuggerDisplay,nq}")]
 [DataContract]
-#pragma warning disable CS8981
+#pragma warning disable CS8981 // Allows: Only lowercase characters
 public partial class TestEntity : ExtendedEntity
 #pragma warning restore CS8981
 {
