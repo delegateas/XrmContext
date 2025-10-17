@@ -169,24 +169,24 @@ public partial class {{table.SchemaName}} : ExtendedEntity{{ if table.Interfaces
     /// <summary>
     /// Gets the logical column name for a property on the {{table.SchemaName}} entity, using the AttributeLogicalNameAttribute if present.
     /// </summary>
-    /// <param name="lambda">Expression to pick the column</param>
+    /// <param name="column">Expression to pick the column</param>
     /// <returns>Name of column</returns>
     /// <exception cref="ArgumentNullException">If no expression is provided</exception>
     /// <exception cref="ArgumentException">If the expression is not x => x.column</exception>
-    public static string GetColumnName(Expression<Func<{{table.SchemaName}}, object>> lambda)
+    public static string GetColumnName(Expression<Func<{{table.SchemaName}}, object>> column)
     {
-        return TableAttributeHelpers.GetColumnName(lambda);
+        return TableAttributeHelpers.GetColumnName(column);
     }
 
     /// <summary>
-    /// Retrieves a {{table.SchemaName}} with the specified attributes.
+    /// Retrieves the {{table.SchemaName}} with the specified columns.
     /// </summary>
     /// <param name="service">Organization service</param>
     /// <param name="id">Id of {{table.SchemaName}} to retrieve</param>
-    /// <param name="attrs">Expressions that specify attributes to retrieve</param>
+    /// <param name="columns">Expressions that specify columns to retrieve</param>
     /// <returns>The retrieved {{table.SchemaName}}</returns>
-    public static {{table.SchemaName}} Retrieve(IOrganizationService service, Guid id, params Expression<Func<{{table.SchemaName}}, object>>[] attrs)
+    public static {{table.SchemaName}} Retrieve(IOrganizationService service, Guid id, params Expression<Func<{{table.SchemaName}}, object>>[] columns)
     {
-        return service.Retrieve(id, attrs);
+        return service.Retrieve(id, columns);
     }
 }
