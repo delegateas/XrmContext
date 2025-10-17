@@ -165,4 +165,28 @@ public partial class {{table.SchemaName}} : ExtendedEntity{{ if table.Interfaces
     {{~ end ~}}
     {{~ end ~}}
     {{~ end ~}}
+
+    /// <summary>
+    /// Gets the logical column name for a property on the {{table.SchemaName}} entity, using the AttributeLogicalNameAttribute if present.
+    /// </summary>
+    /// <param name="lambda">Expression to pick the column</param>
+    /// <returns>Name of column</returns>
+    /// <exception cref="ArgumentNullException">If no expression is provided</exception>
+    /// <exception cref="ArgumentException">If the expression is not x => x.column</exception>
+    public static string GetColumnName(Expression<Func<{{table.SchemaName}}, object>> lambda)
+    {
+        return TableAttributeHelpers.GetColumnName(lambda);
+    }
+
+    /// <summary>
+    /// Retrieves a {{table.SchemaName}} with the specified attributes.
+    /// </summary>
+    /// <param name="service">Organization service</param>
+    /// <param name="id">Id of {{table.SchemaName}} to retrieve</param>
+    /// <param name="attrs">Expressions that specify attributes to retrieve</param>
+    /// <returns>The retrieved {{table.SchemaName}}</returns>
+    public static {{table.SchemaName}} Retrieve(IOrganizationService service, Guid id, params Expression<Func<{{table.SchemaName}}, object>>[] attrs)
+    {
+        return service.Retrieve(id, attrs);
+    }
 }

@@ -8,6 +8,7 @@ using System.Linq.Expressions;
 using System.Runtime.Serialization;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Client;
+using Microsoft.Xrm.Sdk.Query;
 
 [assembly: ProxyTypesAssembly]
 

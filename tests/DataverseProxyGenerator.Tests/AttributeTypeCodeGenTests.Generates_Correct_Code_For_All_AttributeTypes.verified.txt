@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
+using System.Linq.Expressions;
 using System.Runtime.Serialization;
 using Microsoft.Xrm.Sdk.Client;
 
@@ -230,4 +231,28 @@ public partial class TestEntity : ExtendedEntity
         set => this.SetOptionSetValue("status", value);
     }
 
+
+    /// <summary>
+    /// Gets the logical column name for a property on the TestEntity entity, using the AttributeLogicalNameAttribute if present.
+    /// </summary>
+    /// <param name="lambda">Expression to pick the column</param>
+    /// <returns>Name of column</returns>
+    /// <exception cref="ArgumentNullException">If no expression is provided</exception>
+    /// <exception cref="ArgumentException">If the expression is not x => x.column</exception>
+    public static string GetColumnName(Expression<Func<TestEntity, object>> lambda)
+    {
+        return TableAttributeHelpers.GetColumnName(lambda);
+    }
+
+    /// <summary>
+    /// Retrieves a TestEntity with the specified attributes.
+    /// </summary>
+    /// <param name="service">Organization service</param>
+    /// <param name="id">Id of TestEntity to retrieve</param>
+    /// <param name="attrs">Expressions that specify attributes to retrieve</param>
+    /// <returns>The retrieved TestEntity</returns>
+    public static TestEntity Retrieve(IOrganizationService service, Guid id, params Expression<Func<TestEntity, object>>[] attrs)
+    {
+        return service.Retrieve(id, attrs);
+    }
 }

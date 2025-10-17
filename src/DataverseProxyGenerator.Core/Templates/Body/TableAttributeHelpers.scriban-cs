@@ -10,35 +10,28 @@ public static class TableAttributeHelpers
     /// <returns>Name of column</returns>
     /// <exception cref="ArgumentNullException">If no expression is provided</exception>
     /// <exception cref="ArgumentException">If the expression is not x => x.column</exception>
-    public static string GetColumnName<T>(this T entity, Expression<Func<T, object>> lambda)
+    public static string GetColumnName<T>(Expression<Func<T, object>> lambda)
         where T : Entity
     {
         if (lambda == null) throw new ArgumentNullException(nameof(lambda));
 
         MemberExpression? body = lambda.Body as MemberExpression;
-        if (body == null)
-        {
-            var ubody = lambda.Body as UnaryExpression;
-            if (ubody != null && ubody.Operand is MemberExpression)
-            {
-                body = ubody.Operand as MemberExpression;
-            }
-        }
 
         if (body == null)
-            throw new ArgumentException("Invalid lambda expression. Expression should point to a property.", nameof(lambda));
-
-        var member = body.Member;
-        var customAttributes = member.GetCustomAttributesData();
-        var neededAttribute = customAttributes.FirstOrDefault(x => x.AttributeType == typeof(AttributeLogicalNameAttribute));
-        if (neededAttribute != null)
         {
-            var arg = neededAttribute.ConstructorArguments.FirstOrDefault().Value;
-            if (arg != null)
-                return arg.ToString()!;
+            UnaryExpression ubody = (UnaryExpression)lambda.Body;
+            body = ubody.Operand as MemberExpression;
         }
 
-        return member.Name;
+        var attribute = body.Member.GetCustomAttributes(false)
+            .Where(x => x is AttributeLogicalNameAttribute)
+            .FirstOrDefault() as AttributeLogicalNameAttribute;
+
+        if (attribute == null)
+        {
+            return body.Member.Name;
+        }
+        return attribute.LogicalName;
     }
 
     /// <summary>
@@ -50,13 +43,13 @@ public static class TableAttributeHelpers
     /// <returns>Bool for whether all attributes are on the entity</returns>
     /// <exception cref="ArgumentNullException">If Entity is null</exception>
     public static bool ContainsAttributes<T>(this T entity, params Expression<Func<T, object>>[] attrGetters)
-        where T : Entity
+        where T : Microsoft.Xrm.Sdk.Entity
     {
-        if (entity == null) throw new ArgumentNullException(nameof(entity));
-        if (attrGetters == null || attrGetters.Length == 0) return false;
-        return attrGetters
-            .Select(a => entity.GetColumnName(a).ToLowerInvariant())
-            .All(a => entity.Contains(a));
+        if (attrGetters == null)
+        {
+            return true;
+        }
+        return attrGetters.Select(a => GetColumnName(a).ToLower()).All(a => entity.Contains(a));
     }
 
     /// <summary>
@@ -68,17 +61,39 @@ public static class TableAttributeHelpers
     /// <returns>Return true if any attributes were removed</returns>
     /// <exception cref="ArgumentNullException">If entity is null</exception>
     public static bool RemoveAttributes<T>(this T entity, params Expression<Func<T, object>>[] attrGetters)
-        where T : Entity
+        where T : Microsoft.Xrm.Sdk.Entity
     {
-        if (entity == null) throw new ArgumentNullException(nameof(entity));
-        if (attrGetters == null || attrGetters.Length == 0) return false;
-        bool anyRemoved = false;
-        foreach (var a in attrGetters)
+        if (attrGetters == null)
         {
-            var name = entity.GetColumnName(a).ToLowerInvariant();
-            anyRemoved |= entity.Attributes.Remove(name);
+            return false;
+        }
+        return attrGetters.Select(a => GetColumnName(a).ToLower()).Any(a => entity.Attributes.Remove(a));
+    }
+
+    /// <summary>
+    /// Retrieves an entity of type T with the specified attributes.
+    /// </summary>
+    /// <typeparam name="T">Type of Entity to retrieve</typeparam>
+    /// <param name="service">Organization service</param>
+    /// <param name="id">Id of entity to retrieve</param>
+    /// <param name="attrs">Expressions that specify attributes to retrieve</param>
+    /// <returns>The retrieved entity</returns>
+    public static T Retrieve<T>(this IOrganizationService service, Guid id, params Expression<Func<T, object>>[] attrs)
+        where T : Entity, new()
+    {
+        if (service == null) throw new ArgumentNullException(nameof(service));
+
+        var entity = new T();
+        var entityLogicalName = entity.LogicalName;
+
+        if (attrs == null || attrs.Length == 0)
+        {
+            return service.Retrieve(entityLogicalName, id, new ColumnSet(true)).ToEntity<T>();
         }
 
-        return anyRemoved;
+        var columnNames = attrs.Select(attr => GetColumnName(attr)).ToArray();
+        var columnSet = new ColumnSet(columnNames);
+
+        return service.Retrieve(entityLogicalName, id, columnSet).ToEntity<T>();
     }
 }
