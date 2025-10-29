@@ -12,5 +12,7 @@ public abstract record ColumnModel
 
     public bool IsObsolete { get; init; }
 
+    public bool IsReadOnly { get; init; }
+
     public string TypeName => GetType().Name;
 }

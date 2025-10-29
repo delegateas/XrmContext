@@ -43,8 +43,8 @@ public sealed class RetrieveMethodTests
         // Assert
         file.Should().NotBeNull();
         file!.Content.Should().Contain("using System.Linq.Expressions;");
-        file.Content.Should().Contain("public static Account Retrieve(IOrganizationService service, Guid id, params Expression<Func<Account, object>>[] attrs)");
-        file.Content.Should().Contain("return service.Retrieve(id, attrs);");
+        file.Content.Should().Contain("public static Account Retrieve(IOrganizationService service, Guid id, params Expression<Func<Account, object>>[] columns)");
+        file.Content.Should().Contain("return service.Retrieve(id, columns);");
     }
 
     [Fact]
@@ -88,12 +88,12 @@ public sealed class RetrieveMethodTests
         file.Content.Should().Contain("/// <summary>");
         file.Content.Should().Contain("/// Gets the logical column name for a property on the Account entity, using the AttributeLogicalNameAttribute if present.");
         file.Content.Should().Contain("/// </summary>");
-        file.Content.Should().Contain("/// <param name=\"lambda\">Expression to pick the column</param>");
+        file.Content.Should().Contain("/// <param name=\"columns\">Expressions that specify columns to retrieve</param>");
         file.Content.Should().Contain("/// <returns>Name of column</returns>");
         file.Content.Should().Contain("/// <exception cref=\"ArgumentNullException\">If no expression is provided</exception>");
         file.Content.Should().Contain("/// <exception cref=\"ArgumentException\">If the expression is not x => x.column</exception>");
-        file.Content.Should().Contain("public static string GetColumnName(Expression<Func<Account, object>> lambda)");
-        file.Content.Should().Contain("return TableAttributeHelpers.GetColumnName(lambda);");
+        file.Content.Should().Contain("public static string GetColumnName(Expression<Func<Account, object>> column)");
+        file.Content.Should().Contain("return TableAttributeHelpers.GetColumnName(column);");
     }
 
     [Fact]
@@ -136,7 +136,7 @@ public sealed class RetrieveMethodTests
         file!.Content.Should().Contain("using Microsoft.Xrm.Sdk.Query;");
         file.Content.Should().Contain("public static T Retrieve<T>(this IOrganizationService service, Guid id, params Expression<Func<T, object>>[] attrs)");
         file.Content.Should().Contain("where T : Entity, new()");
-        file.Content.Should().Contain("var columnNames = attrs.Select(attr => entity.GetColumnName(attr)).ToArray();");
+        file.Content.Should().Contain("var columnNames = attrs.Select(attr => GetColumnName(attr)).ToArray();");
         file.Content.Should().Contain("return service.Retrieve(entityLogicalName, id, columnSet).ToEntity<T>();");
     }
 }

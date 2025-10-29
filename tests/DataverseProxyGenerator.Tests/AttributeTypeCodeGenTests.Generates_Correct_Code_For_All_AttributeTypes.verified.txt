@@ -198,6 +198,19 @@ public partial class TestEntity : ExtendedEntity
     }
 
     /// <summary>
+    /// <para>Display Name: A ReadOnly Attribute</para>
+    /// <para>This column is managed and therefore read-only.</para>
+    /// </summary>
+    [AttributeLogicalName("readonlyattribute")]
+    [DisplayName("A ReadOnly Attribute")]
+    [MaxLength()]
+    public string ReadOnlyAttribute
+    {
+        get => GetAttributeValue<string>("readonlyattribute");
+
+    }
+
+    /// <summary>
     /// <para>Display Name: Revenue</para>
     /// </summary>
     [AttributeLogicalName("revenue")]
@@ -231,28 +244,39 @@ public partial class TestEntity : ExtendedEntity
         set => this.SetOptionSetValue("status", value);
     }
 
+    /// <summary>
+    /// <para>Display Name: Unique Identifier</para>
+    /// </summary>
+    [AttributeLogicalName("uniqueid")]
+    [DisplayName("Unique Identifier")]
+    public Guid? UniqueId
+    {
+        get => GetAttributeValue<Guid?>("uniqueid");
+        set => SetAttributeValue("uniqueid", value);
+    }
+
 
     /// <summary>
     /// Gets the logical column name for a property on the TestEntity entity, using the AttributeLogicalNameAttribute if present.
     /// </summary>
-    /// <param name="lambda">Expression to pick the column</param>
+    /// <param name="column">Expression to pick the column</param>
     /// <returns>Name of column</returns>
     /// <exception cref="ArgumentNullException">If no expression is provided</exception>
     /// <exception cref="ArgumentException">If the expression is not x => x.column</exception>
-    public static string GetColumnName(Expression<Func<TestEntity, object>> lambda)
+    public static string GetColumnName(Expression<Func<TestEntity, object>> column)
     {
-        return TableAttributeHelpers.GetColumnName(lambda);
+        return TableAttributeHelpers.GetColumnName(column);
     }
 
     /// <summary>
-    /// Retrieves a TestEntity with the specified attributes.
+    /// Retrieves the TestEntity with the specified columns.
     /// </summary>
     /// <param name="service">Organization service</param>
     /// <param name="id">Id of TestEntity to retrieve</param>
-    /// <param name="attrs">Expressions that specify attributes to retrieve</param>
+    /// <param name="columns">Expressions that specify columns to retrieve</param>
     /// <returns>The retrieved TestEntity</returns>
-    public static TestEntity Retrieve(IOrganizationService service, Guid id, params Expression<Func<TestEntity, object>>[] attrs)
+    public static TestEntity Retrieve(IOrganizationService service, Guid id, params Expression<Func<TestEntity, object>>[] columns)
     {
-        return service.Retrieve(id, attrs);
+        return service.Retrieve(id, columns);
     }
 }

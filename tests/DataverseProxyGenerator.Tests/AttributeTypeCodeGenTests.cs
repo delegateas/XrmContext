@@ -15,6 +15,7 @@ public class AttributeTypeCodeGenTests
             DisplayName = "Test Entity",
             Columns = new List<ColumnModel>
             {
+                new StringColumnModel { LogicalName = "readonlyattribute", SchemaName = "ReadOnlyAttribute", DisplayName = "A ReadOnly Attribute", IsReadOnly = true },
                 new StringColumnModel { LogicalName = "obsoleteattribute", SchemaName = "ObsoleteAttribute", DisplayName = "An Obsolete Attribute", IsObsolete = true },
                 new StringColumnModel { LogicalName = "name", SchemaName = "Name", DisplayName = "Name" },
                 new StringColumnModel { LogicalName = "prefix_pascalcasetest_withname", SchemaName = "prefix_pascalCaseTest_withName", DisplayName = "Pascal Test" },
@@ -49,6 +50,7 @@ public class AttributeTypeCodeGenTests
                     RelationshipName = "contact_account",
                 },
                 new PartyListColumnModel { LogicalName = "participants", SchemaName = "Participants", DisplayName = "Participants" },
+                new UniqueIdentifierColumnModel { LogicalName = "uniqueid", SchemaName = "UniqueId", DisplayName = "Unique Identifier" },
             },
         };
 
