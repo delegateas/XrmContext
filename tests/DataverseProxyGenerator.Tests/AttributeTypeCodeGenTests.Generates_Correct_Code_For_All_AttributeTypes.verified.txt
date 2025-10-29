@@ -116,6 +116,28 @@ public partial class TestEntity : ExtendedEntity
     }
 
     /// <summary>
+    /// <para>Display Name: A Managed Boolean Attribute</para>
+    /// </summary>
+    [AttributeLogicalName("managedbooleanattribute")]
+    [DisplayName("A Managed Boolean Attribute")]
+    public BooleanManagedProperty ManagedBooleanAttribute
+    {
+        get => GetAttributeValue<BooleanManagedProperty>("managedbooleanattribute");
+        set => SetAttributeValue("managedbooleanattribute", value);
+    }
+
+    /// <summary>
+    /// <para>Display Name: A Managed DateTime Attribute</para>
+    /// </summary>
+    [AttributeLogicalName("manageddatetimeattribute")]
+    [DisplayName("A Managed DateTime Attribute")]
+    public ManagedProperty<DateTime?> ManagedDateTimeAttribute
+    {
+        get => GetAttributeValue<ManagedProperty<DateTime?>>("manageddatetimeattribute");
+        set => SetAttributeValue("manageddatetimeattribute", value);
+    }
+
+    /// <summary>
     /// <para>Display Name: Name</para>
     /// </summary>
     [AttributeLogicalName("name")]
@@ -199,15 +221,13 @@ public partial class TestEntity : ExtendedEntity
 
     /// <summary>
     /// <para>Display Name: A ReadOnly Attribute</para>
-    /// <para>This column is managed and therefore read-only.</para>
     /// </summary>
     [AttributeLogicalName("readonlyattribute")]
     [DisplayName("A ReadOnly Attribute")]
-    [MaxLength()]
-    public string ReadOnlyAttribute
+    public ManagedProperty<string> ReadOnlyAttribute
     {
-        get => GetAttributeValue<string>("readonlyattribute");
-
+        get => GetAttributeValue<ManagedProperty<string>>("readonlyattribute");
+        set => SetAttributeValue("readonlyattribute", value);
     }
 
     /// <summary>

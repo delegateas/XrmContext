@@ -454,67 +454,40 @@ public class DataverseMetadataFetcher : IDataverseMetadataFetcher
         Description = ApplyLabelMapping(attr.Description?.UserLocalizedLabel?.Label ?? string.Empty),
     };
 
-    private ColumnModel? BuildManagedPropertyColumn(ManagedPropertyAttributeMetadata attr)
+    private ManagedColumnModel? BuildManagedPropertyColumn(ManagedPropertyAttributeMetadata attr)
     {
-        ColumnModel? column = attr.ValueAttributeTypeCode switch
+        return attr.ValueAttributeTypeCode switch
         {
-            AttributeTypeCode.Boolean => BuildBooleanColumn(new BooleanAttributeMetadata(attr.SchemaName)
-            {
-                LogicalName = attr.LogicalName,
-            }),
-            AttributeTypeCode.DateTime => BuildDateTimeColumn(new DateTimeAttributeMetadata(null, attr.SchemaName)
-            {
-                LogicalName = attr.LogicalName,
-            }),
-            AttributeTypeCode.Decimal => BuildDecimalColumn(new DecimalAttributeMetadata(attr.SchemaName)
-            {
-                LogicalName = attr.LogicalName,
-            }),
-            AttributeTypeCode.Double => BuildDoubleColumn(new DoubleAttributeMetadata(attr.SchemaName)
-            {
-                LogicalName = attr.LogicalName,
-            }),
-            AttributeTypeCode.Integer => BuildIntegerColumn(new IntegerAttributeMetadata(attr.SchemaName)
-            {
-                LogicalName = attr.LogicalName,
-            }),
-            AttributeTypeCode.BigInt => BuildBigIntColumn(new BigIntAttributeMetadata(attr.SchemaName)
-            {
-                LogicalName = attr.LogicalName,
-            }),
-            AttributeTypeCode.Lookup => BuildLookupColumn(new LookupAttributeMetadata
-            {
-                LogicalName = attr.LogicalName,
-                SchemaName = attr.SchemaName,
-            }),
-            AttributeTypeCode.Money => BuildMoneyColumn(new MoneyAttributeMetadata(attr.SchemaName)
-            {
-                LogicalName = attr.LogicalName,
-            }),
-            AttributeTypeCode.Memo => BuildMemoColumn(new MemoAttributeMetadata(attr.SchemaName)
-            {
-                LogicalName = attr.LogicalName,
-            }),
-            AttributeTypeCode.PartyList => BuildPartyListColumn(new LookupAttributeMetadata
-            {
-                LogicalName = attr.LogicalName,
-                SchemaName = attr.SchemaName,
-            }),
-            AttributeTypeCode.String => BuildStringColumn(new StringAttributeMetadata(attr.SchemaName)
-            {
-                LogicalName = attr.LogicalName,
-            }),
+            AttributeTypeCode.Boolean => BuildBooleanManagedColumnModel(attr),
+            AttributeTypeCode.DateTime => BuildManagedColumnModel(attr, "DateTime", nullable: true),
+            AttributeTypeCode.Decimal => BuildManagedColumnModel(attr, "decimal", nullable: true),
+            AttributeTypeCode.Double => BuildManagedColumnModel(attr, "double", nullable: true),
+            AttributeTypeCode.Integer => BuildManagedColumnModel(attr, "int", nullable: true),
+            AttributeTypeCode.BigInt => BuildManagedColumnModel(attr, "long", nullable: true),
+            AttributeTypeCode.Lookup => BuildManagedColumnModel(attr, "EntityReference", nullable: true),
+            AttributeTypeCode.Money => BuildManagedColumnModel(attr, "decimal", nullable: true),
+            AttributeTypeCode.Memo => BuildManagedColumnModel(attr, "string"),
+            AttributeTypeCode.PartyList => BuildManagedColumnModel(attr, "IEnumerable<ActivityParty>"),
+            AttributeTypeCode.String => BuildManagedColumnModel(attr, "string"),
             _ => null,
         };
-
-        if (column is null)
-            return column;
-
-        return column with
-        {
-            IsReadOnly = true,
-        };
     }
+
+    private ManagedColumnModel BuildManagedColumnModel(AttributeMetadata attr, string returnType, bool nullable = false) => new ManagedColumnModel(returnType, nullable)
+    {
+        LogicalName = attr.LogicalName,
+        SchemaName = attr.SchemaName,
+        DisplayName = ApplyLabelMapping(attr.DisplayName?.UserLocalizedLabel?.Label ?? attr.LogicalName),
+        Description = ApplyLabelMapping(attr.Description?.UserLocalizedLabel?.Label ?? string.Empty),
+    };
+
+    private BooleanManagedColumnModel BuildBooleanManagedColumnModel(AttributeMetadata attr) => new BooleanManagedColumnModel
+    {
+        LogicalName = attr.LogicalName,
+        SchemaName = attr.SchemaName,
+        DisplayName = ApplyLabelMapping(attr.DisplayName?.UserLocalizedLabel?.Label ?? attr.LogicalName),
+        Description = ApplyLabelMapping(attr.Description?.UserLocalizedLabel?.Label ?? string.Empty),
+    };
 
     private UniqueIdentifierColumnModel BuildUniqueIdentifierColumn(AttributeMetadata attr) => new UniqueIdentifierColumnModel
     {
