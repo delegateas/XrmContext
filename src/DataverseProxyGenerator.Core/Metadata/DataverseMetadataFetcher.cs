@@ -458,73 +458,62 @@ public class DataverseMetadataFetcher : IDataverseMetadataFetcher
     {
         ColumnModel? column = attr.ValueAttributeTypeCode switch
         {
-            AttributeTypeCode.Boolean => BuildBooleanColumn(new BooleanAttributeMetadata
+            AttributeTypeCode.Boolean => BuildBooleanColumn(new BooleanAttributeMetadata(attr.SchemaName)
             {
                 LogicalName = attr.LogicalName,
-                SchemaName = attr.SchemaName,
             }),
-            AttributeTypeCode.DateTime => BuildDateTimeColumn(new DateTimeAttributeMetadata
+            AttributeTypeCode.DateTime => BuildDateTimeColumn(new DateTimeAttributeMetadata(null, attr.SchemaName)
             {
                 LogicalName = attr.LogicalName,
-                SchemaName = attr.SchemaName,
             }),
-            AttributeTypeCode.Decimal => BuildDecimalColumn(new DecimalAttributeMetadata
+            AttributeTypeCode.Decimal => BuildDecimalColumn(new DecimalAttributeMetadata(attr.SchemaName)
             {
                 LogicalName = attr.LogicalName,
-                SchemaName = attr.SchemaName,
             }),
-            AttributeTypeCode.Double => BuildDoubleColumn(new DoubleAttributeMetadata
+            AttributeTypeCode.Double => BuildDoubleColumn(new DoubleAttributeMetadata(attr.SchemaName)
             {
                 LogicalName = attr.LogicalName,
-                SchemaName = attr.SchemaName,
             }),
-            AttributeTypeCode.Integer => BuildIntegerColumn(new IntegerAttributeMetadata
+            AttributeTypeCode.Integer => BuildIntegerColumn(new IntegerAttributeMetadata(attr.SchemaName)
             {
                 LogicalName = attr.LogicalName,
-                SchemaName = attr.SchemaName,
             }),
-            AttributeTypeCode.BigInt => BuildBigIntColumn(new BigIntAttributeMetadata
+            AttributeTypeCode.BigInt => BuildBigIntColumn(new BigIntAttributeMetadata(attr.SchemaName)
             {
                 LogicalName = attr.LogicalName,
-                SchemaName = attr.SchemaName,
             }),
             AttributeTypeCode.Lookup => BuildLookupColumn(new LookupAttributeMetadata
             {
                 LogicalName = attr.LogicalName,
                 SchemaName = attr.SchemaName,
             }),
-            AttributeTypeCode.Money => BuildMoneyColumn(new MoneyAttributeMetadata
+            AttributeTypeCode.Money => BuildMoneyColumn(new MoneyAttributeMetadata(attr.SchemaName)
             {
                 LogicalName = attr.LogicalName,
-                SchemaName = attr.SchemaName,
             }),
-            AttributeTypeCode.Memo => BuildMemoColumn(new MemoAttributeMetadata
+            AttributeTypeCode.Memo => BuildMemoColumn(new MemoAttributeMetadata(attr.SchemaName)
             {
                 LogicalName = attr.LogicalName,
-                SchemaName = attr.SchemaName,
             }),
             AttributeTypeCode.PartyList => BuildPartyListColumn(new LookupAttributeMetadata
             {
                 LogicalName = attr.LogicalName,
                 SchemaName = attr.SchemaName,
             }),
-            AttributeTypeCode.String => BuildStringColumn(new StringAttributeMetadata
+            AttributeTypeCode.String => BuildStringColumn(new StringAttributeMetadata(attr.SchemaName)
             {
                 LogicalName = attr.LogicalName,
-                SchemaName = attr.SchemaName,
             }),
             _ => null,
         };
 
-        if (column is not null)
-        {
-            column = column with
-            {
-                IsReadOnly = true,
-            };
-        }
+        if (column is null)
+            return column;
 
-        return column;
+        return column with
+        {
+            IsReadOnly = true,
+        };
     }
 
     private UniqueIdentifierColumnModel BuildUniqueIdentifierColumn(AttributeMetadata attr) => new UniqueIdentifierColumnModel
