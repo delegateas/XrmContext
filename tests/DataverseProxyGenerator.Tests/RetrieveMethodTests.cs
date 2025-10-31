@@ -139,4 +139,82 @@ public sealed class RetrieveMethodTests
         file.Content.Should().Contain("var columnNames = attrs.Select(attr => GetColumnName(attr)).ToArray();");
         file.Content.Should().Contain("return service.Retrieve(entityLogicalName, id, columnSet).ToEntity<T>();");
     }
+
+    [Fact]
+    public void EntityClass_ShouldGenerateAlternateKeyRetrieveMethods()
+    {
+        // Arrange
+        var table = new TableModel
+        {
+            SchemaName = "Account",
+            LogicalName = "account",
+            DisplayName = "Account",
+            Description = "Business account",
+            EntityTypeCode = 1,
+            PrimaryNameAttribute = "name",
+            PrimaryIdAttribute = "accountid",
+            IsIntersect = false,
+            Columns = new ColumnModel[]
+            {
+                new StringColumnModel
+                {
+                    SchemaName = "Name",
+                    LogicalName = "name",
+                    DisplayName = "Name",
+                    MaxLength = 100,
+                },
+                new IntegerColumnModel
+                {
+                    SchemaName = "AccountNumber",
+                    LogicalName = "new_accountnumber",
+                    DisplayName = "Account Number",
+                    Min = 0,
+                    Max = 999999,
+                },
+            },
+            Relationships = new List<RelationshipModel>(),
+            Keys = new List<AlternateKeyModel>
+            {
+                new AlternateKeyModel
+                {
+                    SchemaName = "ThisKey",
+                    DisplayName = "This Key",
+                    KeyAttributes = new List<ColumnModel>
+                    {
+                        new StringColumnModel
+                        {
+                            SchemaName = "Name",
+                            LogicalName = "name",
+                            DisplayName = "Name",
+                            MaxLength = 100,
+                        },
+                        new IntegerColumnModel
+                        {
+                            SchemaName = "AccountNumber",
+                            LogicalName = "new_accountnumber",
+                            DisplayName = "Account Number",
+                            Min = 0,
+                            Max = 999999,
+                        },
+                    },
+                },
+            },
+        };
+
+        var generator = new CSharpProxyGenerator();
+
+        // Act
+        var files = generator.GenerateCode(
+            new[] { table },
+            new XrmGenerationConfig("Output", "TestNamespace", "TestContextName", new Dictionary<string, IReadOnlyList<string>>(StringComparer.InvariantCulture).AsReadOnly()));
+        var file = files.FirstOrDefault(f => f.Filename.EndsWith("Account.cs", StringComparison.InvariantCulture));
+
+        // Assert
+        file.Should().NotBeNull();
+        file!.Content.Should().Contain("public static Account Retrieve_ThisKey(IOrganizationService service, string Name, int? AccountNumber, params Expression<Func<Account, object>>[] columns)");
+        file.Content.Should().Contain("var keyedEntityReference = new EntityReference(EntityLogicalName, \"ThisKey\", new KeyAttributeCollection");
+        file.Content.Should().Contain("[\"name\"] = Name,");
+        file.Content.Should().Contain("[\"new_accountnumber\"] = AccountNumber");
+        file.Content.Should().Contain("return service.Retrieve(keyedEntityReference, columns);");
+    }
 }

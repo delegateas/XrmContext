@@ -14,6 +14,15 @@ public static class ProxyClassMapper
 
         var processedColumns = ProcessColumnsWithClassNameConflictResolution(table.Columns, table.SchemaName);
 
+        if (table.SchemaName == "EnvironmentVariableDefinition") {
+            foreach (var key in table.Keys) {
+                Console.WriteLine(key.SchemaName);
+                foreach (var attr in key.KeyAttributes) {
+                    Console.WriteLine($"    {attr.SchemaName} : {attr.TypeName}");
+                }
+            }
+        }
+
         return new
         {
             SchemaName = table.SchemaName,
@@ -22,6 +31,7 @@ public static class ProxyClassMapper
             {
                 SchemaName = GenerationUtilities.SanitizeName(r.SchemaName),
             }),
+            Keys = table.Keys,
             LogicalName = table.LogicalName,
             DisplayName = table.DisplayName,
             Description = table.Description,

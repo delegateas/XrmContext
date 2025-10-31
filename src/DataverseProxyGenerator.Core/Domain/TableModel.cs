@@ -21,4 +21,6 @@ public record TableModel
     public IList<ColumnModel> Columns { get; init; } = [];
 
     public IList<RelationshipModel> Relationships { get; init; } = [];
+
+    public IList<AlternateKeyModel> Keys { get; init; } = [];
 }

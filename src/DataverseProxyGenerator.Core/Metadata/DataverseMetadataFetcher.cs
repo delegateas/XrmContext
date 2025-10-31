@@ -185,6 +185,7 @@ public class DataverseMetadataFetcher : IDataverseMetadataFetcher
             IsIntersect = entityMetadata.IsIntersect ?? false,
             Columns = new List<ColumnModel>(),
             Relationships = new List<RelationshipModel>(),
+            Keys = new List<AlternateKeyModel>(),
         };
 
         var validAttributes = entityMetadata.Attributes
@@ -203,6 +204,8 @@ public class DataverseMetadataFetcher : IDataverseMetadataFetcher
         AddPrimaryIdColumn(table, entityMetadata);
 
         MapRelationships(logicalNameToMetadata, entityMetadata, table);
+
+        MapAlternateKeys(entityMetadata, table);
 
         return table;
     }
@@ -578,6 +581,57 @@ public class DataverseMetadataFetcher : IDataverseMetadataFetcher
                 RelatedEntityAttribute = rel.Entity1IntersectAttribute,
                 RelatedEntitySchemaName = logicalNameToMetadata.TryGetValue(rel.Entity1LogicalName, out var relatedMetadata1) ? relatedMetadata1.SchemaName : "Entity",
             });
+        }
+    }
+
+    private static void MapAlternateKeys(EntityMetadata entityMetadata, TableModel table)
+    {
+        // Try to access Keys property through reflection if it exists
+        // This approach allows us to work even if the SDK version doesn't expose Keys directly
+        var keysProperty = entityMetadata.GetType().GetProperty("Keys");
+        if (keysProperty == null)
+            return;
+
+        var keys = keysProperty.GetValue(entityMetadata) as IEnumerable<object>;
+        if (keys == null)
+            return;
+
+        foreach (var key in keys)
+        {
+            var keyType = key.GetType();
+            var schemaNameProperty = keyType.GetProperty("SchemaName");
+            var displayNameProperty = keyType.GetProperty("DisplayName");
+            var keyAttributesProperty = keyType.GetProperty("KeyAttributes");
+
+            if (schemaNameProperty == null || keyAttributesProperty == null)
+                continue;
+
+            var schemaName = schemaNameProperty.GetValue(key) as string ?? string.Empty;
+            var displayName = (displayNameProperty?.GetValue(key) as Label)?.UserLocalizedLabel?.Label ?? string.Empty;
+            var keyAttributes = keyAttributesProperty.GetValue(key) as IEnumerable<string>;
+
+            if (keyAttributes == null)
+                continue;
+
+            var alternateKeyAttributes = new List<ColumnModel>();
+            foreach (var attrLogicalName in keyAttributes)
+            {
+                var attr = table.Columns.FirstOrDefault(a => a.LogicalName == attrLogicalName);
+                if (attr != null)
+                {
+                    alternateKeyAttributes.Add(attr);
+                }
+            }
+
+            if (alternateKeyAttributes.Count > 0)
+            {
+                table.Keys.Add(new AlternateKeyModel
+                {
+                    SchemaName = schemaName,
+                    DisplayName = displayName,
+                    KeyAttributes = alternateKeyAttributes,
+                });
+            }
         }
     }
 
