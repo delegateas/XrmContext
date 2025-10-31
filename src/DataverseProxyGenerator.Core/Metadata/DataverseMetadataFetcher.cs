@@ -220,6 +220,7 @@ public class DataverseMetadataFetcher : IDataverseMetadataFetcher
             DecimalAttributeMetadata decAttr => BuildDecimalColumn(decAttr),
             DoubleAttributeMetadata dblAttr => BuildDoubleColumn(dblAttr),
             MoneyAttributeMetadata moneyAttr => BuildMoneyColumn(moneyAttr),
+            EnumAttributeMetadata enumAttribute when enumAttribute.AttributeType == AttributeTypeCode.EntityName => BuildStringColumn(enumAttribute),
             EnumAttributeMetadata enumAttr => BuildEnumColumn(enumAttr),
             LookupAttributeMetadata lookupAttr when lookupAttr.AttributeType == AttributeTypeCode.PartyList => BuildPartyListColumn(lookupAttr),
             LookupAttributeMetadata lookupAttr => BuildLookupColumn(lookupAttr),
@@ -282,6 +283,14 @@ public class DataverseMetadataFetcher : IDataverseMetadataFetcher
         DisplayName = ApplyLabelMapping(attr.DisplayName?.UserLocalizedLabel?.Label ?? attr.LogicalName),
         Description = ApplyLabelMapping(attr.Description?.UserLocalizedLabel?.Label ?? string.Empty),
         MaxLength = attr.MaxLength,
+    };
+
+    private StringColumnModel BuildStringColumn(EnumAttributeMetadata attr) => new StringColumnModel
+    {
+        LogicalName = attr.LogicalName,
+        SchemaName = attr.SchemaName,
+        DisplayName = ApplyLabelMapping(attr.DisplayName?.UserLocalizedLabel?.Label ?? attr.LogicalName),
+        Description = ApplyLabelMapping(attr.Description?.UserLocalizedLabel?.Label ?? string.Empty),
     };
 
     private MemoColumnModel BuildMemoColumn(MemoAttributeMetadata attr) => new MemoColumnModel
