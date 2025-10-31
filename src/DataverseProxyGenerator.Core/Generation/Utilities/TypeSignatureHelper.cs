@@ -13,21 +13,24 @@ public static class TypeSignatureHelper
     {
         ArgumentNullException.ThrowIfNull(column);
 
-        return column.TypeName switch
+        return column switch
         {
-            "StringColumnModel" or "MemoColumnModel" => "string?",
-            "IntegerColumnModel" => "int?",
-            "BigIntColumnModel" => "long?",
-            "BooleanColumnModel" => "bool?",
-            "DateTimeColumnModel" => "DateTime?",
-            "DecimalColumnModel" => "decimal?",
-            "DoubleColumnModel" => "double?",
-            "MoneyColumnModel" => "decimal?",
-            "EnumColumnModel" => GetEnumTypeSignature((EnumColumnModel)column),
-            "LookupColumnModel" => "EntityReference?",
-            "PartyListColumnModel" => "IEnumerable<ActivityParty>",
-            "FileColumnModel" or "ImageColumnModel" => "byte[]",
-            "PrimaryIdColumnModel" => "Guid",
+            StringColumnModel or MemoColumnModel => "string?",
+            IntegerColumnModel => "int?",
+            BigIntColumnModel => "long?",
+            BooleanColumnModel => "bool?",
+            DateTimeColumnModel => "DateTime?",
+            DecimalColumnModel => "decimal?",
+            DoubleColumnModel => "double?",
+            MoneyColumnModel => "decimal?",
+            EnumColumnModel enumColumnModel => GetEnumTypeSignature(enumColumnModel),
+            LookupColumnModel => "EntityReference?",
+            PartyListColumnModel => "IEnumerable<ActivityParty>",
+            FileColumnModel or ImageColumnModel => "byte[]",
+            PrimaryIdColumnModel => "Guid",
+            BooleanManagedColumnModel => "BooleanManagedProperty",
+            ManagedColumnModel managedColumnModel => $"ManagedProperty<{managedColumnModel.FullReturnType}>",
+            UniqueIdentifierColumnModel => "Guid?",
             _ => "object",
         };
     }
