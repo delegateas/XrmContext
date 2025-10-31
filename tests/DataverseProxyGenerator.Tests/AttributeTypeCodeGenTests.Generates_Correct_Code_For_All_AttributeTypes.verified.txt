@@ -116,6 +116,28 @@ public partial class TestEntity : ExtendedEntity
     }
 
     /// <summary>
+    /// <para>Display Name: A Managed Boolean Attribute</para>
+    /// </summary>
+    [AttributeLogicalName("managedbooleanattribute")]
+    [DisplayName("A Managed Boolean Attribute")]
+    public BooleanManagedProperty ManagedBooleanAttribute
+    {
+        get => GetAttributeValue<BooleanManagedProperty>("managedbooleanattribute");
+        set => SetAttributeValue("managedbooleanattribute", value);
+    }
+
+    /// <summary>
+    /// <para>Display Name: A Managed DateTime Attribute</para>
+    /// </summary>
+    [AttributeLogicalName("manageddatetimeattribute")]
+    [DisplayName("A Managed DateTime Attribute")]
+    public ManagedProperty<DateTime?> ManagedDateTimeAttribute
+    {
+        get => GetAttributeValue<ManagedProperty<DateTime?>>("manageddatetimeattribute");
+        set => SetAttributeValue("manageddatetimeattribute", value);
+    }
+
+    /// <summary>
     /// <para>Display Name: Name</para>
     /// </summary>
     [AttributeLogicalName("name")]
@@ -198,6 +220,17 @@ public partial class TestEntity : ExtendedEntity
     }
 
     /// <summary>
+    /// <para>Display Name: A ReadOnly Attribute</para>
+    /// </summary>
+    [AttributeLogicalName("readonlyattribute")]
+    [DisplayName("A ReadOnly Attribute")]
+    public ManagedProperty<string> ReadOnlyAttribute
+    {
+        get => GetAttributeValue<ManagedProperty<string>>("readonlyattribute");
+        set => SetAttributeValue("readonlyattribute", value);
+    }
+
+    /// <summary>
     /// <para>Display Name: Revenue</para>
     /// </summary>
     [AttributeLogicalName("revenue")]
@@ -231,28 +264,39 @@ public partial class TestEntity : ExtendedEntity
         set => this.SetOptionSetValue("status", value);
     }
 
+    /// <summary>
+    /// <para>Display Name: Unique Identifier</para>
+    /// </summary>
+    [AttributeLogicalName("uniqueid")]
+    [DisplayName("Unique Identifier")]
+    public Guid? UniqueId
+    {
+        get => GetAttributeValue<Guid?>("uniqueid");
+        set => SetAttributeValue("uniqueid", value);
+    }
+
 
     /// <summary>
     /// Gets the logical column name for a property on the TestEntity entity, using the AttributeLogicalNameAttribute if present.
     /// </summary>
-    /// <param name="lambda">Expression to pick the column</param>
+    /// <param name="column">Expression to pick the column</param>
     /// <returns>Name of column</returns>
     /// <exception cref="ArgumentNullException">If no expression is provided</exception>
     /// <exception cref="ArgumentException">If the expression is not x => x.column</exception>
-    public static string GetColumnName(Expression<Func<TestEntity, object>> lambda)
+    public static string GetColumnName(Expression<Func<TestEntity, object>> column)
     {
-        return TableAttributeHelpers.GetColumnName(lambda);
+        return TableAttributeHelpers.GetColumnName(column);
     }
 
     /// <summary>
-    /// Retrieves a TestEntity with the specified attributes.
+    /// Retrieves the TestEntity with the specified columns.
     /// </summary>
     /// <param name="service">Organization service</param>
     /// <param name="id">Id of TestEntity to retrieve</param>
-    /// <param name="attrs">Expressions that specify attributes to retrieve</param>
+    /// <param name="columns">Expressions that specify columns to retrieve</param>
     /// <returns>The retrieved TestEntity</returns>
-    public static TestEntity Retrieve(IOrganizationService service, Guid id, params Expression<Func<TestEntity, object>>[] attrs)
+    public static TestEntity Retrieve(IOrganizationService service, Guid id, params Expression<Func<TestEntity, object>>[] columns)
     {
-        return service.Retrieve(id, attrs);
+        return service.Retrieve(id, columns);
     }
 }

@@ -130,6 +130,24 @@ public partial class {{table.SchemaName}} : ExtendedEntity{{ if table.Interfaces
         get => GetAttributeValue<byte[]>("{{column.LogicalName}}");
         set => SetAttributeValue("{{column.LogicalName}}", value);
     }
+    {{~ else if column.TypeName == "UniqueIdentifierColumnModel" ~}}
+    public Guid? {{column.SchemaName}}
+    {
+        get => GetAttributeValue<Guid?>("{{column.LogicalName}}");
+        set => SetAttributeValue("{{column.LogicalName}}", value);
+    }
+    {{~ else if column.TypeName == "BooleanManagedColumnModel" ~}}
+    public BooleanManagedProperty {{column.SchemaName}}
+    {
+        get => GetAttributeValue<BooleanManagedProperty>("{{column.LogicalName}}");
+        set => SetAttributeValue("{{column.LogicalName}}", value);
+    }
+    {{~ else if column.TypeName == "ManagedColumnModel" ~}}
+    public ManagedProperty<{{column.FullReturnType}}> {{column.SchemaName}}
+    {
+        get => GetAttributeValue<ManagedProperty<{{column.FullReturnType}}>>("{{column.LogicalName}}");
+        set => SetAttributeValue("{{column.LogicalName}}", value);
+    }
     {{~ else if column.TypeName == "PrimaryIdColumnModel" ~}}
     public Guid {{column.SchemaName}}
     {

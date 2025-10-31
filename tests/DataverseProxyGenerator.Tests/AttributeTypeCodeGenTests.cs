@@ -15,6 +15,9 @@ public class AttributeTypeCodeGenTests
             DisplayName = "Test Entity",
             Columns = new List<ColumnModel>
             {
+                new ManagedColumnModel("string", IsNullable: false) { LogicalName = "readonlyattribute", SchemaName = "ReadOnlyAttribute", DisplayName = "A ReadOnly Attribute" },
+                new BooleanManagedColumnModel { LogicalName = "managedbooleanattribute", SchemaName = "ManagedBooleanAttribute", DisplayName = "A Managed Boolean Attribute" },
+                new ManagedColumnModel("DateTime", IsNullable: true) { LogicalName = "manageddatetimeattribute", SchemaName = "ManagedDateTimeAttribute", DisplayName = "A Managed DateTime Attribute" },
                 new StringColumnModel { LogicalName = "obsoleteattribute", SchemaName = "ObsoleteAttribute", DisplayName = "An Obsolete Attribute", IsObsolete = true },
                 new StringColumnModel { LogicalName = "name", SchemaName = "Name", DisplayName = "Name" },
                 new StringColumnModel { LogicalName = "prefix_pascalcasetest_withname", SchemaName = "prefix_pascalCaseTest_withName", DisplayName = "Pascal Test" },
@@ -49,6 +52,7 @@ public class AttributeTypeCodeGenTests
                     RelationshipName = "contact_account",
                 },
                 new PartyListColumnModel { LogicalName = "participants", SchemaName = "Participants", DisplayName = "Participants" },
+                new UniqueIdentifierColumnModel { LogicalName = "uniqueid", SchemaName = "UniqueId", DisplayName = "Unique Identifier" },
             },
         };
 
