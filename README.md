@@ -1,0 +1,97 @@
+# XrmContext [![NuGet version](https://badge.fury.io/nu/Delegate.XrmContext.svg)](https://badge.fury.io/nu/Delegate.XrmContext)
+
+XrmContext generates early-bound .NET classes for Microsoft Dynamics 365/Dataverse entities. It's similar to CrmSvcUtil or pac modelbuilder but with enhanced features including smaller code files, filtering options, strongly-typed option sets, and helper methods.
+
+## Installation
+
+Install XrmContext as a local dotnet tool for your project:
+
+```bash
+# Initialize tool manifest (if not already done)
+dotnet new tool-manifest
+
+# Install XrmContext locally
+dotnet tool install xrmcontext
+
+# Other team members can restore the tool with:
+dotnet tool restore
+```
+
+## Configuration
+
+Create an `appsettings.json` file in the root of your repository with your XrmContext configuration:
+
+```json
+{
+  "XrmContext": {
+    "OutputDirectory": "./src/Dataverse",
+    "NamespaceSetting": "MyCompany.Dataverse",
+    "ServiceContextName": "DataverseContext",
+    // Entities and apis are fetched from the solution
+    "Solutions": ["MySolution"],
+    // Additional entities
+    "Entities": ["account", "contact", "opportunity"],
+    "DeprecatedPrefix": "ZZ_",
+    "SingleFile": false,
+    "GenerateCustomApis": true,
+    "IntersectMapping": {
+      "ICustomer": ["account", "contact"]
+    },
+    "LabelMapping": {
+      "\u2714\uFE0F": "checkmark"
+    }
+  }
+}
+```
+
+You'll also need to configure your Dataverse connection in the same file. See the [DataverseConnection documentation](https://www.nuget.org/packages/DataverseConnection/) for connection configuration options.
+
+## Usage
+
+Run the tool from your repository root:
+
+```bash
+dotnet xrmcontext
+```
+
+Override configuration with command-line arguments:
+
+```bash
+# Generate specific entities
+dotnet xrmcontext --entities account,contact,opportunity
+
+# Output to different directory
+dotnet xrmcontext --output ./generated
+
+# Filter by solution
+dotnet xrmcontext --solutions MySolution,AnotherSolution
+
+# Use a different namespace
+dotnet xrmcontext --namespace MyCompany.CRM
+```
+
+## Configuration Options
+
+| Option | Description | Required |
+|--------|-------------|----------|
+| `OutputDirectory` | Directory where generated files are written | Yes |
+| `NamespaceSetting` | Namespace for generated classes | No (default: "DataverseContext") |
+| `ServiceContextName` | Name of the service context class | No (default: "Xrm") |
+| `Solutions` | Array of solution names to filter entities | No |
+| `Entities` | Array of entity logical names to generate | No |
+| `DeprecatedPrefix` | Prefix for marking deprecated attributes | No |
+| `SingleFile` | Output all classes to a single file | No (default: false) |
+| `GenerateCustomApis` | Generate custom API classes | No (default: true) |
+| `IntersectMapping` | Map interfaces to entity types | No |
+| `LabelMapping` | Map unicode characters in labels | No |
+
+## Features
+
+- **Smaller code files** - More efficient code generation compared to CrmSvcUtil
+- **Flexible filtering** - Filter by solution or specific entities
+- **Strongly-typed option sets** - Option sets generated as enums
+- **Simplified attributes** - Direct access without `OptionSetValue` wrappers
+- **Helper methods** - Additional utility methods for entities and context
+- **Deprecation support** - Mark deprecated attributes with custom prefix
+- **Interface mapping** - Group entities under common interfaces
+- **DebuggerDisplay** - Better debugging experience with display attributes
