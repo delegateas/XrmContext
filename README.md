@@ -1,4 +1,4 @@
-# XrmContext [![NuGet version](https://badge.fury.io/nu/Delegate.XrmContext.svg)](https://badge.fury.io/nu/Delegate.XrmContext)
+# XrmContext [![NuGet version](https://badge.fury.io/nu/XrmContext.svg)](https://badge.fury.io/nu/XrmContext)
 
 XrmContext generates early-bound .NET classes for Microsoft Dynamics 365/Dataverse entities. It's similar to CrmSvcUtil or pac modelbuilder but with enhanced features including smaller code files, filtering options, strongly-typed option sets, and helper methods.
 
@@ -27,9 +27,7 @@ Create an `appsettings.json` file in the root of your repository with your XrmCo
     "OutputDirectory": "./src/Dataverse",
     "NamespaceSetting": "MyCompany.Dataverse",
     "ServiceContextName": "DataverseContext",
-    // Entities and apis are fetched from the solution
     "Solutions": ["MySolution"],
-    // Additional entities
     "Entities": ["account", "contact", "opportunity"],
     "DeprecatedPrefix": "ZZ_",
     "SingleFile": false,
@@ -72,18 +70,18 @@ dotnet xrmcontext --namespace MyCompany.CRM
 
 ## Configuration Options
 
-| Option | Description | Required |
-|--------|-------------|----------|
-| `OutputDirectory` | Directory where generated files are written | Yes |
-| `NamespaceSetting` | Namespace for generated classes | No (default: "DataverseContext") |
-| `ServiceContextName` | Name of the service context class | No (default: "Xrm") |
-| `Solutions` | Array of solution names to filter entities | No |
-| `Entities` | Array of entity logical names to generate | No |
-| `DeprecatedPrefix` | Prefix for marking deprecated attributes | No |
-| `SingleFile` | Output all classes to a single file | No (default: false) |
-| `GenerateCustomApis` | Generate custom API classes | No (default: true) |
-| `IntersectMapping` | Map interfaces to entity types | No |
-| `LabelMapping` | Map unicode characters in labels | No |
+| Option | Type | Description | Required |
+|--------|------|-------------|----------|
+| `OutputDirectory` | `string` | Directory where generated files are written | Yes |
+| `NamespaceSetting` | `string` | Namespace for generated classes | No (default: "DataverseContext") |
+| `ServiceContextName` | `string` | Name of the service context class | No (default: "Xrm") |
+| `Solutions` | `string[]` | Array of solution names. Entities and custom APIs are fetched from the solution | No |
+| `Entities` | `string[]` | Array of entity logical names to generate. Additional entities beyond those in Solutions | No |
+| `DeprecatedPrefix` | `string` | Prefix for marking deprecated attributes | No |
+| `SingleFile` | `bool` | Output all classes to a single file | No (default: false) |
+| `GenerateCustomApis` | `bool` | Generate custom API classes | No (default: true) |
+| `IntersectMapping` | `object` | Map interface names to arrays of entity logical names | No |
+| `LabelMapping` | `object` | Map unicode characters to readable strings in labels | No |
 
 ## Features
 
