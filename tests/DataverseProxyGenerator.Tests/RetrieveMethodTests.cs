@@ -211,8 +211,8 @@ public sealed class RetrieveMethodTests
 
         // Assert
         file.Should().NotBeNull();
-        file!.Content.Should().Contain("public static Account Retrieve_ThisKey(IOrganizationService service, string Name, int? AccountNumber, params Expression<Func<Account, object>>[] columns)");
-        file.Content.Should().Contain("var keyedEntityReference = new EntityReference(EntityLogicalName, \"ThisKey\", new KeyAttributeCollection");
+        file!.Content.Should().Contain("public static Account Retrieve_ThisKey(IOrganizationService service, string Name, int AccountNumber, params Expression<Func<Account, object>>[] columns)");
+        file.Content.Should().Contain("var keyedEntityReference = new EntityReference(EntityLogicalName, new KeyAttributeCollection");
         file.Content.Should().Contain("[\"name\"] = Name,");
         file.Content.Should().Contain("[\"new_accountnumber\"] = AccountNumber");
         file.Content.Should().Contain("return service.Retrieve(keyedEntityReference, columns);");
