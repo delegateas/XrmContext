@@ -44,7 +44,7 @@ public static class ProxyClassMapper
 
     private static IEnumerable<ColumnModel> ProcessColumnsWithNameConflictResolution(IEnumerable<ColumnModel> columns, string className)
     {
-        var usedNames = RestrictedAttributeNames;
+        var usedNames = new HashSet<string>(RestrictedAttributeNames, StringComparer.Ordinal);
         usedNames.Add(className);
 
         return columns.Select(c =>
