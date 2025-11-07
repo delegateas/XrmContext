@@ -6,40 +6,11 @@ namespace DataverseProxyGenerator.Core.Generation.Mappers;
 public static class ProxyClassMapper
 {
     /// <summary>
-    /// Non-virtual public members of Microsoft.Xrm.Sdk.Entity base class that would conflict with generated properties.
-    /// These CANNOT be overridden and must be renamed if a column has the same name.
-    /// Note: Virtual members like "Id" are NOT included here as they can be overridden without conflict.
+    /// The list is limited to properties where collisions have been identified.
     /// </summary>
-    private static readonly HashSet<string> EntityBaseClassNonVirtualMembers = new(StringComparer.Ordinal)
+    private static readonly HashSet<string> RestrictedAttributeNames = new(StringComparer.Ordinal)
     {
-        // Non-virtual properties from Entity class
-        "Attributes",
-        "EntityState",
-        "ExtensionData",
-        "FormattedValues",
-        "KeyAttributes",
-        "LogicalName",
-        "RelatedEntities",
-        "RowVersion",
-        "HasLazyFileAttribute",
-        "LazyFileAttributeKey",
-        "LazyFileAttributeValue",
-        "LazyFileSizeAttributeKey",
-        "LazyFileSizeAttributeValue",
-
-        // Methods from Entity class (properties should not use these names either)
-        "Contains",
-        "GetAttributeValue",
-        "GetFormattedAttributeValue",
-        "GetRelatedEntities",
-        "GetRelatedEntity",
-        "SetAttributeValue",
-        "SetRelatedEntities",
-        "SetRelatedEntity",
-        "ToEntity",
-        "ToEntityReference",
-        "TryGetAttributeValue",
-        "ShallowCopyTo",
+        "Attributes", // Collision on SdkMessageProcessingStepImage
     };
 
     public static object MapToTemplateModel((TableModel Table, IReadOnlyList<string> Interfaces) input, GenerationContext context)
@@ -49,19 +20,7 @@ public static class ProxyClassMapper
 
         var (table, interfaces) = input;
 
-        var processedColumns = ProcessColumnsWithClassNameConflictResolution(table.Columns, table.SchemaName);
-
-        if (table.SchemaName == "EnvironmentVariableDefinition")
-        {
-            foreach (var key in table.Keys)
-            {
-                Console.WriteLine(key.SchemaName);
-                foreach (var attr in key.KeyAttributes)
-                {
-                    Console.WriteLine($"    {attr.SchemaName} : {attr.TypeName}");
-                }
-            }
-        }
+        var processedColumns = ProcessColumnsWithNameConflictResolution(table.Columns, table.SchemaName);
 
         return new
         {
@@ -83,9 +42,10 @@ public static class ProxyClassMapper
         };
     }
 
-    private static IEnumerable<ColumnModel> ProcessColumnsWithClassNameConflictResolution(IEnumerable<ColumnModel> columns, string className)
+    private static IEnumerable<ColumnModel> ProcessColumnsWithNameConflictResolution(IEnumerable<ColumnModel> columns, string className)
     {
-        var usedNames = new HashSet<string>(StringComparer.Ordinal);
+        var usedNames = RestrictedAttributeNames;
+        usedNames.Add(className);
 
         return columns.Select(c =>
         {
@@ -102,28 +62,15 @@ public static class ProxyClassMapper
                 },
             };
 
-            var finalName = sanitizedColumn.SchemaName;
-
-            // Check if sanitized schema name conflicts with class name (case-sensitive)
-            if (string.Equals(finalName, className, StringComparison.Ordinal))
-            {
-                finalName = $"{finalName}_1";
-            }
-
-            // Check if name conflicts with non-virtual Entity base class members (case-sensitive)
-            // Virtual members can be overridden, so they don't cause conflicts
-            if (EntityBaseClassNonVirtualMembers.Contains(finalName))
-            {
-                finalName = $"{finalName}_1";
-            }
+            var defaultName = sanitizedColumn.SchemaName;
 
             // Ensure the final name is unique (handle edge case where _1 suffix also conflicts)
-            var candidateName = finalName;
-            var suffix = 1;
+            var candidateName = defaultName;
+            var suffix = 0;
             while (usedNames.Contains(candidateName))
             {
                 suffix++;
-                candidateName = $"{finalName}_{suffix}";
+                candidateName = $"{defaultName}_{suffix}";
             }
 
             usedNames.Add(candidateName);

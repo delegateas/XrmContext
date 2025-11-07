@@ -169,25 +169,11 @@ public sealed class ProxyClassMapperTests
             {
                 new StringColumnModel
                 {
-                    SchemaName = "Attributes", // Conflicts with Entity.Attributes (non-virtual)
+                    SchemaName = "Attributes", // Conflicts with Entity.Attributes
                     LogicalName = "attributes",
                     DisplayName = "Attributes",
                     MaxLength = 100,
                 },
-                new StringColumnModel
-                {
-                    SchemaName = "Id", // Does NOT conflict - Entity.Id is virtual and can be overridden
-                    LogicalName = "id",
-                    DisplayName = "Id",
-                    MaxLength = 100,
-                },
-                new StringColumnModel
-                {
-                    SchemaName = "LogicalName", // Conflicts with Entity.LogicalName (non-virtual)
-                    LogicalName = "logicalname",
-                    DisplayName = "Logical Name",
-                    MaxLength = 100,
-                },
             },
             Relationships = new List<RelationshipModel>(),
         };
@@ -199,56 +185,8 @@ public sealed class ProxyClassMapperTests
         var resultColumns = GetColumnsFromResult(result);
 
         // Assert
-        Assert.Equal(3, resultColumns.Count);
+        Assert.Single(resultColumns);
         Assert.Contains(resultColumns, c => c.SchemaName == "Attributes_1"); // Renamed due to conflict
-        Assert.Contains(resultColumns, c => c.SchemaName == "Id"); // NOT renamed - virtual property can be overridden
-        Assert.Contains(resultColumns, c => c.SchemaName == "LogicalName_1"); // Renamed due to conflict
-    }
-
-    [Fact]
-    public void MapToTemplateModel_WithEntityBaseClassMethodConflicts_AppendsUnderscoreOne()
-    {
-        // Arrange
-        var table = new TableModel
-        {
-            SchemaName = "TestEntity",
-            LogicalName = "testentity",
-            DisplayName = "Test Entity",
-            Description = "Test entity",
-            EntityTypeCode = 10001,
-            PrimaryNameAttribute = "name",
-            PrimaryIdAttribute = "testentityid",
-            IsIntersect = false,
-            Columns = new ColumnModel[]
-            {
-                new StringColumnModel
-                {
-                    SchemaName = "Contains", // Conflicts with Entity.Contains method
-                    LogicalName = "contains",
-                    DisplayName = "Contains",
-                    MaxLength = 100,
-                },
-                new StringColumnModel
-                {
-                    SchemaName = "ToEntity", // Conflicts with Entity.ToEntity method
-                    LogicalName = "toentity",
-                    DisplayName = "To Entity",
-                    MaxLength = 100,
-                },
-            },
-            Relationships = new List<RelationshipModel>(),
-        };
-
-        var context = CreateTestContext();
-
-        // Act
-        var result = ProxyClassMapper.MapToTemplateModel((table, new List<string>()), context);
-        var resultColumns = GetColumnsFromResult(result);
-
-        // Assert
-        Assert.Equal(2, resultColumns.Count);
-        Assert.Contains(resultColumns, c => c.SchemaName == "Contains_1");
-        Assert.Contains(resultColumns, c => c.SchemaName == "ToEntity_1");
     }
 
     [Fact]
@@ -306,44 +244,6 @@ public sealed class ProxyClassMapperTests
     }
 
     [Fact]
-    public void MapToTemplateModel_WithVirtualEntityBaseClassProperty_DoesNotRename()
-    {
-        // Arrange
-        var table = new TableModel
-        {
-            SchemaName = "TestEntity",
-            LogicalName = "testentity",
-            DisplayName = "Test Entity",
-            Description = "Test entity",
-            EntityTypeCode = 10001,
-            PrimaryNameAttribute = "name",
-            PrimaryIdAttribute = "testentityid",
-            IsIntersect = false,
-            Columns = new ColumnModel[]
-            {
-                new StringColumnModel
-                {
-                    SchemaName = "Id", // Entity.Id is virtual - can be overridden, should NOT be renamed
-                    LogicalName = "id",
-                    DisplayName = "Id",
-                    MaxLength = 100,
-                },
-            },
-            Relationships = new List<RelationshipModel>(),
-        };
-
-        var context = CreateTestContext();
-
-        // Act
-        var result = ProxyClassMapper.MapToTemplateModel((table, new List<string>()), context);
-        var resultColumns = GetColumnsFromResult(result);
-
-        // Assert
-        Assert.Single(resultColumns);
-        Assert.Contains(resultColumns, c => c.SchemaName == "Id"); // NOT renamed - virtual property
-    }
-
-    [Fact]
     public void MapToTemplateModel_WithMultipleConflictTypes_AppliesAllRenames()
     {
         // Arrange
@@ -368,7 +268,7 @@ public sealed class ProxyClassMapperTests
                 },
                 new StringColumnModel
                 {
-                    SchemaName = "Attributes", // Conflicts with Entity base class (non-virtual)
+                    SchemaName = "Attributes", // Conflicts with Entity base class
                     LogicalName = "attributes",
                     DisplayName = "Attributes",
                     MaxLength = 100,
