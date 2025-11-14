@@ -30,7 +30,10 @@ public static class ProxyClassMapper
             {
                 SchemaName = GenerationUtilities.SanitizeName(r.SchemaName),
             }),
-            Keys = table.Keys,
+            Keys = table.Keys.Select(k => k with
+            {
+                SchemaName = GenerationUtilities.SanitizeName(k.SchemaName),
+            }),
             LogicalName = table.LogicalName,
             DisplayName = table.DisplayName,
             Description = table.Description,
