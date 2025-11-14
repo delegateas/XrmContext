@@ -151,6 +151,152 @@ public sealed class ProxyClassMapperTests
         Assert.Contains(resultColumns, c => c.SchemaName == "testentity");
     }
 
+    [Fact]
+    public void MapToTemplateModel_WithEntityBaseClassPropertyConflicts_AppendsUnderscoreOne()
+    {
+        // Arrange
+        var table = new TableModel
+        {
+            SchemaName = "TestEntity",
+            LogicalName = "testentity",
+            DisplayName = "Test Entity",
+            Description = "Test entity",
+            EntityTypeCode = 10001,
+            PrimaryNameAttribute = "name",
+            PrimaryIdAttribute = "testentityid",
+            IsIntersect = false,
+            Columns = new ColumnModel[]
+            {
+                new StringColumnModel
+                {
+                    SchemaName = "Attributes", // Conflicts with Entity.Attributes
+                    LogicalName = "attributes",
+                    DisplayName = "Attributes",
+                    MaxLength = 100,
+                },
+            },
+            Relationships = new List<RelationshipModel>(),
+        };
+
+        var context = CreateTestContext();
+
+        // Act
+        var result = ProxyClassMapper.MapToTemplateModel((table, new List<string>()), context);
+        var resultColumns = GetColumnsFromResult(result);
+
+        // Assert
+        Assert.Single(resultColumns);
+        Assert.Contains(resultColumns, c => c.SchemaName == "Attributes_1"); // Renamed due to conflict
+    }
+
+    [Fact]
+    public void MapToTemplateModel_WithCaseSensitiveEntityBaseClassConflict_OnlyRenamesNonVirtualExactMatch()
+    {
+        // Arrange
+        var table = new TableModel
+        {
+            SchemaName = "TestEntity",
+            LogicalName = "testentity",
+            DisplayName = "Test Entity",
+            Description = "Test entity",
+            EntityTypeCode = 10001,
+            PrimaryNameAttribute = "name",
+            PrimaryIdAttribute = "testentityid",
+            IsIntersect = false,
+            Columns = new ColumnModel[]
+            {
+                new StringColumnModel
+                {
+                    SchemaName = "Attributes", // Exact match with non-virtual property - should be renamed
+                    LogicalName = "attributes",
+                    DisplayName = "Attributes",
+                    MaxLength = 100,
+                },
+                new StringColumnModel
+                {
+                    SchemaName = "attributes", // Different case - no conflict
+                    LogicalName = "attributes_lower",
+                    DisplayName = "attributes lower",
+                    MaxLength = 100,
+                },
+                new StringColumnModel
+                {
+                    SchemaName = "ATTRIBUTES", // Different case - no conflict
+                    LogicalName = "attributes_upper",
+                    DisplayName = "ATTRIBUTES upper",
+                    MaxLength = 100,
+                },
+            },
+            Relationships = new List<RelationshipModel>(),
+        };
+
+        var context = CreateTestContext();
+
+        // Act
+        var result = ProxyClassMapper.MapToTemplateModel((table, new List<string>()), context);
+        var resultColumns = GetColumnsFromResult(result);
+
+        // Assert
+        Assert.Equal(3, resultColumns.Count);
+        Assert.Contains(resultColumns, c => c.SchemaName == "Attributes_1"); // Exact match renamed
+        Assert.Contains(resultColumns, c => c.SchemaName == "attributes"); // Different case kept
+        Assert.Contains(resultColumns, c => c.SchemaName == "ATTRIBUTES"); // Different case kept
+    }
+
+    [Fact]
+    public void MapToTemplateModel_WithMultipleConflictTypes_AppliesAllRenames()
+    {
+        // Arrange
+        var table = new TableModel
+        {
+            SchemaName = "Account",
+            LogicalName = "account",
+            DisplayName = "Account",
+            Description = "Test account",
+            EntityTypeCode = 1,
+            PrimaryNameAttribute = "name",
+            PrimaryIdAttribute = "accountid",
+            IsIntersect = false,
+            Columns = new ColumnModel[]
+            {
+                new StringColumnModel
+                {
+                    SchemaName = "Account", // Conflicts with class name
+                    LogicalName = "account_field",
+                    DisplayName = "Account Field",
+                    MaxLength = 100,
+                },
+                new StringColumnModel
+                {
+                    SchemaName = "Attributes", // Conflicts with Entity base class
+                    LogicalName = "attributes",
+                    DisplayName = "Attributes",
+                    MaxLength = 100,
+                },
+                new StringColumnModel
+                {
+                    SchemaName = "Name", // No conflict
+                    LogicalName = "name",
+                    DisplayName = "Name",
+                    MaxLength = 100,
+                },
+            },
+            Relationships = new List<RelationshipModel>(),
+        };
+
+        var context = CreateTestContext();
+
+        // Act
+        var result = ProxyClassMapper.MapToTemplateModel((table, new List<string>()), context);
+        var resultColumns = GetColumnsFromResult(result);
+
+        // Assert
+        Assert.Equal(3, resultColumns.Count);
+        Assert.Contains(resultColumns, c => c.SchemaName == "Account_1"); // Class name conflict
+        Assert.Contains(resultColumns, c => c.SchemaName == "Attributes_1"); // Base class conflict (non-virtual)
+        Assert.Contains(resultColumns, c => c.SchemaName == "Name"); // No conflict
+    }
+
     private static GenerationContext CreateTestContext()
     {
         return new GenerationContext

@@ -5,6 +5,14 @@ namespace DataverseProxyGenerator.Core.Generation.Mappers;
 
 public static class ProxyClassMapper
 {
+    /// <summary>
+    /// The list is limited to properties where collisions have been identified.
+    /// </summary>
+    private static readonly HashSet<string> RestrictedAttributeNames = new(StringComparer.Ordinal)
+    {
+        "Attributes", // Collision on SdkMessageProcessingStepImage
+    };
+
     public static object MapToTemplateModel((TableModel Table, IReadOnlyList<string> Interfaces) input, GenerationContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -12,16 +20,7 @@ public static class ProxyClassMapper
 
         var (table, interfaces) = input;
 
-        var processedColumns = ProcessColumnsWithClassNameConflictResolution(table.Columns, table.SchemaName);
-
-        if (table.SchemaName == "EnvironmentVariableDefinition") {
-            foreach (var key in table.Keys) {
-                Console.WriteLine(key.SchemaName);
-                foreach (var attr in key.KeyAttributes) {
-                    Console.WriteLine($"    {attr.SchemaName} : {attr.TypeName}");
-                }
-            }
-        }
+        var processedColumns = ProcessColumnsWithNameConflictResolution(table.Columns, table.SchemaName);
 
         return new
         {
@@ -43,8 +42,11 @@ public static class ProxyClassMapper
         };
     }
 
-    private static IEnumerable<ColumnModel> ProcessColumnsWithClassNameConflictResolution(IEnumerable<ColumnModel> columns, string className)
+    private static IEnumerable<ColumnModel> ProcessColumnsWithNameConflictResolution(IEnumerable<ColumnModel> columns, string className)
     {
+        var usedNames = new HashSet<string>(RestrictedAttributeNames, StringComparer.Ordinal);
+        usedNames.Add(className);
+
         return columns.Select(c =>
         {
             var sanitizedColumn = c switch
@@ -60,14 +62,20 @@ public static class ProxyClassMapper
                 },
             };
 
-            // Check if sanitized schema name conflicts with class name (case-sensitive)
-            if (string.Equals(sanitizedColumn.SchemaName, className, StringComparison.Ordinal))
+            var defaultName = sanitizedColumn.SchemaName;
+
+            // Ensure the final name is unique (handle edge case where _1 suffix also conflicts)
+            var candidateName = defaultName;
+            var suffix = 0;
+            while (usedNames.Contains(candidateName))
             {
-                var finalName = $"{sanitizedColumn.SchemaName}_1";
-                return sanitizedColumn with { SchemaName = finalName };
+                suffix++;
+                candidateName = $"{defaultName}_{suffix}";
             }
 
-            return sanitizedColumn;
+            usedNames.Add(candidateName);
+
+            return sanitizedColumn with { SchemaName = candidateName };
         });
     }
 }
