@@ -59,6 +59,7 @@ public class AttributeTypeCodeGenTests
         var generator = new CSharpProxyGenerator();
         var files = generator.GenerateCode(
             new[] { table },
+            Enumerable.Empty<CustomApiModel>(),
             new XrmGenerationConfig("Output", "TestNamespace", "TestContextName", new Dictionary<string, IReadOnlyList<string>>(StringComparer.InvariantCulture).AsReadOnly()));
         var file = files.FirstOrDefault(f => f.Filename.EndsWith("TestEntity.cs", StringComparison.InvariantCulture));
 

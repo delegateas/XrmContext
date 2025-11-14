@@ -36,7 +36,7 @@ public class CSharpProxyGenerator : ICodeGenerator
         return version?.ToString() ?? "1.0.0.0";
     }
 
-    public IEnumerable<GeneratedFile> GenerateCode(IEnumerable<TableModel> tables, XrmGenerationConfig config)
+    public IEnumerable<GeneratedFile> GenerateCode(IEnumerable<TableModel> tables, IEnumerable<CustomApiModel> customApis, XrmGenerationConfig config)
     {
         ArgumentNullException.ThrowIfNull(tables);
         ArgumentNullException.ThrowIfNull(config);
@@ -44,6 +44,7 @@ public class CSharpProxyGenerator : ICodeGenerator
         var context = CreateGenerationContext(config);
         var tablesList = tables.ToList();
         var (interfaceColumns, tableToInterfaces) = PrepareIntersectionData(tablesList, config);
+        var customApiList = config.GenerateCustomApis ? customApis.ToList() : new List<CustomApiModel>();
 
         if (config.SingleFile)
         {
@@ -55,10 +56,10 @@ public class CSharpProxyGenerator : ICodeGenerator
                 kvp => kvp.Key,
                 kvp => (IReadOnlyList<string>)kvp.Value,
                 StringComparer.InvariantCulture);
-            return singleFileGenerator.Generate((tablesList, interfaceColumnsReadOnly, tableToInterfacesReadOnly), context);
+            return singleFileGenerator.Generate((tablesList, interfaceColumnsReadOnly, tableToInterfacesReadOnly, customApiList), context);
         }
 
-        return GenerateMultipleFiles(tablesList, interfaceColumns, tableToInterfaces, context);
+        return GenerateMultipleFiles(tablesList, interfaceColumns, tableToInterfaces, customApiList, context);
     }
 
     private GenerationContext CreateGenerationContext(XrmGenerationConfig config)
@@ -85,6 +86,7 @@ public class CSharpProxyGenerator : ICodeGenerator
         List<TableModel> tablesList,
         Dictionary<string, HashSet<ColumnSignature>> interfaceColumns,
         Dictionary<string, List<string>> tableToInterfaces,
+        IEnumerable<CustomApiModel> customApiList,
         GenerationContext context)
     {
         var files = new List<GeneratedFile>();
@@ -120,6 +122,12 @@ public class CSharpProxyGenerator : ICodeGenerator
         files.AddRange(helperFileGenerator.Generate("RelationshipMetadataAttribute", context));
         files.AddRange(helperFileGenerator.Generate("TableAttributeHelpers", context));
         files.AddRange(helperFileGenerator.Generate("ExtendedEntity", context));
+
+        // Generate custom API request/response classes
+        foreach (var customApi in customApiList)
+        {
+            files.AddRange(customApiGenerator.Generate(customApi, context));
+        }
 
         foreach (var file in files)
             yield return file;
@@ -187,31 +195,5 @@ public class CSharpProxyGenerator : ICodeGenerator
         }
 
         return (interfaceColumns, tableToInterfaces);
-    }
-
-    public IEnumerable<GeneratedFile> GenerateCustomApiCode(IEnumerable<CustomApiModel> customApis, XrmGenerationConfig config)
-    {
-        ArgumentNullException.ThrowIfNull(customApis);
-        ArgumentNullException.ThrowIfNull(config);
-
-        var files = new List<GeneratedFile>();
-        var version = GetAssemblyVersion();
-
-        var context = new GenerationContext
-        {
-            Namespace = config.NamespaceSetting ?? "DataverseContext",
-            Version = version,
-            Templates = templateProvider,
-            ServiceContextName = config.ServiceContextName,
-            IntersectMapping = config.IntersectMapping,
-        };
-
-        // Generate custom API request/response classes
-        foreach (var customApi in customApis)
-        {
-            files.AddRange(customApiGenerator.Generate(customApi, context));
-        }
-
-        return files;
     }
 }

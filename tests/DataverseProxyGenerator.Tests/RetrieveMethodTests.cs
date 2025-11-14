@@ -37,6 +37,7 @@ public sealed class RetrieveMethodTests
         // Act
         var files = generator.GenerateCode(
             new[] { table },
+            Enumerable.Empty<CustomApiModel>(),
             new XrmGenerationConfig("Output", "TestNamespace", "TestContextName", new Dictionary<string, IReadOnlyList<string>>(StringComparer.InvariantCulture).AsReadOnly()));
         var file = files.FirstOrDefault(f => f.Filename.EndsWith("Account.cs", StringComparison.InvariantCulture));
 
@@ -79,6 +80,7 @@ public sealed class RetrieveMethodTests
         // Act
         var files = generator.GenerateCode(
             new[] { table },
+            Enumerable.Empty<CustomApiModel>(),
             new XrmGenerationConfig("Output", "TestNamespace", "TestContextName", new Dictionary<string, IReadOnlyList<string>>(StringComparer.InvariantCulture).AsReadOnly()));
         var file = files.FirstOrDefault(f => f.Filename.EndsWith("Account.cs", StringComparison.InvariantCulture));
 
@@ -128,6 +130,7 @@ public sealed class RetrieveMethodTests
         // Act
         var files = generator.GenerateCode(
             new[] { table },
+            Enumerable.Empty<CustomApiModel>(),
             new XrmGenerationConfig("Output", "TestNamespace", "TestContextName", new Dictionary<string, IReadOnlyList<string>>(StringComparer.InvariantCulture).AsReadOnly()));
         var file = files.FirstOrDefault(f => f.Filename.EndsWith("TableAttributeHelpers.cs", StringComparison.InvariantCulture));
 
@@ -206,6 +209,7 @@ public sealed class RetrieveMethodTests
         // Act
         var files = generator.GenerateCode(
             new[] { table },
+            Enumerable.Empty<CustomApiModel>(),
             new XrmGenerationConfig("Output", "TestNamespace", "TestContextName", new Dictionary<string, IReadOnlyList<string>>(StringComparer.InvariantCulture).AsReadOnly()));
         var file = files.FirstOrDefault(f => f.Filename.EndsWith("Account.cs", StringComparison.InvariantCulture));
 

@@ -119,20 +119,16 @@ internal static class Program
             logger.LogInformation("Fetching Dataverse metadata...");
             var fetcher = metadataFactory.CreateFetcher(MetadataSourceType.Dataverse, config.Fetch);
             var tables = await fetcher.FetchMetadataAsync();
+            var customApis = Enumerable.Empty<Core.Domain.CustomApiModel>();
 
-            logger.LogInformation("Generating proxy classes and intersection interfaces...");
-            var files = generator.GenerateCode(tables, config.Generation).ToList();
-
-            // Generate custom APIs if enabled
             if (config.Generation.GenerateCustomApis)
             {
                 logger.LogInformation("Fetching custom API metadata...");
-                var customApis = await fetcher.FetchCustomApisAsync();
-
-                logger.LogInformation("Generating custom API classes...");
-                var customApiFiles = generator.GenerateCustomApiCode(customApis, config.Generation);
-                files.AddRange(customApiFiles);
+                customApis = await fetcher.FetchCustomApisAsync();
             }
+
+            logger.LogInformation("Generating proxy classes and intersection interfaces...");
+            var files = generator.GenerateCode(tables, customApis, config.Generation).ToList();
 
             logger.LogInformation("Writing files to {OutputDirectory}...", config.Generation.OutputDirectory);
             writer.WriteFiles(files, config.Generation.OutputDirectory);

@@ -44,7 +44,7 @@ public sealed class SingleFileTemplateTests
         var generator = new CSharpProxyGenerator();
 
         // Act
-        var singleFileResults = generator.GenerateCode(tables, config).ToList();
+        var singleFileResults = generator.GenerateCode(tables, Enumerable.Empty<CustomApiModel>(), config).ToList();
 
         // Test with multiple file generation for comparison
         var multiFileConfig = new XrmGenerationConfig(
@@ -55,7 +55,7 @@ public sealed class SingleFileTemplateTests
             SingleFile: false,
             GenerateCustomApis: false);
 
-        var multiFileResults = generator.GenerateCode(tables, multiFileConfig).ToList();
+        var multiFileResults = generator.GenerateCode(tables, Enumerable.Empty<CustomApiModel>(), multiFileConfig).ToList();
 
         // Assert
         Assert.Single(singleFileResults);
@@ -115,7 +115,7 @@ public sealed class SingleFileTemplateTests
         var generator = new CSharpProxyGenerator();
 
         // Act
-        var results = generator.GenerateCode(tables, config).ToList();
+        var results = generator.GenerateCode(tables, Enumerable.Empty<CustomApiModel>(), config).ToList();
 
         // Assert
         Assert.Single(results);

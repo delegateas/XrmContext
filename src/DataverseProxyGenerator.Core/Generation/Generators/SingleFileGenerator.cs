@@ -4,10 +4,10 @@ using DataverseProxyGenerator.Core.Generation.Mappers;
 
 namespace DataverseProxyGenerator.Core.Generation.Generators;
 
-public class SingleFileGenerator : BaseFileGenerator, IFileGenerator<(IReadOnlyList<TableModel> Tables, IReadOnlyDictionary<string, IReadOnlySet<ColumnSignature>> InterfaceColumns, IReadOnlyDictionary<string, IReadOnlyList<string>> TableToInterfaces)>
+public class SingleFileGenerator : BaseFileGenerator, IFileGenerator<(IReadOnlyList<TableModel> Tables, IReadOnlyDictionary<string, IReadOnlySet<ColumnSignature>> InterfaceColumns, IReadOnlyDictionary<string, IReadOnlyList<string>> TableToInterfaces, IReadOnlyList<CustomApiModel> CustomApis)>
 {
     public IEnumerable<GeneratedFile> Generate(
-        (IReadOnlyList<TableModel> Tables, IReadOnlyDictionary<string, IReadOnlySet<ColumnSignature>> InterfaceColumns, IReadOnlyDictionary<string, IReadOnlyList<string>> TableToInterfaces) input,
+        (IReadOnlyList<TableModel> Tables, IReadOnlyDictionary<string, IReadOnlySet<ColumnSignature>> InterfaceColumns, IReadOnlyDictionary<string, IReadOnlyList<string>> TableToInterfaces, IReadOnlyList<CustomApiModel> CustomApis) input,
         GenerationContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
