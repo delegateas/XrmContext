@@ -143,9 +143,9 @@ public partial class TestEntity : ExtendedEntity
     [AttributeLogicalName("name")]
     [DisplayName("Name")]
     [MaxLength()]
-    public string Name
+    public string? Name
     {
-        get => GetAttributeValue<string>("name");
+        get => GetAttributeValue<string?>("name");
         set => SetAttributeValue("name", value);
     }
 
@@ -155,9 +155,9 @@ public partial class TestEntity : ExtendedEntity
     [AttributeLogicalName("notes")]
     [DisplayName("Notes")]
     [MaxLength()]
-    public string Notes
+    public string? Notes
     {
-        get => GetAttributeValue<string>("notes");
+        get => GetAttributeValue<string?>("notes");
         set => SetAttributeValue("notes", value);
     }
 
@@ -168,9 +168,9 @@ public partial class TestEntity : ExtendedEntity
     [DisplayName("An Obsolete Attribute")]
     [ObsoleteAttribute()]
     [MaxLength()]
-    public string ObsoleteAttribute
+    public string? ObsoleteAttribute
     {
-        get => GetAttributeValue<string>("obsoleteattribute");
+        get => GetAttributeValue<string?>("obsoleteattribute");
         set => SetAttributeValue("obsoleteattribute", value);
     }
 
@@ -191,9 +191,9 @@ public partial class TestEntity : ExtendedEntity
     [AttributeLogicalName("prefix_pascalcasetest_withname")]
     [DisplayName("Pascal Test")]
     [MaxLength()]
-    public string prefix_pascalCaseTest_withName
+    public string? prefix_pascalCaseTest_withName
     {
-        get => GetAttributeValue<string>("prefix_pascalcasetest_withname");
+        get => GetAttributeValue<string?>("prefix_pascalcasetest_withname");
         set => SetAttributeValue("prefix_pascalcasetest_withname", value);
     }
 
@@ -282,7 +282,7 @@ public partial class TestEntity : ExtendedEntity
     /// <returns>Name of column</returns>
     /// <exception cref="ArgumentNullException">If no expression is provided</exception>
     /// <exception cref="ArgumentException">If the expression is not x => x.column</exception>
-    public static string GetColumnName(Expression<Func<TestEntity, object>> column)
+    public static string GetColumnName(Expression<Func<TestEntity, object?>> column)
     {
         return TableAttributeHelpers.GetColumnName(column);
     }

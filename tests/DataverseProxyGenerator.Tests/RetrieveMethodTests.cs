@@ -92,7 +92,7 @@ public sealed class RetrieveMethodTests
         file.Content.Should().Contain("/// <returns>Name of column</returns>");
         file.Content.Should().Contain("/// <exception cref=\"ArgumentNullException\">If no expression is provided</exception>");
         file.Content.Should().Contain("/// <exception cref=\"ArgumentException\">If the expression is not x => x.column</exception>");
-        file.Content.Should().Contain("public static string GetColumnName(Expression<Func<Account, object>> column)");
+        file.Content.Should().Contain("public static string GetColumnName(Expression<Func<Account, object?>> column)");
         file.Content.Should().Contain("return TableAttributeHelpers.GetColumnName(column);");
     }
 

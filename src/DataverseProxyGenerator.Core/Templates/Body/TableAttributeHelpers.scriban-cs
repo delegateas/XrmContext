@@ -10,7 +10,7 @@ public static class TableAttributeHelpers
     /// <returns>Name of column</returns>
     /// <exception cref="ArgumentNullException">If no expression is provided</exception>
     /// <exception cref="ArgumentException">If the expression is not x => x.column</exception>
-    public static string GetColumnName<T>(Expression<Func<T, object>> lambda)
+    public static string GetColumnName<T>(Expression<Func<T, object?>> lambda)
         where T : Entity
     {
         if (lambda == null) throw new ArgumentNullException(nameof(lambda));

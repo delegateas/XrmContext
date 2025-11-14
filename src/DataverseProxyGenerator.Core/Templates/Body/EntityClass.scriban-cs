@@ -50,9 +50,9 @@ public partial class {{table.SchemaName}} : ExtendedEntity{{ if table.Interfaces
     {{~ end ~}}
     {{~ if column.TypeName == "StringColumnModel" || column.TypeName == "MemoColumnModel" ~}}
     [MaxLength({{ column.MaxLength }})]
-    public string {{column.SchemaName}}
+    public string? {{column.SchemaName}}
     {
-        get => GetAttributeValue<string>("{{column.LogicalName}}");
+        get => GetAttributeValue<string?>("{{column.LogicalName}}");
         set => SetAttributeValue("{{column.LogicalName}}", value);
     }
     {{~ else if column.TypeName == "IntegerColumnModel" ~}}
@@ -161,7 +161,7 @@ public partial class {{table.SchemaName}} : ExtendedEntity{{ if table.Interfaces
     {{~ end ~}}
 
     {{~ if ! table.IsIntersect ~}}
-    {{~ for rel in table.Relationships ~}}
+    {{~ for rel in table.Relationships | array.sort "SchemaName" ~}}
     {{~ if rel.RelationshipType == "ManyToOne" ~}}
     [AttributeLogicalName("{{ rel.ThisEntityAttribute }}")]
     {{~ end ~}}
@@ -188,7 +188,7 @@ public partial class {{table.SchemaName}} : ExtendedEntity{{ if table.Interfaces
     /// <returns>Name of column</returns>
     /// <exception cref="ArgumentNullException">If no expression is provided</exception>
     /// <exception cref="ArgumentException">If the expression is not x => x.column</exception>
-    public static string GetColumnName(Expression<Func<{{table.SchemaName}}, object>> column)
+    public static string GetColumnName(Expression<Func<{{table.SchemaName}}, object?>> column)
     {
         return TableAttributeHelpers.GetColumnName(column);
     }
