@@ -38,6 +38,18 @@ namespace {{namespace}};
 {{ include "Body/EnumOptionset.scriban-cs" }}
 {{~ end ~}}
 
+{{~ if customApis && customApis.size > 0 ~}}
+// ============================================================================
+// CUSTOM API REQUEST & RESPONSES
+// ============================================================================
+{{~ for api in customApis | array.sort "sanitized_unique_name" ~}}
+
+{{ include "Body/CustomApiRequest.scriban-cs" }}
+
+{{ include "Body/CustomApiResponse.scriban-cs" }}
+{{~ end ~}}
+{{~ end ~}}
+
 // ============================================================================
 // ATTRIBUTE CLASSES
 // ============================================================================

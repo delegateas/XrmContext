@@ -1,0 +1,37 @@
+[System.Runtime.Serialization.DataContractAttribute(Namespace="http://schemas.microsoft.com/xrm/2011/new/")]
+[Microsoft.Xrm.Sdk.Client.RequestProxyAttribute("{{ api.unique_name }}")]
+[System.CodeDom.Compiler.GeneratedCodeAttribute("DataverseProxyGenerator", "{{ version }}")]
+public partial class {{ api.sanitized_unique_name }}Request : Microsoft.Xrm.Sdk.OrganizationRequest
+{
+    public {{ api.sanitized_unique_name }}Request()
+    {
+        this.RequestName = "{{ api.unique_name }}";
+        {{~ for param in api.request_parameters ~}}
+        {{~ if !param.is_optional ~}}
+        this.{{ param.name }} = default({{ param.csharp_type }});
+        {{~ end ~}}
+        {{~ end ~}}
+    }
+    {{~ for param in api.request_parameters ~}}
+
+    {{ param.xml_doc_comment }}
+    public {{ param.csharp_type }}{{ if param.is_optional }}?{{ end }} {{ param.name }}
+    {
+        get
+        {
+            if (this.Parameters.Contains("{{ param.original_name }}"))
+            {
+                return (({{ param.csharp_type }}{{ if param.is_optional }}?{{ end }})(this.Parameters["{{ param.original_name }}"]));
+            }
+            else
+            {
+                return default({{ param.csharp_type }}{{ if param.is_optional }}?{{ end }});
+            }
+        }
+        set
+        {
+            this.Parameters["{{ param.original_name }}"] = value;
+        }
+    }
+    {{~ end ~}}
+}

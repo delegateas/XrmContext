@@ -11,18 +11,19 @@ public class SingleFileGenerator : BaseFileGenerator, IFileGenerator<(IReadOnlyL
         GenerationContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
-        return GenerateInternal(input.Tables, input.InterfaceColumns, input.TableToInterfaces, context);
+        return GenerateInternal(input.Tables, input.InterfaceColumns, input.TableToInterfaces, input.CustomApis, context);
     }
 
     private static IEnumerable<GeneratedFile> GenerateInternal(
         IReadOnlyList<TableModel> tablesList,
         IReadOnlyDictionary<string, IReadOnlySet<ColumnSignature>> interfaceColumns,
         IReadOnlyDictionary<string, IReadOnlyList<string>> tableToInterfaces,
+        IReadOnlyList<CustomApiModel> customApis,
         GenerationContext context)
     {
         ValidateContext(context);
 
-        var templateModel = SingleFileMapper.MapToTemplateModel(tablesList, interfaceColumns, tableToInterfaces, context);
+        var templateModel = SingleFileMapper.MapToTemplateModel(tablesList, interfaceColumns, tableToInterfaces, customApis, context);
         var templateName = "SingleFile.scriban-cs";
         var template = context.Templates.GetTemplate(templateName);
 

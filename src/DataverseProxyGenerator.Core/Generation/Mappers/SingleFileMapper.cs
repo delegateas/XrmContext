@@ -10,12 +10,14 @@ public static class SingleFileMapper
         IReadOnlyList<TableModel> tablesList,
         IReadOnlyDictionary<string, IReadOnlySet<ColumnSignature>> interfaceColumns,
         IReadOnlyDictionary<string, IReadOnlyList<string>> tableToInterfaces,
+        IReadOnlyList<CustomApiModel> customApis,
         GenerationContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(tablesList);
         ArgumentNullException.ThrowIfNull(interfaceColumns);
         ArgumentNullException.ThrowIfNull(tableToInterfaces);
+        ArgumentNullException.ThrowIfNull(customApis);
 
         var globalOptionsets = GenerationUtilities.GetGlobalOptionsets(tablesList)
             .Select(enumCol => EnumMapper.MapToTemplateModel(enumCol, context))
@@ -26,6 +28,10 @@ public static class SingleFileMapper
         // Add interface lists to tables (without modifying TableModel structure)
         var tablesWithInterfaces = tablesList.Select(table => ProxyClassMapper.MapToTemplateModel((table, tableToInterfaces.TryGetValue(table.LogicalName, out var iFaces) ? iFaces : new List<string>()), context)).ToList();
 
+        var mappedCustomApis = customApis
+            .Select(api => CustomApiMapper.MapToTemplateModel(api, context))
+            .ToList();
+
         // Prepare the template model with correct property names
         return new
         {
@@ -35,6 +41,7 @@ public static class SingleFileMapper
             tables = tablesWithInterfaces,
             optionsets = globalOptionsets,
             interfaces = interfaces,
+            customApis = mappedCustomApis,
         };
     }
 }
