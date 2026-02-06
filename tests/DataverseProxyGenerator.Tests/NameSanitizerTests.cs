@@ -105,6 +105,21 @@ public class NameSanitizerTests
     [InlineData("/")]
     [InlineData("\\")]
     [InlineData("&")]
+    [InlineData("$")]
+    [InlineData("{")]
+    [InlineData("}")]
+    [InlineData("@")]
+    [InlineData("#")]
+    [InlineData("!")]
+    [InlineData("*")]
+    [InlineData("~")]
+    [InlineData("`")]
+    [InlineData("=")]
+    [InlineData("<")]
+    [InlineData(">")]
+    [InlineData("?")]
+    [InlineData("|")]
+    [InlineData("\"")]
     public void SanitizeName_WithSpecialCharacter_RemovesCharacter(string specialChar)
     {
         // Arrange
@@ -115,5 +130,70 @@ public class NameSanitizerTests
 
         // Assert
         Assert.Equal($"TestValue", result);
+    }
+
+    [Fact]
+    public void SanitizeString_WithQuotes_EscapesQuotes()
+    {
+        // Arrange
+        var input = "She said \"Hello\"";
+
+        // Act
+        var result = NameSanitizer.SanitizeString(input);
+
+        // Assert
+        Assert.Equal("She said \\\"Hello\\\"", result);
+    }
+
+    [Fact]
+    public void SanitizeString_WithBackslash_EscapesBackslash()
+    {
+        // Arrange
+        var input = "C:\\Windows\\System32";
+
+        // Act
+        var result = NameSanitizer.SanitizeString(input);
+
+        // Assert
+        Assert.Equal("C:\\\\Windows\\\\System32", result);
+    }
+
+    [Fact]
+    public void SanitizeString_WithBackslashAndQuotes_EscapesBoth()
+    {
+        // Arrange
+        var input = "Path is \"C:\\Program Files\"";
+
+        // Act
+        var result = NameSanitizer.SanitizeString(input);
+
+        // Assert
+        Assert.Equal("Path is \\\"C:\\\\Program Files\\\"", result);
+    }
+
+    [Fact]
+    public void SanitizeString_WithNewlines_RemovesNewlines()
+    {
+        // Arrange
+        var input = "Line1\nLine2\r\nLine3";
+
+        // Act
+        var result = NameSanitizer.SanitizeString(input);
+
+        // Assert
+        Assert.Equal("Line1Line2Line3", result);
+    }
+
+    [Fact]
+    public void SanitizeString_WithSpecialCharactersForOptionSetMetadata_EscapesCorrectly()
+    {
+        // Arrange
+        var input = "Value with $ and { and } characters";
+
+        // Act
+        var result = NameSanitizer.SanitizeString(input);
+
+        // Assert - These characters should NOT be escaped, only quotes and backslashes
+        Assert.Equal("Value with $ and { and } characters", result);
     }
 }

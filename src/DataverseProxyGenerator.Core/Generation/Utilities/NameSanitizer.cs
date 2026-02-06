@@ -2,7 +2,6 @@ namespace DataverseProxyGenerator.Core.Generation.Utilities;
 
 public static class NameSanitizer
 {
-    private static readonly char[] DisallowedCharacters = { '(', ')', '\'', '-', '–', '%', ' ', '.', ',', ':', ';', '/', '\\', '+', '\n', '\r', '\t', '&' };
     private static readonly string[] ReservedKeywords =
     {
         "abstract", "as", "base", "bool", "break", "byte", "case", "catch", "char", "checked",
@@ -29,8 +28,8 @@ public static class NameSanitizer
             return GenerateFallbackName(fallbackPrefix);
         }
 
-        // Remove disallowed characters entirely
-        var cleaned = string.Concat(name.Where(c => !DisallowedCharacters.Contains(c)));
+        // Keep only allowed characters: letters, digits, and underscore
+        var cleaned = string.Concat(name.Where(c => char.IsLetterOrDigit(c) || c == '_'));
 
         // Ensure it doesn't start with a digit
         if (cleaned.Length > 0 && char.IsDigit(cleaned[0]))
@@ -71,16 +70,19 @@ public static class NameSanitizer
     }
 
     /// <summary>
-    /// Sanitizes a string to make it a valid single line string.
+    /// Sanitizes a string to make it safe for use in C# string literals.
+    /// Escapes special characters and removes newlines.
     /// </summary>
     /// <param name="input">The string to sanitize.</param>
-    /// <returns>A single line string.</returns>
+    /// <returns>A string safe for use in C# string literals.</returns>
     public static string SanitizeString(string input)
     {
         input ??= string.Empty;
         return input
-            .Replace("\r", string.Empty, StringComparison.OrdinalIgnoreCase)
-            .Replace("\n", string.Empty, StringComparison.OrdinalIgnoreCase);
+            .Replace("\\", "\\\\", StringComparison.Ordinal) // Backslash must be first
+            .Replace("\"", "\\\"", StringComparison.Ordinal) // Escape quotes
+            .Replace("\r", string.Empty, StringComparison.Ordinal)
+            .Replace("\n", string.Empty, StringComparison.Ordinal);
     }
 
     /// <summary>
