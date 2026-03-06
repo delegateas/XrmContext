@@ -5,7 +5,6 @@ public static class TableAttributeHelpers
     /// Gets the logical column name for a property on the entity, using the AttributeLogicalNameAttribute if present.
     /// </summary>
     /// <typeparam name="T">Type of Entity</typeparam>
-    /// <param name="entity">Entity to get the column from</param>
     /// <param name="lambda">Expression to pick the column</param>
     /// <returns>Name of column</returns>
     /// <exception cref="ArgumentNullException">If no expression is provided</exception>
