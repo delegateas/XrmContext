@@ -22,4 +22,6 @@ public class GeneratorOptions
 
     public IReadOnlyDictionary<string, string> LabelMapping { get; set; } =
         new Dictionary<string, string>(StringComparer.Ordinal);
+
+    public bool NullableTypes { get; set; } = true;
 }

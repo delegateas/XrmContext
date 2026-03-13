@@ -13,4 +13,8 @@ public abstract record ColumnModel
     public bool IsObsolete { get; init; }
 
     public string TypeName => GetType().Name;
+
+    public string CSharpType { get; init; } = string.Empty;
+
+    public string GetterSuffix { get; init; } = string.Empty;
 }

@@ -29,6 +29,7 @@ public static class SimpleXrmContextConfigBuilder
                 configSection.GetValue<string>("ServiceContextName") ?? "Xrm",
                 configSection.GetSection("IntersectMapping").Get<IReadOnlyDictionary<string, IReadOnlyList<string>>>() ?? new Dictionary<string, IReadOnlyList<string>>(StringComparer.InvariantCulture),
                 configSection.GetValue<bool>("SingleFile"),
-                configSection.GetValue<bool>("GenerateCustomApis", true)));
+                configSection.GetValue<bool>("GenerateCustomApis", true),
+                configSection.GetValue<bool>("NullableTypes", true)));
     }
 }

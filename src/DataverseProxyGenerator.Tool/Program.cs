@@ -28,7 +28,7 @@ internal static class Program
             var baseConfig = SimpleXrmContextConfigBuilder.BuildFromConfiguration();
 
             // Parse command line args and merge
-            var (outputDirectory, solutions, entities, namespaceSetting, serviceContextName, deprecatedPrefix, intersectMapping, labelMapping, singleFile) = CommandLineParser.Parse(args);
+            var (outputDirectory, solutions, entities, namespaceSetting, serviceContextName, deprecatedPrefix, intersectMapping, labelMapping, singleFile, nullableTypes) = CommandLineParser.Parse(args);
 
             var config = new XrmContextConfig(
                 new XrmFetchConfig(
@@ -42,7 +42,8 @@ internal static class Program
                     !string.IsNullOrWhiteSpace(serviceContextName) ? serviceContextName : baseConfig.Generation.ServiceContextName ?? "Xrm",
                     (intersectMapping.Count > 0) ? intersectMapping : baseConfig.Generation.IntersectMapping,
                     singleFile,
-                    baseConfig.Generation.GenerateCustomApis));
+                    baseConfig.Generation.GenerateCustomApis,
+                    nullableTypes && baseConfig.Generation.NullableTypes));
 
             if (string.IsNullOrWhiteSpace(config.Generation.OutputDirectory))
             {

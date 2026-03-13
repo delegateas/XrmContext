@@ -13,7 +13,8 @@ public static class CommandLineParser
         string DeprecatedPrefix,
         IReadOnlyDictionary<string, IReadOnlyList<string>> IntersectMapping,
         IReadOnlyDictionary<string, string> LabelMapping,
-        bool SingleFile)
+        bool SingleFile,
+        bool NullableTypes)
 #pragma warning disable MA0051 // Method is too long
         Parse(string[] args)
 #pragma warning restore MA0051 // Method is too long
@@ -102,6 +103,11 @@ public static class CommandLineParser
             aliases: ["--singlefile"],
             description: "If set, all output will be written to a single file named XrmContext.cs");
 
+        var nullableTypesOption = new Option<bool>(
+            aliases: ["--nullable-types", "--nt"],
+            getDefaultValue: () => true,
+            description: "If false, generated property types will not be annotated as nullable. Default is true.");
+
         var rootCommand = new RootCommand("Dataverse Proxy Generator CLI")
         {
             outputDirectoryOption,
@@ -113,6 +119,7 @@ public static class CommandLineParser
             intersectOption,
             labelMappingsOption,
             singleFileOption,
+            nullableTypesOption,
         };
 
         var parsedResult = rootCommand.Parse(args);
@@ -126,7 +133,8 @@ public static class CommandLineParser
             parsedResult.GetValueForOption(deprecatedPrefixOption) ?? string.Empty,
             (parsedResult.GetValueForOption(intersectOption) ?? []).AsReadOnly(),
             (parsedResult.GetValueForOption(labelMappingsOption) ?? []).AsReadOnly(),
-            parsedResult.GetValueForOption(singleFileOption)
+            parsedResult.GetValueForOption(singleFileOption),
+            parsedResult.GetValueForOption(nullableTypesOption)
         );
     }
 

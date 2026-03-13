@@ -27,7 +27,7 @@ public static class IntersectionInterfaceMapper
             SchemaName = GenerationUtilities.SanitizeName(col.SchemaName),
             col.DisplayName,
             col.Description,
-            TypeSignature = GenerationUtilities.GetTypeSignature(col),
+            TypeSignature = TypeSignatureHelper.GetPropertyTypeSignature(col, context.NullableTypes),
         });
 
         return new

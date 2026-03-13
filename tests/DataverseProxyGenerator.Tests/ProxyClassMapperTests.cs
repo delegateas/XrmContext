@@ -42,7 +42,7 @@ public sealed class ProxyClassMapperTests
 
         // Assert
         Assert.Single(resultColumns);
-        Assert.Equal("Account_1", resultColumns[0].SchemaName);
+        Assert.Equal("Account_1", resultColumns[0]);
     }
 
     [Fact]
@@ -96,9 +96,9 @@ public sealed class ProxyClassMapperTests
         Assert.Equal(3, resultColumns.Count);
 
         // All columns should keep their original names since none conflict with class name
-        Assert.Contains(resultColumns, c => c.SchemaName == "Name");
-        Assert.Contains(resultColumns, c => c.SchemaName == "Description");
-        Assert.Contains(resultColumns, c => c.SchemaName == "Value");
+        Assert.Contains("Name", resultColumns);
+        Assert.Contains("Description", resultColumns);
+        Assert.Contains("Value", resultColumns);
     }
 
     [Fact]
@@ -145,10 +145,10 @@ public sealed class ProxyClassMapperTests
         Assert.Equal(2, resultColumns.Count);
 
         // Exact case match should get renamed
-        Assert.Contains(resultColumns, c => c.SchemaName == "TestEntity_1");
+        Assert.Contains("TestEntity_1", resultColumns);
 
         // Different case should keep original name (case-sensitive comparison)
-        Assert.Contains(resultColumns, c => c.SchemaName == "testentity");
+        Assert.Contains("testentity", resultColumns);
     }
 
     [Fact]
@@ -186,7 +186,7 @@ public sealed class ProxyClassMapperTests
 
         // Assert
         Assert.Single(resultColumns);
-        Assert.Contains(resultColumns, c => c.SchemaName == "Attributes_1"); // Renamed due to conflict
+        Assert.Contains("Attributes_1", resultColumns); // Renamed due to conflict
     }
 
     [Fact]
@@ -238,9 +238,9 @@ public sealed class ProxyClassMapperTests
 
         // Assert
         Assert.Equal(3, resultColumns.Count);
-        Assert.Contains(resultColumns, c => c.SchemaName == "Attributes_1"); // Exact match renamed
-        Assert.Contains(resultColumns, c => c.SchemaName == "attributes"); // Different case kept
-        Assert.Contains(resultColumns, c => c.SchemaName == "ATTRIBUTES"); // Different case kept
+        Assert.Contains("Attributes_1", resultColumns); // Exact match renamed
+        Assert.Contains("attributes", resultColumns); // Different case kept
+        Assert.Contains("ATTRIBUTES", resultColumns); // Different case kept
     }
 
     [Fact]
@@ -292,9 +292,9 @@ public sealed class ProxyClassMapperTests
 
         // Assert
         Assert.Equal(3, resultColumns.Count);
-        Assert.Contains(resultColumns, c => c.SchemaName == "Account_1"); // Class name conflict
-        Assert.Contains(resultColumns, c => c.SchemaName == "Attributes_1"); // Base class conflict (non-virtual)
-        Assert.Contains(resultColumns, c => c.SchemaName == "Name"); // No conflict
+        Assert.Contains("Account_1", resultColumns); // Class name conflict
+        Assert.Contains("Attributes_1", resultColumns); // Base class conflict (non-virtual)
+        Assert.Contains("Name", resultColumns); // No conflict
     }
 
     private static GenerationContext CreateTestContext()
@@ -307,10 +307,10 @@ public sealed class ProxyClassMapperTests
         };
     }
 
-    private static List<ColumnModel> GetColumnsFromResult(object result)
+    private static List<string> GetColumnsFromResult(object result)
     {
         var columnsProperty = result.GetType().GetProperty("Columns");
         var columns = (IEnumerable<ColumnModel>)columnsProperty!.GetValue(result)!;
-        return columns.ToList();
+        return columns.Select(c => c.SchemaName).ToList();
     }
 }

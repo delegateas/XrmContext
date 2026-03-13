@@ -71,6 +71,7 @@ public class CSharpProxyGenerator : ICodeGenerator
             Templates = templateProvider,
             ServiceContextName = string.IsNullOrEmpty(config.ServiceContextName) ? "Xrm" : config.ServiceContextName,
             IntersectMapping = config.IntersectMapping,
+            NullableTypes = config.NullableTypes,
         };
     }
 

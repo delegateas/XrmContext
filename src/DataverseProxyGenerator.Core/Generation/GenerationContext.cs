@@ -13,4 +13,6 @@ public record GenerationContext
     public string? ServiceContextName { get; init; }
 
     public IReadOnlyDictionary<string, IReadOnlyList<string>> IntersectMapping { get; init; } = new Dictionary<string, IReadOnlyList<string>>(StringComparer.Ordinal);
+
+    public bool NullableTypes { get; init; } = true;
 }

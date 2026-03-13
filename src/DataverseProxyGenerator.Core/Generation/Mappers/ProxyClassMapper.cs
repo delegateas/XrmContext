@@ -20,7 +20,7 @@ public static class ProxyClassMapper
 
         var (table, interfaces) = input;
 
-        var processedColumns = ProcessColumnsWithNameConflictResolution(table.Columns, table.SchemaName);
+        var processedColumns = ProcessColumnsWithNameConflictResolution(table.Columns, table.SchemaName, context.NullableTypes);
 
         return new
         {
@@ -45,7 +45,7 @@ public static class ProxyClassMapper
         };
     }
 
-    private static IEnumerable<ColumnModel> ProcessColumnsWithNameConflictResolution(IEnumerable<ColumnModel> columns, string className)
+    private static IEnumerable<ColumnModel> ProcessColumnsWithNameConflictResolution(IEnumerable<ColumnModel> columns, string className, bool nullable)
     {
         var usedNames = new HashSet<string>(RestrictedAttributeNames, StringComparer.Ordinal);
         usedNames.Add(className);
@@ -78,7 +78,24 @@ public static class ProxyClassMapper
 
             usedNames.Add(candidateName);
 
-            return sanitizedColumn with { SchemaName = candidateName };
+            return sanitizedColumn with {
+                SchemaName = candidateName,
+                CSharpType = TypeSignatureHelper.GetPropertyTypeSignature(sanitizedColumn, nullable),
+                GetterSuffix = GetGetterSuffix(sanitizedColumn, nullable),
+            };
         });
+    }
+
+    private static string GetGetterSuffix(ColumnModel column, bool nullable)
+    {
+        if (nullable)
+            return string.Empty;
+
+        return column switch
+        {
+            MoneyColumnModel => " ?? default",
+            EnumColumnModel { IsMultiSelect: false } => " ?? default",
+            _ => string.Empty,
+        };
     }
 }

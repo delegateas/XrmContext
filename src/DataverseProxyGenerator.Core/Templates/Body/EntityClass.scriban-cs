@@ -50,111 +50,31 @@ public partial class {{table.SchemaName}} : ExtendedEntity{{ if table.Interfaces
     {{~ end ~}}
     {{~ if column.TypeName == "StringColumnModel" || column.TypeName == "MemoColumnModel" ~}}
     [MaxLength({{ column.MaxLength }})]
-    public string? {{column.SchemaName}}
-    {
-        get => GetAttributeValue<string?>("{{column.LogicalName}}");
-        set => SetAttributeValue("{{column.LogicalName}}", value);
-    }
     {{~ else if column.TypeName == "IntegerColumnModel" ~}}
     [Range({{ column.Min }}, {{ column.Max }})]
-    public int? {{column.SchemaName}}
+    {{~ end ~}}
+    public {{ column.CSharpType }} {{column.SchemaName}}
     {
-        get => GetAttributeValue<int?>("{{column.LogicalName}}");
-        set => SetAttributeValue("{{column.LogicalName}}", value);
-    }
-    {{~ else if column.TypeName == "BigIntColumnModel" ~}}
-    public long? {{column.SchemaName}}
-    {
-        get => GetAttributeValue<long?>("{{column.LogicalName}}");
-        set => SetAttributeValue("{{column.LogicalName}}", value);
-    }
-    {{~ else if column.TypeName == "BooleanColumnModel" ~}}
-    public bool? {{column.SchemaName}}
-    {
-        get => GetAttributeValue<bool?>("{{column.LogicalName}}");
-        set => SetAttributeValue("{{column.LogicalName}}", value);
-    }
-    {{~ else if column.TypeName == "DateTimeColumnModel" ~}}
-    public DateTime? {{column.SchemaName}}
-    {
-        get => GetAttributeValue<DateTime?>("{{column.LogicalName}}");
-        set => SetAttributeValue("{{column.LogicalName}}", value);
-    }
-    {{~ else if column.TypeName == "DecimalColumnModel" ~}}
-    public decimal? {{column.SchemaName}}
-    {
-        get => GetAttributeValue<decimal?>("{{column.LogicalName}}");
-        set => SetAttributeValue("{{column.LogicalName}}", value);
-    }
-    {{~ else if column.TypeName == "DoubleColumnModel" ~}}
-    public double? {{column.SchemaName}}
-    {
-        get => GetAttributeValue<double?>("{{column.LogicalName}}");
-        set => SetAttributeValue("{{column.LogicalName}}", value);
-    }
-    {{~ else if column.TypeName == "MoneyColumnModel" ~}}
-    public decimal? {{column.SchemaName}}
-    {
-        get => this.GetMoneyValue("{{column.LogicalName}}");
+        {{~ if column.TypeName == "MoneyColumnModel" ~}}
+        get => this.GetMoneyValue("{{column.LogicalName}}"){{ column.GetterSuffix }};
         set => this.SetMoneyValue("{{column.LogicalName}}", value);
-    }
-    {{~ else if column.TypeName == "EnumColumnModel" ~}}
-    {{~ if column.IsMultiSelect ~}}
-    public IEnumerable<{{ column.OptionsetName }}> {{column.SchemaName}}
-    {
+        {{~ else if column.TypeName == "EnumColumnModel" && column.IsMultiSelect ~}}
         get => this.GetOptionSetCollectionValue<{{ column.OptionsetName }}>("{{column.LogicalName}}");
         set => this.SetOptionSetCollectionValue("{{column.LogicalName}}", value);
-    }
-    {{~ else ~}}
-    public {{ column.OptionsetName }}? {{column.SchemaName}}
-    {
-        get => this.GetOptionSetValue<{{ column.OptionsetName }}>("{{column.LogicalName}}");
+        {{~ else if column.TypeName == "EnumColumnModel" ~}}
+        get => this.GetOptionSetValue<{{ column.OptionsetName }}>("{{column.LogicalName}}"){{ column.GetterSuffix }};
         set => this.SetOptionSetValue("{{column.LogicalName}}", value);
-    }
-    {{~ end ~}}
-    {{~ else if column.TypeName == "LookupColumnModel" ~}}
-    public EntityReference? {{column.SchemaName}}
-    {
-        get => GetAttributeValue<EntityReference?>("{{column.LogicalName}}");
-        set => SetAttributeValue("{{column.LogicalName}}", value);
-    }
-    {{~ else if column.TypeName == "PartyListColumnModel" ~}}
-    public IEnumerable<ActivityParty> {{column.SchemaName}}
-    {
+        {{~ else if column.TypeName == "PartyListColumnModel" ~}}
         get => GetEntityCollection<ActivityParty>("{{column.LogicalName}}");
         set => SetEntityCollection("{{column.LogicalName}}", value);
-    }
-    {{~ else if column.TypeName == "FileColumnModel" || column.TypeName == "ImageColumnModel" ~}}
-    public byte[] {{column.SchemaName}}
-    {
-        get => GetAttributeValue<byte[]>("{{column.LogicalName}}");
-        set => SetAttributeValue("{{column.LogicalName}}", value);
-    }
-    {{~ else if column.TypeName == "UniqueIdentifierColumnModel" ~}}
-    public Guid? {{column.SchemaName}}
-    {
-        get => GetAttributeValue<Guid?>("{{column.LogicalName}}");
-        set => SetAttributeValue("{{column.LogicalName}}", value);
-    }
-    {{~ else if column.TypeName == "BooleanManagedColumnModel" ~}}
-    public BooleanManagedProperty {{column.SchemaName}}
-    {
-        get => GetAttributeValue<BooleanManagedProperty>("{{column.LogicalName}}");
-        set => SetAttributeValue("{{column.LogicalName}}", value);
-    }
-    {{~ else if column.TypeName == "ManagedColumnModel" ~}}
-    public ManagedProperty<{{column.FullReturnType}}> {{column.SchemaName}}
-    {
-        get => GetAttributeValue<ManagedProperty<{{column.FullReturnType}}>>("{{column.LogicalName}}");
-        set => SetAttributeValue("{{column.LogicalName}}", value);
-    }
-    {{~ else if column.TypeName == "PrimaryIdColumnModel" ~}}
-    public Guid {{column.SchemaName}}
-    {
-        get => GetAttributeValue<Guid>("{{column.LogicalName}}");
+        {{~ else if column.TypeName == "PrimaryIdColumnModel" ~}}
+        get => GetAttributeValue<{{ column.CSharpType }}>("{{column.LogicalName}}");
         set => SetId("{{column.LogicalName}}", value);
+        {{~ else ~}}
+        get => GetAttributeValue<{{ column.CSharpType }}>("{{column.LogicalName}}");
+        set => SetAttributeValue("{{column.LogicalName}}", value);
+        {{~ end ~}}
     }
-    {{~ end ~}}
     {{~ if !for.last ~}}
 
     {{~ end ~}}

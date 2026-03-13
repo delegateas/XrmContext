@@ -6,4 +6,5 @@ public record XrmGenerationConfig(
     string ServiceContextName,
     IReadOnlyDictionary<string, IReadOnlyList<string>> IntersectMapping,
     bool SingleFile = false,
-    bool GenerateCustomApis = true);
+    bool GenerateCustomApis = true,
+    bool NullableTypes = true);
