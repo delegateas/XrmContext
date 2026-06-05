@@ -45,7 +45,7 @@ public class XrmContextConfigTests
                 solutions.Count > 0 ? solutions : config.Fetch.Solutions,
                 entities.Count > 0 ? entities : config.Fetch.Entities,
                 !string.IsNullOrWhiteSpace(deprecatedPrefix) ? deprecatedPrefix : config.Fetch.DeprecatedPrefix,
-                labelMapping.Count > 0 ? labelMapping : config.Fetch.LabelMapping),
+                labelMapping.Count > 0 ? labelMapping : config.Fetch.LabelMappings),
             new XrmGenerationConfig(
                 !string.IsNullOrWhiteSpace(outputDirectory) ? outputDirectory : config.Generation.OutputDirectory,
                 !string.IsNullOrWhiteSpace(namespaceSetting) ? namespaceSetting : config.Generation.NamespaceSetting,
@@ -63,6 +63,6 @@ public class XrmContextConfigTests
             merged.Generation.IntersectMapping);
         Assert.Equal(
             new ReadOnlyDictionary<string, string>(new Dictionary<string, string>(StringComparer.InvariantCulture) { { "ArgLabel", "ArgValue" } }),
-            merged.Fetch.LabelMapping);
+            merged.Fetch.LabelMappings);
     }
 }

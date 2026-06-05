@@ -251,10 +251,10 @@ public class DataverseMetadataFetcher : IDataverseMetadataFetcher
 
     private string ApplyLabelMapping(string label)
     {
-        if (string.IsNullOrEmpty(label) || config.LabelMapping.Count == 0)
+        if (string.IsNullOrEmpty(label) || config.LabelMappings.Count == 0)
             return label;
 
-        foreach (var kvp in config.LabelMapping)
+        foreach (var kvp in config.LabelMappings)
         {
             if (!string.IsNullOrEmpty(kvp.Key))
                 label = label.Replace(kvp.Key, kvp.Value, StringComparison.InvariantCulture);

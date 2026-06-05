@@ -41,7 +41,7 @@ public static class TableAttributeHelpers
     /// <param name="attrGetters">Expression that specify attributes to check</param>
     /// <returns>Bool for whether all attributes are on the entity</returns>
     /// <exception cref="ArgumentNullException">If Entity is null</exception>
-    public static bool ContainsAttributes<T>(this T entity, params Expression<Func<T, object>>[] attrGetters)
+    public static bool ContainsAttributes<T>(this T entity, params Expression<Func<T, {{ if nullable_types }}object?{{ else }}object{{ end }}>>[] attrGetters)
         where T : Microsoft.Xrm.Sdk.Entity
     {
         if (attrGetters == null)
@@ -59,7 +59,7 @@ public static class TableAttributeHelpers
     /// <param name="attrGetters">Expression that specify attributes to remove</param>
     /// <returns>Return true if any attributes were removed</returns>
     /// <exception cref="ArgumentNullException">If entity is null</exception>
-    public static bool RemoveAttributes<T>(this T entity, params Expression<Func<T, object>>[] attrGetters)
+    public static bool RemoveAttributes<T>(this T entity, params Expression<Func<T, {{ if nullable_types }}object?{{ else }}object{{ end }}>>[] attrGetters)
         where T : Microsoft.Xrm.Sdk.Entity
     {
         if (attrGetters == null)
@@ -77,7 +77,7 @@ public static class TableAttributeHelpers
     /// <param name="id">Id of entity to retrieve</param>
     /// <param name="attrs">Expressions that specify attributes to retrieve</param>
     /// <returns>The retrieved entity</returns>
-    public static T Retrieve<T>(this IOrganizationService service, Guid id, params Expression<Func<T, object>>[] attrs)
+    public static T Retrieve<T>(this IOrganizationService service, Guid id, params Expression<Func<T, {{ if nullable_types }}object?{{ else }}object{{ end }}>>[] attrs)
         where T : Entity, new()
     {
         if (service == null) throw new ArgumentNullException(nameof(service));
@@ -104,7 +104,7 @@ public static class TableAttributeHelpers
     /// <param name="keyedEntityReference">EntityReference with alternate key values</param>
     /// <param name="attrs">Expressions that specify attributes to retrieve</param>
     /// <returns>The retrieved entity</returns>
-    public static T Retrieve<T>(this IOrganizationService service, EntityReference keyedEntityReference, params Expression<Func<T, object>>[] attrs)
+    public static T Retrieve<T>(this IOrganizationService service, EntityReference keyedEntityReference, params Expression<Func<T, {{ if nullable_types }}object?{{ else }}object{{ end }}>>[] attrs)
         where T : Entity, new()
     {
         if (service == null) throw new ArgumentNullException(nameof(service));

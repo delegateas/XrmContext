@@ -294,7 +294,7 @@ public partial class TestEntity : ExtendedEntity
     /// <param name="id">Id of TestEntity to retrieve</param>
     /// <param name="columns">Expressions that specify columns to retrieve</param>
     /// <returns>The retrieved TestEntity</returns>
-    public static TestEntity Retrieve(IOrganizationService service, Guid id, params Expression<Func<TestEntity, object>>[] columns)
+    public static TestEntity Retrieve(IOrganizationService service, Guid id, params Expression<Func<TestEntity, object?>>[] columns)
     {
         return service.Retrieve(id, columns);
     }

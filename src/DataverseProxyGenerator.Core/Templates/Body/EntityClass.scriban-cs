@@ -120,7 +120,7 @@ public partial class {{table.SchemaName}} : ExtendedEntity{{ if table.Interfaces
     /// <param name="id">Id of {{table.SchemaName}} to retrieve</param>
     /// <param name="columns">Expressions that specify columns to retrieve</param>
     /// <returns>The retrieved {{table.SchemaName}}</returns>
-    public static {{table.SchemaName}} Retrieve(IOrganizationService service, Guid id, params Expression<Func<{{table.SchemaName}}, object>>[] columns)
+    public static {{table.SchemaName}} Retrieve(IOrganizationService service, Guid id, params Expression<Func<{{table.SchemaName}}, {{ if nullable_types }}object?{{ else }}object{{ end }}>>[] columns)
     {
         return service.Retrieve(id, columns);
     }
@@ -135,7 +135,7 @@ public partial class {{table.SchemaName}} : ExtendedEntity{{ if table.Interfaces
     {{~ end ~}}
     /// <param name="columns">Expressions that specify columns to retrieve</param>
     /// <returns>The retrieved {{table.SchemaName}}</returns>
-    public static {{table.SchemaName}} Retrieve_{{key.SchemaName}}(IOrganizationService service{{ for attr in key.KeyAttributes }}, {{ if attr.TypeName == "StringColumnModel" || attr.TypeName == "MemoColumnModel" }}string{{ else if attr.TypeName == "IntegerColumnModel" }}int{{ else if attr.TypeName == "BigIntColumnModel" }}long{{ else if attr.TypeName == "BooleanColumnModel" }}bool{{ else if attr.TypeName == "DateTimeColumnModel" }}DateTime{{ else if attr.TypeName == "DecimalColumnModel" }}decimal{{ else if attr.TypeName == "DoubleColumnModel" }}double{{ else if attr.TypeName == "MoneyColumnModel" }}decimal{{ else if attr.TypeName == "EnumColumnModel" }}{{ attr.OptionsetName }}{{ else if attr.TypeName == "LookupColumnModel" }}Guid{{ else if attr.TypeName == "FileColumnModel" || attr.TypeName == "ImageColumnModel" }}byte[]{{ else if attr.TypeName == "PrimaryIdColumnModel" }}Guid{{ else if attr.TypeName == "UniqueIdentifierColumnModel" }}Guid{{ else if attr.TypeName == "BooleanManagedColumnModel" }}Bool{{ else if attr.TypeName == "ManagedColumnModel" }}{{attr.FullReturnType}}{{ else }}object{{ end }} {{attr.SchemaName}}{{ end }}, params Expression<Func<{{table.SchemaName}}, object>>[] columns)
+    public static {{table.SchemaName}} Retrieve_{{key.SchemaName}}(IOrganizationService service{{ for attr in key.KeyAttributes }}, {{ if attr.TypeName == "StringColumnModel" || attr.TypeName == "MemoColumnModel" }}string{{ else if attr.TypeName == "IntegerColumnModel" }}int{{ else if attr.TypeName == "BigIntColumnModel" }}long{{ else if attr.TypeName == "BooleanColumnModel" }}bool{{ else if attr.TypeName == "DateTimeColumnModel" }}DateTime{{ else if attr.TypeName == "DecimalColumnModel" }}decimal{{ else if attr.TypeName == "DoubleColumnModel" }}double{{ else if attr.TypeName == "MoneyColumnModel" }}decimal{{ else if attr.TypeName == "EnumColumnModel" }}{{ attr.OptionsetName }}{{ else if attr.TypeName == "LookupColumnModel" }}Guid{{ else if attr.TypeName == "FileColumnModel" || attr.TypeName == "ImageColumnModel" }}byte[]{{ else if attr.TypeName == "PrimaryIdColumnModel" }}Guid{{ else if attr.TypeName == "UniqueIdentifierColumnModel" }}Guid{{ else if attr.TypeName == "BooleanManagedColumnModel" }}Bool{{ else if attr.TypeName == "ManagedColumnModel" }}{{attr.FullReturnType}}{{ else }}object{{ end }} {{attr.SchemaName}}{{ end }}, params Expression<Func<{{table.SchemaName}}, {{ if nullable_types }}object?{{ else }}object{{ end }}>>[] columns)
     {
         var keyedEntityReference = new EntityReference(EntityLogicalName, new KeyAttributeCollection
         {

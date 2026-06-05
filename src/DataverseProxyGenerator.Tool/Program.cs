@@ -35,7 +35,7 @@ internal static class Program
                     (solutions.Count > 0) ? solutions : baseConfig.Fetch.Solutions,
                     (entities.Count > 0) ? entities : baseConfig.Fetch.Entities,
                     !string.IsNullOrWhiteSpace(deprecatedPrefix) ? deprecatedPrefix : baseConfig.Fetch.DeprecatedPrefix,
-                    (labelMapping.Count > 0) ? labelMapping : baseConfig.Fetch.LabelMapping),
+                    (labelMapping.Count > 0) ? labelMapping : baseConfig.Fetch.LabelMappings),
                 new XrmGenerationConfig(
                     !string.IsNullOrWhiteSpace(outputDirectory) ? outputDirectory : baseConfig.Generation.OutputDirectory,
                     !string.IsNullOrWhiteSpace(namespaceSetting) ? namespaceSetting : baseConfig.Generation.NamespaceSetting ?? "DataverseContext",

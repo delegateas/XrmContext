@@ -10,6 +10,7 @@ public static class HelperFileMapper
         {
             @namespace = context.Namespace,
             version = context.Version,
+            nullable_types = context.NullableTypes,
         };
     }
 }

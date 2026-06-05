@@ -44,7 +44,7 @@ public sealed class RetrieveMethodTests
         // Assert
         file.Should().NotBeNull();
         file!.Content.Should().Contain("using System.Linq.Expressions;");
-        file.Content.Should().Contain("public static Account Retrieve(IOrganizationService service, Guid id, params Expression<Func<Account, object>>[] columns)");
+        file.Content.Should().Contain("public static Account Retrieve(IOrganizationService service, Guid id, params Expression<Func<Account, object?>>[] columns)");
         file.Content.Should().Contain("return service.Retrieve(id, columns);");
     }
 
@@ -137,7 +137,7 @@ public sealed class RetrieveMethodTests
         // Assert
         file.Should().NotBeNull();
         file!.Content.Should().Contain("using Microsoft.Xrm.Sdk.Query;");
-        file.Content.Should().Contain("public static T Retrieve<T>(this IOrganizationService service, Guid id, params Expression<Func<T, object>>[] attrs)");
+        file.Content.Should().Contain("public static T Retrieve<T>(this IOrganizationService service, Guid id, params Expression<Func<T, object?>>[] attrs)");
         file.Content.Should().Contain("where T : Entity, new()");
         file.Content.Should().Contain("var columnNames = attrs.Select(attr => GetColumnName(attr)).ToArray();");
         file.Content.Should().Contain("return service.Retrieve(entityLogicalName, id, columnSet).ToEntity<T>();");
@@ -215,7 +215,7 @@ public sealed class RetrieveMethodTests
 
         // Assert
         file.Should().NotBeNull();
-        file!.Content.Should().Contain("public static Account Retrieve_ThisKey(IOrganizationService service, string Name, int AccountNumber, params Expression<Func<Account, object>>[] columns)");
+        file!.Content.Should().Contain("public static Account Retrieve_ThisKey(IOrganizationService service, string Name, int AccountNumber, params Expression<Func<Account, object?>>[] columns)");
         file.Content.Should().Contain("var keyedEntityReference = new EntityReference(EntityLogicalName, new KeyAttributeCollection");
         file.Content.Should().Contain("[\"name\"] = Name,");
         file.Content.Should().Contain("[\"new_accountnumber\"] = AccountNumber");

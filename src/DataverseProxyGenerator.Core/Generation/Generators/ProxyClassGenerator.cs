@@ -24,6 +24,7 @@ public class ProxyClassGenerator : BaseFileGenerator, IFileGenerator<(TableModel
             table = proxyClassModel,
             @namespace = context.Namespace,
             version = context.Version,
+            nullable_types = context.NullableTypes,
         };
 
         var template = context.Templates.GetTemplate("ProxyClass.scriban-cs");
