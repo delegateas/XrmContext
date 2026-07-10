@@ -1,5 +1,6 @@
 using DataverseProxyGenerator.Core.Domain;
 using DataverseProxyGenerator.Core.Generation.Utilities;
+using System.Globalization;
 
 namespace DataverseProxyGenerator.Core.Generation.Mappers;
 
@@ -10,6 +11,7 @@ public static class CustomApiMapper
         ArgumentNullException.ThrowIfNull(customApi);
         ArgumentNullException.ThrowIfNull(context);
 
+        var argCounter = new Counter();
         return new
         {
             unique_name = customApi.UniqueName,
@@ -35,7 +37,7 @@ public static class CustomApiMapper
                 original_name = p.Name,
                 unique_name = p.UniqueName,
                 display_name = p.DisplayName,
-                argument_name = string.Concat(p.UniqueName[..1].ToLowerInvariant(), p.UniqueName.AsSpan(1)),
+                argument_name = ToLowerCamelCase(p.UniqueName, argCounter),
                 description = p.Description,
                 csharp_type = GetCSharpType(p.Type, p.IsOptional, context.NullableTypes),
                 is_optional = p.IsOptional,
@@ -74,5 +76,15 @@ public static class CustomApiMapper
         }
 
         return $"/// <summary>\n/// {description}\n/// </summary>";
+    }
+
+    private static string ToLowerCamelCase(string name, Counter counter, string fallbackPrefix = "arg")
+    {
+        if (string.IsNullOrEmpty(name))
+        {
+            return $"{fallbackPrefix}{counter.Increment().ToString(CultureInfo.InvariantCulture)}";
+        }
+
+        return char.ToLowerInvariant(name[0]) + name.Substring(1);
     }
 }
