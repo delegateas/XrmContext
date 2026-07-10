@@ -1,6 +1,6 @@
 namespace DataverseProxyGenerator.Core.Generation.Utilities;
 
-internal class Counter(int initialValue = 0)
+internal sealed class Counter(int initialValue = 0)
 {
     private readonly int initialValue = initialValue;
 
