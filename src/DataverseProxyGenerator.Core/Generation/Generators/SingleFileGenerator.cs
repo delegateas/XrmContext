@@ -6,15 +6,15 @@ namespace DataverseProxyGenerator.Core.Generation.Generators;
 
 public class SingleFileGenerator : BaseFileGenerator, IFileGenerator<(IReadOnlyList<TableModel> Tables, IReadOnlyDictionary<string, IReadOnlySet<ColumnSignature>> InterfaceColumns, IReadOnlyDictionary<string, IReadOnlyList<string>> TableToInterfaces, IReadOnlyList<CustomApiModel> CustomApis)>
 {
-    public IEnumerable<GeneratedFile> Generate(
+    public IAsyncEnumerable<GeneratedFile> GenerateAsync(
         (IReadOnlyList<TableModel> Tables, IReadOnlyDictionary<string, IReadOnlySet<ColumnSignature>> InterfaceColumns, IReadOnlyDictionary<string, IReadOnlyList<string>> TableToInterfaces, IReadOnlyList<CustomApiModel> CustomApis) input,
         GenerationContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
-        return GenerateInternal(input.Tables, input.InterfaceColumns, input.TableToInterfaces, input.CustomApis, context);
+        return GenerateInternalAsync(input.Tables, input.InterfaceColumns, input.TableToInterfaces, input.CustomApis, context);
     }
 
-    private static IEnumerable<GeneratedFile> GenerateInternal(
+    private static async IAsyncEnumerable<GeneratedFile> GenerateInternalAsync(
         IReadOnlyList<TableModel> tablesList,
         IReadOnlyDictionary<string, IReadOnlySet<ColumnSignature>> interfaceColumns,
         IReadOnlyDictionary<string, IReadOnlyList<string>> tableToInterfaces,
@@ -25,11 +25,11 @@ public class SingleFileGenerator : BaseFileGenerator, IFileGenerator<(IReadOnlyL
 
         var templateModel = SingleFileMapper.MapToTemplateModel(tablesList, interfaceColumns, tableToInterfaces, customApis, context);
         var templateName = "SingleFile.scriban-cs";
-        var template = context.Templates.GetTemplate(templateName);
+        var template = await context.Templates.GetTemplateAsync(templateName);
 
         // Use the same template context creation as other generators
         var templateContext = CreateTemplateContext(templateModel, context.Templates);
-        var content = template.Render(templateContext);
+        var content = await template.RenderAsync(templateContext);
 
         yield return new GeneratedFile($"{context.ServiceContextName}.cs", content);
     }

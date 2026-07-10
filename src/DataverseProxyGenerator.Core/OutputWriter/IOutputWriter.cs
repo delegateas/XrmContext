@@ -9,5 +9,6 @@ public interface IOutputWriter
     /// </summary>
     /// <param name="files">The generated files to write.</param>
     /// <param name="outputDirectory">The output directory path.</param>
-    void WriteFiles(IEnumerable<GeneratedFile> files, string outputDirectory);
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    Task WriteFilesAsync(IAsyncEnumerable<GeneratedFile> files, string outputDirectory);
 }

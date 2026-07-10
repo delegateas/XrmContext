@@ -6,7 +6,7 @@ namespace DataverseProxyGenerator.Tests;
 public sealed class RetrieveMethodTests
 {
     [Fact]
-    public void EntityClass_ShouldGenerateStaticRetrieveMethod()
+    public async Task EntityClass_ShouldGenerateStaticRetrieveMethod()
     {
         // Arrange
         var table = new TableModel
@@ -35,11 +35,11 @@ public sealed class RetrieveMethodTests
         var generator = new CSharpProxyGenerator();
 
         // Act
-        var files = generator.GenerateCode(
-            new[] { table },
-            Enumerable.Empty<CustomApiModel>(),
+        var files = generator.GenerateCodeAsync(
+            [table],
+            [],
             new XrmGenerationConfig("Output", "TestNamespace", "TestContextName", new Dictionary<string, IReadOnlyList<string>>(StringComparer.InvariantCulture).AsReadOnly()));
-        var file = files.FirstOrDefault(f => f.Filename.EndsWith("Account.cs", StringComparison.InvariantCulture));
+        var file = await files.FirstOrDefaultAsync(f => f.Filename.EndsWith("Account.cs", StringComparison.InvariantCulture));
 
         // Assert
         file.Should().NotBeNull();
@@ -49,7 +49,7 @@ public sealed class RetrieveMethodTests
     }
 
     [Fact]
-    public void EntityClass_ShouldGenerateStaticGetColumnNameMethod()
+    public async Task EntityClass_ShouldGenerateStaticGetColumnNameMethod()
     {
         // Arrange
         var table = new TableModel
@@ -78,11 +78,11 @@ public sealed class RetrieveMethodTests
         var generator = new CSharpProxyGenerator();
 
         // Act
-        var files = generator.GenerateCode(
+        var files = generator.GenerateCodeAsync(
             new[] { table },
             Enumerable.Empty<CustomApiModel>(),
             new XrmGenerationConfig("Output", "TestNamespace", "TestContextName", new Dictionary<string, IReadOnlyList<string>>(StringComparer.InvariantCulture).AsReadOnly()));
-        var file = files.FirstOrDefault(f => f.Filename.EndsWith("Account.cs", StringComparison.InvariantCulture));
+        var file = await files.FirstOrDefaultAsync(f => f.Filename.EndsWith("Account.cs", StringComparison.InvariantCulture));
 
         // Assert
         file.Should().NotBeNull();
@@ -99,7 +99,7 @@ public sealed class RetrieveMethodTests
     }
 
     [Fact]
-    public void TableAttributeHelpers_ShouldGenerateRetrieveExtensionMethod()
+    public async Task TableAttributeHelpers_ShouldGenerateRetrieveExtensionMethod()
     {
         // Arrange
         var table = new TableModel
@@ -128,11 +128,11 @@ public sealed class RetrieveMethodTests
         var generator = new CSharpProxyGenerator();
 
         // Act
-        var files = generator.GenerateCode(
+        var files = generator.GenerateCodeAsync(
             new[] { table },
             Enumerable.Empty<CustomApiModel>(),
             new XrmGenerationConfig("Output", "TestNamespace", "TestContextName", new Dictionary<string, IReadOnlyList<string>>(StringComparer.InvariantCulture).AsReadOnly()));
-        var file = files.FirstOrDefault(f => f.Filename.EndsWith("TableAttributeHelpers.cs", StringComparison.InvariantCulture));
+        var file = await files.FirstOrDefaultAsync(f => f.Filename.EndsWith("TableAttributeHelpers.cs", StringComparison.InvariantCulture));
 
         // Assert
         file.Should().NotBeNull();
@@ -144,7 +144,7 @@ public sealed class RetrieveMethodTests
     }
 
     [Fact]
-    public void EntityClass_ShouldGenerateAlternateKeyRetrieveMethods()
+    public async Task EntityClass_ShouldGenerateAlternateKeyRetrieveMethods()
     {
         // Arrange
         var table = new TableModel
@@ -207,11 +207,11 @@ public sealed class RetrieveMethodTests
         var generator = new CSharpProxyGenerator();
 
         // Act
-        var files = generator.GenerateCode(
+        var files = generator.GenerateCodeAsync(
             new[] { table },
             Enumerable.Empty<CustomApiModel>(),
             new XrmGenerationConfig("Output", "TestNamespace", "TestContextName", new Dictionary<string, IReadOnlyList<string>>(StringComparer.InvariantCulture).AsReadOnly()));
-        var file = files.FirstOrDefault(f => f.Filename.EndsWith("Account.cs", StringComparison.InvariantCulture));
+        var file = await files.FirstOrDefaultAsync(f => f.Filename.EndsWith("Account.cs", StringComparison.InvariantCulture));
 
         // Assert
         file.Should().NotBeNull();

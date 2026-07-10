@@ -36,7 +36,7 @@ public class CSharpProxyGenerator : ICodeGenerator
         return version?.ToString() ?? "1.0.0.0";
     }
 
-    public IEnumerable<GeneratedFile> GenerateCode(IEnumerable<TableModel> tables, IEnumerable<CustomApiModel> customApis, XrmGenerationConfig config)
+    public IAsyncEnumerable<GeneratedFile> GenerateCodeAsync(IEnumerable<TableModel> tables, IEnumerable<CustomApiModel> customApis, XrmGenerationConfig config)
     {
         ArgumentNullException.ThrowIfNull(tables);
         ArgumentNullException.ThrowIfNull(config);
@@ -56,10 +56,10 @@ public class CSharpProxyGenerator : ICodeGenerator
                 kvp => kvp.Key,
                 kvp => (IReadOnlyList<string>)kvp.Value,
                 StringComparer.InvariantCulture);
-            return singleFileGenerator.Generate((tablesList, interfaceColumnsReadOnly, tableToInterfacesReadOnly, customApiList), context);
+            return singleFileGenerator.GenerateAsync((tablesList, interfaceColumnsReadOnly, tableToInterfacesReadOnly, customApiList), context);
         }
 
-        return GenerateMultipleFiles(tablesList, interfaceColumns, tableToInterfaces, customApiList, context);
+        return GenerateMultipleFilesAsync(tablesList, interfaceColumns, tableToInterfaces, customApiList, context);
     }
 
     private GenerationContext CreateGenerationContext(XrmGenerationConfig config)
@@ -83,55 +83,29 @@ public class CSharpProxyGenerator : ICodeGenerator
         return BuildIntersectionData(config.IntersectMapping, tableDict, tableColumns);
     }
 
-    private IEnumerable<GeneratedFile> GenerateMultipleFiles(
+    private IAsyncEnumerable<GeneratedFile> GenerateMultipleFilesAsync(
         List<TableModel> tablesList,
         Dictionary<string, HashSet<ColumnSignature>> interfaceColumns,
         Dictionary<string, List<string>> tableToInterfaces,
         IEnumerable<CustomApiModel> customApiList,
         GenerationContext context)
     {
-        var files = new List<GeneratedFile>();
+        var globalOptionsetsMulti = GenerationUtilities.GetGlobalOptionsets(tablesList);
 
         // Generate intersection interfaces
-        foreach (var kvp in interfaceColumns)
-        {
-            var interfaceName = kvp.Key;
-            var colSigs = kvp.Value;
-
-            files.AddRange(intersectionInterfaceGenerator.Generate((interfaceName, colSigs, tablesList), context));
-        }
-
-        // Generate proxy classes
-        foreach (var table in tablesList)
-        {
-            var interfaces = tableToInterfaces.TryGetValue(table.LogicalName, out var iFaces) ? iFaces : new List<string>();
-            files.AddRange(proxyClassGenerator.Generate((table, interfaces), context));
-        }
-
-        // Generate enums
-        var globalOptionsetsMulti = GenerationUtilities.GetGlobalOptionsets(tablesList);
-        foreach (var optionset in globalOptionsetsMulti)
-        {
-            files.AddRange(enumGenerator.Generate(optionset, context));
-        }
-
-        // Generate Xrm context class
-        files.AddRange(xrmContextGenerator.Generate(tablesList, context));
-
-        // Generate helper files
-        files.AddRange(helperFileGenerator.Generate("OptionSetMetadataAttribute", context));
-        files.AddRange(helperFileGenerator.Generate("RelationshipMetadataAttribute", context));
-        files.AddRange(helperFileGenerator.Generate("TableAttributeHelpers", context));
-        files.AddRange(helperFileGenerator.Generate("ExtendedEntity", context));
-
-        // Generate custom API request/response classes
-        foreach (var customApi in customApiList)
-        {
-            files.AddRange(customApiGenerator.Generate(customApi, context));
-        }
-
-        foreach (var file in files)
-            yield return file;
+        return interfaceColumns.ToAsyncEnumerable().SelectMany(kvp => intersectionInterfaceGenerator.GenerateAsync((kvp.Key, kvp.Value, tablesList), context))
+            .Concat(tablesList.ToAsyncEnumerable().SelectMany(table => // Generate proxy classes
+            {
+                var interfaces = tableToInterfaces.TryGetValue(table.LogicalName, out var iFaces) ? iFaces : new List<string>();
+                return proxyClassGenerator.GenerateAsync((table, interfaces), context);
+            }))
+            .Concat(globalOptionsetsMulti.ToAsyncEnumerable().SelectMany(optionset => enumGenerator.GenerateAsync(optionset, context))) // Generate enums
+            .Concat(xrmContextGenerator.GenerateAsync(tablesList, context)) // Generate Xrm context class
+            .Concat(helperFileGenerator.GenerateAsync("OptionSetMetadataAttribute", context)) // Generate helper files
+            .Concat(helperFileGenerator.GenerateAsync("RelationshipMetadataAttribute", context))
+            .Concat(helperFileGenerator.GenerateAsync("TableAttributeHelpers", context))
+            .Concat(helperFileGenerator.GenerateAsync("ExtendedEntity", context))
+            .Concat(customApiList.ToAsyncEnumerable().SelectMany(customApi => customApiGenerator.GenerateAsync(customApi, context))); // Generate custom API request/response classes
     }
 
     // --- Extracted Helper Methods ---

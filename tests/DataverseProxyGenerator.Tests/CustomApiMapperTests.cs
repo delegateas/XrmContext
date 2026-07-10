@@ -8,6 +8,7 @@ namespace DataverseProxyGenerator.Tests;
 public class CustomApiMapperTests
 {
     [Theory]
+
     // Value types: nullable suffix depends only on IsOptional (nullableTypes flag ignored).
     [InlineData(CustomApiParameterType.BooleanType, false, true, "bool")]
     [InlineData(CustomApiParameterType.BooleanType, true, true, "bool?")]
@@ -22,6 +23,7 @@ public class CustomApiMapperTests
     [InlineData(CustomApiParameterType.IntegerType, true, true, "int?")]
     [InlineData(CustomApiParameterType.GuidType, false, true, "System.Guid")]
     [InlineData(CustomApiParameterType.GuidType, true, true, "System.Guid?")]
+
     // Reference types: nullable suffix requires IsOptional AND nullableTypes.
     [InlineData(CustomApiParameterType.EntityType, false, true, "Microsoft.Xrm.Sdk.Entity")]
     [InlineData(CustomApiParameterType.EntityType, true, true, "Microsoft.Xrm.Sdk.Entity?")]

@@ -57,11 +57,11 @@ public class AttributeTypeCodeGenTests
         };
 
         var generator = new CSharpProxyGenerator();
-        var files = generator.GenerateCode(
+        var files = generator.GenerateCodeAsync(
             new[] { table },
             Enumerable.Empty<CustomApiModel>(),
             new XrmGenerationConfig("Output", "TestNamespace", "TestContextName", new Dictionary<string, IReadOnlyList<string>>(StringComparer.InvariantCulture).AsReadOnly()));
-        var file = files.FirstOrDefault(f => f.Filename.EndsWith("TestEntity.cs", StringComparison.InvariantCulture));
+        var file = await files.FirstOrDefaultAsync(f => f.Filename.EndsWith("TestEntity.cs", StringComparison.InvariantCulture));
 
         Assert.NotNull(file);
         await Verify(file.Content);

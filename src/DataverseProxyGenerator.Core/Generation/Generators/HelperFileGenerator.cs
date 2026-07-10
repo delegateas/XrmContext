@@ -6,21 +6,21 @@ namespace DataverseProxyGenerator.Core.Generation.Generators;
 
 public class HelperFileGenerator : BaseFileGenerator, IFileGenerator<string>
 {
-    public IEnumerable<GeneratedFile> Generate(string templateName, GenerationContext context)
+    public IAsyncEnumerable<GeneratedFile> GenerateAsync(string templateName, GenerationContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(templateName);
-        return GenerateInternal(templateName, context);
+        return GenerateInternalAsync(templateName, context);
     }
 
-    private static IEnumerable<GeneratedFile> GenerateInternal(string templateName, GenerationContext context)
+    private static async IAsyncEnumerable<GeneratedFile> GenerateInternalAsync(string templateName, GenerationContext context)
     {
         ValidateContext(context);
 
         var templateModel = HelperFileMapper.MapToTemplateModel(templateName, context);
-        var template = context.Templates.GetTemplate($"{templateName}.scriban-cs");
+        var template = await context.Templates.GetTemplateAsync($"{templateName}.scriban-cs");
         var templateContext = CreateTemplateContext(templateModel, context.Templates);
-        var result = template.Render(templateContext);
+        var result = await template.RenderAsync(templateContext);
 
         yield return new GeneratedFile(FilePathHelper.GetHelperFilePath(templateName), result);
     }

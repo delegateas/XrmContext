@@ -15,7 +15,7 @@ public class EmbeddedTemplateProvider : ITemplateLoader
         assembly = typeof(EmbeddedTemplateProvider).Assembly;
     }
 
-    public Template GetTemplate(string templateName)
+    public async Task<Template> GetTemplateAsync(string templateName)
     {
         if (templateCache.TryGetValue(templateName, out var cachedTemplate))
         {
@@ -24,7 +24,7 @@ public class EmbeddedTemplateProvider : ITemplateLoader
 
         try
         {
-            var templateContent = GetEmbeddedResourceText(templateName);
+            var templateContent = await GetEmbeddedResourceTextAsync(templateName);
             var template = Template.Parse(templateContent);
 
             if (template.HasErrors)
@@ -57,7 +57,7 @@ public class EmbeddedTemplateProvider : ITemplateLoader
         return assembly.GetManifestResourceNames().Contains(fullResourceName, StringComparer.Ordinal);
     }
 
-    private string GetEmbeddedResourceText(string resourceName)
+    private async Task<string> GetEmbeddedResourceTextAsync(string resourceName)
     {
         var fullResourceName = $"DataverseProxyGenerator.Core.Templates.{resourceName}";
 
@@ -74,7 +74,7 @@ public class EmbeddedTemplateProvider : ITemplateLoader
             throw new FileNotFoundException($"Could not find embedded resource: {fullResourceName}");
 
         using var reader = new StreamReader(stream);
-        return reader.ReadToEnd();
+        return await reader.ReadToEndAsync();
     }
 
     // ITemplateLoader implementation
@@ -86,25 +86,24 @@ public class EmbeddedTemplateProvider : ITemplateLoader
         return templateName.Replace('/', '.').Replace('\\', '.');
     }
 
-    public string Load(TemplateContext context, SourceSpan callerSpan, string templatePath)
+    public string? Load(TemplateContext context, SourceSpan callerSpan, string templatePath)
+    {
+        // We call the async method synchronously here because Scriban's Load method is synchronous.
+        return GetEmbeddedResourceTextAsync(templatePath).GetAwaiter().GetResult();
+    }
+
+    public async ValueTask<string?> LoadAsync(TemplateContext context, SourceSpan callerSpan, string templatePath)
     {
         ArgumentNullException.ThrowIfNull(templatePath);
 
         try
         {
             // The templatePath is already normalized by GetPath, so use it directly
-            return GetEmbeddedResourceText(templatePath);
+            return await GetEmbeddedResourceTextAsync(templatePath);
         }
         catch (Exception ex)
         {
             throw new InvalidOperationException($"Failed to load included template '{templatePath}': {ex.Message}", ex);
         }
-    }
-
-    public ValueTask<string> LoadAsync(TemplateContext context, SourceSpan callerSpan, string templatePath)
-    {
-        // For embedded resources, we can return the sync result wrapped in ValueTask
-        var result = Load(context, callerSpan, templatePath);
-        return new ValueTask<string>(result);
     }
 }

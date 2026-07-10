@@ -12,7 +12,7 @@ public class CustomApiGeneratorTests
     {
         var customApi = BuildAllTypesCustomApi(uniqueName: "new_TestApi", isFunction: false);
 
-        var files = Generate(customApi, nullableTypes: true).ToList();
+        var files = await Generate(customApi, nullableTypes: true).ToListAsync();
 
         var request = files.Single(f => f.Filename.EndsWith("new_TestApiRequest.cs", StringComparison.Ordinal));
         var response = files.Single(f => f.Filename.EndsWith("new_TestApiResponse.cs", StringComparison.Ordinal));
@@ -25,7 +25,7 @@ public class CustomApiGeneratorTests
     }
 
     [Fact]
-    public void Generates_Two_Files_Per_CustomApi()
+    public async Task Generates_Two_Files_Per_CustomApi()
     {
         var customApi = new CustomApiModel
         {
@@ -33,7 +33,7 @@ public class CustomApiGeneratorTests
             DisplayName = "Minimal Api",
         };
 
-        var files = Generate(customApi).ToList();
+        var files = await Generate(customApi).ToListAsync();
 
         Assert.Equal(2, files.Count);
         Assert.Contains(files, f => f.Filename.EndsWith("new_MinimalApiRequest.cs", StringComparison.Ordinal));
@@ -41,22 +41,22 @@ public class CustomApiGeneratorTests
     }
 
     [Fact]
-    public void Generated_Files_Are_Placed_Under_CustomApis_Folder()
+    public async Task Generated_Files_Are_Placed_Under_CustomApis_Folder()
     {
         var customApi = new CustomApiModel { UniqueName = "new_MinimalApi" };
 
-        var files = Generate(customApi).ToList();
+        var files = await Generate(customApi).ToListAsync();
 
         Assert.All(files, f => Assert.StartsWith("customapis", f.Filename, StringComparison.Ordinal));
     }
 
     [Fact]
-    public void Filename_Uses_Sanitized_UniqueName()
+    public async Task Filename_Uses_Sanitized_UniqueName()
     {
         // Publisher-prefixed unique names contain an underscore; sanitizer produces a valid C# identifier.
         var customApi = new CustomApiModel { UniqueName = "publisher_Do-Something!" };
 
-        var files = Generate(customApi).ToList();
+        var files = await Generate(customApi).ToListAsync();
 
         Assert.All(files, f =>
         {
@@ -68,7 +68,7 @@ public class CustomApiGeneratorTests
     }
 
     [Fact]
-    public void Request_Uses_UniqueName_As_RequestName_And_ProxyAttribute()
+    public async Task Request_Uses_UniqueName_As_RequestName_And_ProxyAttribute()
     {
         var customApi = new CustomApiModel
         {
@@ -76,7 +76,7 @@ public class CustomApiGeneratorTests
             DisplayName = "Fetch Things",
         };
 
-        var files = Generate(customApi).ToList();
+        var files = await Generate(customApi).ToListAsync();
         var request = files.Single(f => f.Filename.EndsWith("Request.cs", StringComparison.Ordinal));
         var response = files.Single(f => f.Filename.EndsWith("Response.cs", StringComparison.Ordinal));
 
@@ -86,7 +86,7 @@ public class CustomApiGeneratorTests
     }
 
     [Fact]
-    public void Request_Initializes_Only_NonOptional_Parameters_In_Constructor()
+    public async Task Request_Initializes_Only_NonOptional_Parameters_In_Constructor()
     {
         var customApi = new CustomApiModel
         {
@@ -98,7 +98,7 @@ public class CustomApiGeneratorTests
             },
         };
 
-        var files = Generate(customApi).ToList();
+        var files = await Generate(customApi).ToListAsync();
         var request = files.Single(f => f.Filename.EndsWith("Request.cs", StringComparison.Ordinal));
 
         Assert.Contains("this.Required = default(string);", request.Content, StringComparison.Ordinal);
@@ -106,7 +106,7 @@ public class CustomApiGeneratorTests
     }
 
     [Fact]
-    public void Response_Ctor_Accepts_All_Properties_With_CamelCase_Argument_Names()
+    public async Task Response_Ctor_Accepts_All_Properties_With_CamelCase_Argument_Names()
     {
         var customApi = new CustomApiModel
         {
@@ -118,7 +118,7 @@ public class CustomApiGeneratorTests
             },
         };
 
-        var files = Generate(customApi).ToList();
+        var files = await Generate(customApi).ToListAsync();
         var response = files.Single(f => f.Filename.EndsWith("Response.cs", StringComparison.Ordinal));
 
         // Argument names are the property unique name with the first character lower-cased.
@@ -128,7 +128,7 @@ public class CustomApiGeneratorTests
     }
 
     [Fact]
-    public void Description_Becomes_XmlDoc_Summary_On_Property()
+    public async Task Description_Becomes_XmlDoc_Summary_On_Property()
     {
         var customApi = new CustomApiModel
         {
@@ -144,7 +144,7 @@ public class CustomApiGeneratorTests
             },
         };
 
-        var files = Generate(customApi).ToList();
+        var files = await Generate(customApi).ToListAsync();
         var request = files.Single(f => f.Filename.EndsWith("Request.cs", StringComparison.Ordinal));
 
         Assert.Contains("/// <summary>", request.Content, StringComparison.Ordinal);
@@ -152,7 +152,7 @@ public class CustomApiGeneratorTests
     }
 
     [Fact]
-    public void NullableTypes_False_Disables_Nullable_On_Reference_Type_Parameters()
+    public async Task NullableTypes_False_Disables_Nullable_On_Reference_Type_Parameters()
     {
         var customApi = new CustomApiModel
         {
@@ -163,7 +163,7 @@ public class CustomApiGeneratorTests
             },
         };
 
-        var files = Generate(customApi, nullableTypes: false).ToList();
+        var files = await Generate(customApi, nullableTypes: false).ToListAsync();
         var request = files.Single(f => f.Filename.EndsWith("Request.cs", StringComparison.Ordinal));
 
         Assert.Contains("public string OptionalString", request.Content, StringComparison.Ordinal);
@@ -182,13 +182,12 @@ public class CustomApiGeneratorTests
             GenerateCustomApis: false);
 
         var files = new CSharpProxyGenerator()
-            .GenerateCode(Enumerable.Empty<TableModel>(), new[] { customApi }, config)
-            .ToList();
+            .GenerateCodeAsync([], [customApi], config);
 
         Assert.DoesNotContain(files, f => f.Filename.Contains("new_SkippedApi", StringComparison.Ordinal));
     }
 
-    private static IEnumerable<GeneratedFile> Generate(CustomApiModel customApi, bool nullableTypes = true)
+    private static IAsyncEnumerable<GeneratedFile> Generate(CustomApiModel customApi, bool nullableTypes = true)
     {
         var context = new GenerationContext
         {
@@ -199,7 +198,7 @@ public class CustomApiGeneratorTests
             NullableTypes = nullableTypes,
         };
 
-        return new CustomApiGenerator().Generate(customApi, context);
+        return new CustomApiGenerator().GenerateAsync(customApi, context);
     }
 
     private static CustomApiModel BuildAllTypesCustomApi(string uniqueName, bool isFunction)

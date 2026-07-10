@@ -7,7 +7,7 @@ namespace DataverseProxyGenerator.Tests;
 public class EnumGeneratorDuplicateTests
 {
     [Fact]
-    public void Generate_WithDuplicateLabels_ProducesUniqueEnumNames()
+    public async Task Generate_WithDuplicateLabels_ProducesUniqueEnumNames()
     {
         // Arrange
         var generator = new DataverseProxyGenerator.Core.Generation.Generators.EnumGenerator();
@@ -35,7 +35,7 @@ public class EnumGeneratorDuplicateTests
         };
 
         // Act
-        var result = generator.Generate(enumColumn, context).ToList();
+        var result = await generator.GenerateAsync(enumColumn, context).ToListAsync();
 
         // Assert
         Assert.Single(result);
@@ -69,7 +69,7 @@ public class EnumGeneratorDuplicateTests
     }
 
     [Fact]
-    public void Generate_WithAllSameLabels_ProducesIncrementallyNumberedNames()
+    public async Task Generate_WithAllSameLabels_ProducesIncrementallyNumberedNames()
     {
         // Arrange
         var generator = new DataverseProxyGenerator.Core.Generation.Generators.EnumGenerator();
@@ -95,7 +95,7 @@ public class EnumGeneratorDuplicateTests
         };
 
         // Act
-        var result = generator.Generate(enumColumn, context).ToList();
+        var result = await generator.GenerateAsync(enumColumn, context).ToListAsync();
 
         // Assert
         Assert.Single(result);
@@ -107,7 +107,7 @@ public class EnumGeneratorDuplicateTests
     }
 
     [Fact]
-    public void Generate_WithEmptyLabels_UsesOptionValueFallbacks()
+    public async Task Generate_WithEmptyLabels_UsesOptionValueFallbacks()
     {
         // Arrange
         var generator = new DataverseProxyGenerator.Core.Generation.Generators.EnumGenerator();
@@ -133,7 +133,7 @@ public class EnumGeneratorDuplicateTests
         };
 
         // Act
-        var result = generator.Generate(enumColumn, context).ToList();
+        var result = await generator.GenerateAsync(enumColumn, context).ToListAsync();
 
         // Assert
         Assert.Single(result);
@@ -145,7 +145,7 @@ public class EnumGeneratorDuplicateTests
     }
 
     [Fact]
-    public void Generate_WithMultipleDuplicateGroups_ResetsCounterPerGroup()
+    public async Task Generate_WithMultipleDuplicateGroups_ResetsCounterPerGroup()
     {
         // Arrange
         var generator = new DataverseProxyGenerator.Core.Generation.Generators.EnumGenerator();
@@ -174,7 +174,7 @@ public class EnumGeneratorDuplicateTests
         };
 
         // Act
-        var result = generator.Generate(enumColumn, context).ToList();
+        var result = await generator.GenerateAsync(enumColumn, context).ToListAsync();
 
         // Assert
         Assert.Single(result);
@@ -190,7 +190,7 @@ public class EnumGeneratorDuplicateTests
     }
 
     [Fact]
-    public void Generate_WithSpecialCharactersInLabels_SanitizesEnumMemberNames()
+    public async Task Generate_WithSpecialCharactersInLabels_SanitizesEnumMemberNames()
     {
         // Arrange
         var generator = new DataverseProxyGenerator.Core.Generation.Generators.EnumGenerator();
@@ -218,7 +218,7 @@ public class EnumGeneratorDuplicateTests
         };
 
         // Act
-        var result = generator.Generate(enumColumn, context).ToList();
+        var result = await generator.GenerateAsync(enumColumn, context).ToListAsync();
 
         // Assert
         Assert.Single(result);
