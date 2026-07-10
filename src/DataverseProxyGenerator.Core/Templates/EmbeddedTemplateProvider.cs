@@ -99,7 +99,7 @@ public class EmbeddedTemplateProvider : ITemplateLoader
         try
         {
             // The templatePath is already normalized by GetPath, so use it directly
-            return await GetEmbeddedResourceTextAsync(templatePath);
+            return await GetEmbeddedResourceTextAsync(templatePath).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
