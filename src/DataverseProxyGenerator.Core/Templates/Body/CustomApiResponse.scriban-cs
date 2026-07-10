@@ -6,6 +6,14 @@ public partial class {{ api.sanitized_unique_name }}Response : Microsoft.Xrm.Sdk
     public {{ api.sanitized_unique_name }}Response()
     {
     }
+
+    public {{ api.sanitized_unique_name }}Response({{~ for prop in api.response_properties }}{{ prop.csharp_type }} {{ prop.argument_name }}{{ if !for.last }}, {{ end }}{{~ end ~}})
+    {
+        {{~ for prop in api.response_properties ~}}
+        this.{{ prop.name }} = {{ prop.argument_name }};
+        {{~ end ~}}
+    }
+
     {{~ for prop in api.response_properties ~}}
 
     {{ prop.xml_doc_comment }}
@@ -13,9 +21,9 @@ public partial class {{ api.sanitized_unique_name }}Response : Microsoft.Xrm.Sdk
     {
         get
         {
-            if (this.Results.Contains("{{ prop.original_name }}"))
+            if (this.Results.TryGetValue<{{ prop.csharp_type }}>("{{ prop.unique_name }}", out var value))
             {
-                return (({{ prop.csharp_type }})(this.Results["{{ prop.original_name }}"]));
+                return value;
             }
             else
             {
@@ -24,7 +32,7 @@ public partial class {{ api.sanitized_unique_name }}Response : Microsoft.Xrm.Sdk
         }
         set
         {
-            this.Results["{{ prop.original_name }}"] = value;
+            this.Results["{{ prop.unique_name }}"] = value;
         }
     }
     {{~ end ~}}

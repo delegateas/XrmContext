@@ -2,6 +2,8 @@ namespace DataverseProxyGenerator.Core.Domain;
 
 public record CustomApiModel
 {
+    public Guid Id { get; init; }
+
     public string UniqueName { get; init; } = string.Empty;
 
     public string DisplayName { get; init; } = string.Empty;
@@ -10,7 +12,7 @@ public record CustomApiModel
 
     public bool IsFunction { get; init; }
 
-    public IList<CustomApiParameterModel> RequestParameters { get; init; } = new List<CustomApiParameterModel>();
+    public IList<CustomApiParameterModel> RequestParameters { get; init; } = [];
 
-    public IList<CustomApiParameterModel> ResponseProperties { get; init; } = new List<CustomApiParameterModel>();
+    public IList<CustomApiParameterModel> ResponseProperties { get; init; } = [];
 }

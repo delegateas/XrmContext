@@ -15,22 +15,22 @@ public partial class {{ api.sanitized_unique_name }}Request : Microsoft.Xrm.Sdk.
     {{~ for param in api.request_parameters ~}}
 
     {{ param.xml_doc_comment }}
-    public {{ param.csharp_type }}{{ if param.is_optional }}?{{ end }} {{ param.name }}
+    public {{ param.csharp_type }} {{ param.name }}
     {
         get
         {
-            if (this.Parameters.Contains("{{ param.original_name }}"))
+            if (this.Parameters.TryGetValue<{{ param.csharp_type }}>("{{ param.unique_name }}", out var value))
             {
-                return (({{ param.csharp_type }}{{ if param.is_optional }}?{{ end }})(this.Parameters["{{ param.original_name }}"]));
+                return value;
             }
             else
             {
-                return default({{ param.csharp_type }}{{ if param.is_optional }}?{{ end }});
+                return default({{ param.csharp_type }});
             }
         }
         set
         {
-            this.Parameters["{{ param.original_name }}"] = value;
+            this.Parameters["{{ param.unique_name }}"] = value;
         }
     }
     {{~ end ~}}
