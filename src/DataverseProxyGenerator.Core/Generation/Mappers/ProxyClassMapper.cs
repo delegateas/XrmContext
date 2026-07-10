@@ -78,7 +78,8 @@ public static class ProxyClassMapper
 
             usedNames.Add(candidateName);
 
-            return sanitizedColumn with {
+            return sanitizedColumn with
+            {
                 SchemaName = candidateName,
                 CSharpType = TypeSignatureHelper.GetPropertyTypeSignature(sanitizedColumn, nullable),
                 GetterSuffix = GetGetterSuffix(sanitizedColumn, nullable),

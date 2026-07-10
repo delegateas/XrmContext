@@ -131,9 +131,9 @@ internal static class Program
             logger.LogInformation("Generating proxy classes and intersection interfaces...");
             var files = generator.GenerateCodeAsync(tables, customApis, config.Generation);
 
-            #pragma warning disable CA1873
+#pragma warning disable CA1873
             logger.LogInformation("Writing files to {OutputDirectory}...", config.Generation.OutputDirectory);
-            #pragma warning restore CA1873
+#pragma warning restore CA1873
             await writer.WriteFilesAsync(files, config.Generation.OutputDirectory);
 
             logger.LogInformation("Code generation complete.");
