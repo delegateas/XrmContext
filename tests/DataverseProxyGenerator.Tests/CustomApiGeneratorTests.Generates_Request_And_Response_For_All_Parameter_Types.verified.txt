@@ -1,0 +1,390 @@
+﻿{
+  request:
+namespace TestNamespace;
+
+[System.Runtime.Serialization.DataContractAttribute(Namespace="http://schemas.microsoft.com/xrm/2011/new/")]
+[Microsoft.Xrm.Sdk.Client.RequestProxyAttribute("new_TestApi")]
+[System.CodeDom.Compiler.GeneratedCodeAttribute("DataverseProxyGenerator", "1.0.0.0")]
+public partial class new_TestApiRequest : Microsoft.Xrm.Sdk.OrganizationRequest
+{
+    public new_TestApiRequest()
+    {
+        this.RequestName = "new_TestApi";
+        this.BoolIn = default(bool);
+        this.DecimalIn = default(decimal);
+        this.EntityReferenceIn = default(Microsoft.Xrm.Sdk.EntityReference);
+        this.FloatIn = default(double);
+        this.StringIn = default(string);
+        this.GuidIn = default(System.Guid);
+    }
+
+    /// <summary>
+    /// A required boolean.
+    /// </summary>
+    public bool BoolIn
+    {
+        get
+        {
+            if (this.Parameters.TryGetValue<bool>("BoolIn", out var value))
+            {
+                return value;
+            }
+            else
+            {
+                return default(bool);
+            }
+        }
+        set
+        {
+            this.Parameters["BoolIn"] = value;
+        }
+    }
+
+    
+    public System.DateTime? DateTimeIn
+    {
+        get
+        {
+            if (this.Parameters.TryGetValue<System.DateTime?>("DateTimeIn", out var value))
+            {
+                return value;
+            }
+            else
+            {
+                return default(System.DateTime?);
+            }
+        }
+        set
+        {
+            this.Parameters["DateTimeIn"] = value;
+        }
+    }
+
+    
+    public decimal DecimalIn
+    {
+        get
+        {
+            if (this.Parameters.TryGetValue<decimal>("DecimalIn", out var value))
+            {
+                return value;
+            }
+            else
+            {
+                return default(decimal);
+            }
+        }
+        set
+        {
+            this.Parameters["DecimalIn"] = value;
+        }
+    }
+
+    
+    public Microsoft.Xrm.Sdk.Entity? EntityIn
+    {
+        get
+        {
+            if (this.Parameters.TryGetValue<Microsoft.Xrm.Sdk.Entity?>("EntityIn", out var value))
+            {
+                return value;
+            }
+            else
+            {
+                return default(Microsoft.Xrm.Sdk.Entity?);
+            }
+        }
+        set
+        {
+            this.Parameters["EntityIn"] = value;
+        }
+    }
+
+    
+    public Microsoft.Xrm.Sdk.EntityCollection? EntityCollectionIn
+    {
+        get
+        {
+            if (this.Parameters.TryGetValue<Microsoft.Xrm.Sdk.EntityCollection?>("EntityCollectionIn", out var value))
+            {
+                return value;
+            }
+            else
+            {
+                return default(Microsoft.Xrm.Sdk.EntityCollection?);
+            }
+        }
+        set
+        {
+            this.Parameters["EntityCollectionIn"] = value;
+        }
+    }
+
+    
+    public Microsoft.Xrm.Sdk.EntityReference EntityReferenceIn
+    {
+        get
+        {
+            if (this.Parameters.TryGetValue<Microsoft.Xrm.Sdk.EntityReference>("EntityReferenceIn", out var value))
+            {
+                return value;
+            }
+            else
+            {
+                return default(Microsoft.Xrm.Sdk.EntityReference);
+            }
+        }
+        set
+        {
+            this.Parameters["EntityReferenceIn"] = value;
+        }
+    }
+
+    
+    public double FloatIn
+    {
+        get
+        {
+            if (this.Parameters.TryGetValue<double>("FloatIn", out var value))
+            {
+                return value;
+            }
+            else
+            {
+                return default(double);
+            }
+        }
+        set
+        {
+            this.Parameters["FloatIn"] = value;
+        }
+    }
+
+    
+    public int? IntegerIn
+    {
+        get
+        {
+            if (this.Parameters.TryGetValue<int?>("IntegerIn", out var value))
+            {
+                return value;
+            }
+            else
+            {
+                return default(int?);
+            }
+        }
+        set
+        {
+            this.Parameters["IntegerIn"] = value;
+        }
+    }
+
+    
+    public Microsoft.Xrm.Sdk.Money? MoneyIn
+    {
+        get
+        {
+            if (this.Parameters.TryGetValue<Microsoft.Xrm.Sdk.Money?>("MoneyIn", out var value))
+            {
+                return value;
+            }
+            else
+            {
+                return default(Microsoft.Xrm.Sdk.Money?);
+            }
+        }
+        set
+        {
+            this.Parameters["MoneyIn"] = value;
+        }
+    }
+
+    
+    public Microsoft.Xrm.Sdk.OptionSetValue? PicklistIn
+    {
+        get
+        {
+            if (this.Parameters.TryGetValue<Microsoft.Xrm.Sdk.OptionSetValue?>("PicklistIn", out var value))
+            {
+                return value;
+            }
+            else
+            {
+                return default(Microsoft.Xrm.Sdk.OptionSetValue?);
+            }
+        }
+        set
+        {
+            this.Parameters["PicklistIn"] = value;
+        }
+    }
+
+    /// <summary>
+    /// A required string.
+    /// </summary>
+    public string StringIn
+    {
+        get
+        {
+            if (this.Parameters.TryGetValue<string>("StringIn", out var value))
+            {
+                return value;
+            }
+            else
+            {
+                return default(string);
+            }
+        }
+        set
+        {
+            this.Parameters["StringIn"] = value;
+        }
+    }
+
+    
+    public string[]? StringArrayIn
+    {
+        get
+        {
+            if (this.Parameters.TryGetValue<string[]?>("StringArrayIn", out var value))
+            {
+                return value;
+            }
+            else
+            {
+                return default(string[]?);
+            }
+        }
+        set
+        {
+            this.Parameters["StringArrayIn"] = value;
+        }
+    }
+
+    
+    public System.Guid GuidIn
+    {
+        get
+        {
+            if (this.Parameters.TryGetValue<System.Guid>("GuidIn", out var value))
+            {
+                return value;
+            }
+            else
+            {
+                return default(System.Guid);
+            }
+        }
+        set
+        {
+            this.Parameters["GuidIn"] = value;
+        }
+    }
+}
+,
+  response:
+namespace TestNamespace;
+
+[System.Runtime.Serialization.DataContractAttribute(Namespace="http://schemas.microsoft.com/xrm/2011/new/")]
+[Microsoft.Xrm.Sdk.Client.ResponseProxyAttribute("new_TestApi")]
+[System.CodeDom.Compiler.GeneratedCodeAttribute("DataverseProxyGenerator", "1.0.0.0")]
+public partial class new_TestApiResponse : Microsoft.Xrm.Sdk.OrganizationResponse
+{
+    public new_TestApiResponse()
+    {
+    }
+
+    public new_TestApiResponse(bool boolOut, string stringOut, Microsoft.Xrm.Sdk.Entity entityOut, System.Guid guidOut)
+    {
+        this.BoolOut = boolOut;
+        this.StringOut = stringOut;
+        this.EntityOut = entityOut;
+        this.GuidOut = guidOut;
+    }
+
+
+    
+    public bool BoolOut
+    {
+        get
+        {
+            if (this.Results.TryGetValue<bool>("BoolOut", out var value))
+            {
+                return value;
+            }
+            else
+            {
+                return default(bool);
+            }
+        }
+        set
+        {
+            this.Results["BoolOut"] = value;
+        }
+    }
+
+    /// <summary>
+    /// The string result.
+    /// </summary>
+    public string StringOut
+    {
+        get
+        {
+            if (this.Results.TryGetValue<string>("StringOut", out var value))
+            {
+                return value;
+            }
+            else
+            {
+                return default(string);
+            }
+        }
+        set
+        {
+            this.Results["StringOut"] = value;
+        }
+    }
+
+    
+    public Microsoft.Xrm.Sdk.Entity EntityOut
+    {
+        get
+        {
+            if (this.Results.TryGetValue<Microsoft.Xrm.Sdk.Entity>("EntityOut", out var value))
+            {
+                return value;
+            }
+            else
+            {
+                return default(Microsoft.Xrm.Sdk.Entity);
+            }
+        }
+        set
+        {
+            this.Results["EntityOut"] = value;
+        }
+    }
+
+    
+    public System.Guid GuidOut
+    {
+        get
+        {
+            if (this.Results.TryGetValue<System.Guid>("GuidOut", out var value))
+            {
+                return value;
+            }
+            else
+            {
+                return default(System.Guid);
+            }
+        }
+        set
+        {
+            this.Results["GuidOut"] = value;
+        }
+    }
+}
+
+}
