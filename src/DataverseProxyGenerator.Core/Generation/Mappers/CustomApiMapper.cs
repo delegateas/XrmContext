@@ -37,7 +37,7 @@ public static class CustomApiMapper
                 original_name = p.Name,
                 unique_name = p.UniqueName,
                 display_name = p.DisplayName,
-                argument_name = ToLowerCamelCase(p.UniqueName, argCounter),
+                argument_name = ToLowerFirst(p.UniqueName, argCounter),
                 description = p.Description,
                 csharp_type = GetCSharpType(p.Type, p.IsOptional, context.NullableTypes),
                 is_optional = p.IsOptional,
@@ -78,13 +78,22 @@ public static class CustomApiMapper
         return $"/// <summary>\n/// {description}\n/// </summary>";
     }
 
-    private static string ToLowerCamelCase(string name, Counter counter, string fallbackPrefix = "arg")
+    /// <summary>
+    /// Converts the first character of the given name to lowercase. If the name is null or empty, it generates a fallback name using the provided prefix and a counter.
+    /// </summary>
+    /// <param name="name">The name to convert.</param>
+    /// <param name="counter">The counter used to generate a fallback name if the name is null or empty.</param>
+    /// <param name="fallbackPrefix">The prefix to use for the fallback name.</param>
+    /// <returns>The converted name with the first character in lowercase, or a fallback name if the original name is null or empty.</returns>
+    private static string ToLowerFirst(string name, Counter counter, string fallbackPrefix = "arg")
     {
         if (string.IsNullOrEmpty(name))
         {
-            return $"{fallbackPrefix}{counter.Increment().ToString(CultureInfo.InvariantCulture)}";
+            return fallbackPrefix + counter.Increment().ToString(CultureInfo.InvariantCulture);
         }
 
-        return char.ToLowerInvariant(name[0]) + name.Substring(1);
+        return name.Length == 1
+            ? name.ToLowerInvariant()
+            : char.ToLowerInvariant(name[0]) + name[1..];
     }
 }
