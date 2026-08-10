@@ -7,14 +7,14 @@ namespace DataverseProxyGenerator.Core.Generation.Generators;
 
 public class ProxyClassGenerator : BaseFileGenerator, IFileGenerator<(TableModel Table, IReadOnlyList<string> Interfaces)>
 {
-    public IEnumerable<GeneratedFile> Generate((TableModel Table, IReadOnlyList<string> Interfaces) input, GenerationContext context)
+    public IAsyncEnumerable<GeneratedFile> GenerateAsync((TableModel Table, IReadOnlyList<string> Interfaces) input, GenerationContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(input.Table);
-        return GenerateInternal(input, context);
+        return GenerateInternalAsync(input, context);
     }
 
-    private static IEnumerable<GeneratedFile> GenerateInternal((TableModel Table, IReadOnlyList<string> Interfaces) input, GenerationContext context)
+    private static async IAsyncEnumerable<GeneratedFile> GenerateInternalAsync((TableModel Table, IReadOnlyList<string> Interfaces) input, GenerationContext context)
     {
         ValidateContext(context);
 
@@ -27,10 +27,10 @@ public class ProxyClassGenerator : BaseFileGenerator, IFileGenerator<(TableModel
             nullable_types = context.NullableTypes,
         };
 
-        var template = context.Templates.GetTemplate("ProxyClass.scriban-cs");
+        var template = await context.Templates.GetTemplateAsync("ProxyClass.scriban-cs");
 
         var templateContext = CreateTemplateContext(templateModel, context.Templates);
-        var result = template.Render(templateContext);
+        var result = await template.RenderAsync(templateContext);
 
         var sanitizedSchemaName = GenerationUtilities.SanitizeName(input.Table.SchemaName);
         yield return new GeneratedFile(FilePathHelper.GetTableFilePath(sanitizedSchemaName), result);

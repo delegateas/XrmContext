@@ -6,7 +6,7 @@ namespace DataverseProxyGenerator.Tests;
 public sealed class SingleFileTemplateTests
 {
     [Fact]
-    public void SingleFile_Template_Generates_XRM_Service_Context_Correctly()
+    public async Task SingleFile_Template_Generates_XRM_Service_Context_Correctly()
     {
         // Arrange
         var tables = new List<TableModel>
@@ -44,7 +44,7 @@ public sealed class SingleFileTemplateTests
         var generator = new CSharpProxyGenerator();
 
         // Act
-        var singleFileResults = generator.GenerateCode(tables, Enumerable.Empty<CustomApiModel>(), config).ToList();
+        var singleFileResults = await generator.GenerateCodeAsync(tables, Enumerable.Empty<CustomApiModel>(), config).ToListAsync();
 
         // Test with multiple file generation for comparison
         var multiFileConfig = new XrmGenerationConfig(
@@ -55,7 +55,7 @@ public sealed class SingleFileTemplateTests
             SingleFile: false,
             GenerateCustomApis: false);
 
-        var multiFileResults = generator.GenerateCode(tables, Enumerable.Empty<CustomApiModel>(), multiFileConfig).ToList();
+        var multiFileResults = await generator.GenerateCodeAsync(tables, Enumerable.Empty<CustomApiModel>(), multiFileConfig).ToListAsync();
 
         // Assert
         Assert.Single(singleFileResults);
@@ -87,7 +87,7 @@ public sealed class SingleFileTemplateTests
     }
 
     [Fact]
-    public void SingleFile_Template_Uses_Default_ServiceContextName_When_Null()
+    public async Task SingleFile_Template_Uses_Default_ServiceContextName_When_Null()
     {
         // Arrange
         var tables = new List<TableModel>
@@ -115,7 +115,7 @@ public sealed class SingleFileTemplateTests
         var generator = new CSharpProxyGenerator();
 
         // Act
-        var results = generator.GenerateCode(tables, Enumerable.Empty<CustomApiModel>(), config).ToList();
+        var results = await generator.GenerateCodeAsync(tables, Enumerable.Empty<CustomApiModel>(), config).ToListAsync();
 
         // Assert
         Assert.Single(results);

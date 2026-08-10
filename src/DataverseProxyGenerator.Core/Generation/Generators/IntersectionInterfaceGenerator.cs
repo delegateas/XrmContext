@@ -7,15 +7,15 @@ namespace DataverseProxyGenerator.Core.Generation.Generators;
 
 public class IntersectionInterfaceGenerator : BaseFileGenerator, IFileGenerator<(string InterfaceName, IEnumerable<ColumnSignature> Columns, IList<TableModel> Tables)>
 {
-    public IEnumerable<GeneratedFile> Generate((string InterfaceName, IEnumerable<ColumnSignature> Columns, IList<TableModel> Tables) input, GenerationContext context)
+    public IAsyncEnumerable<GeneratedFile> GenerateAsync((string InterfaceName, IEnumerable<ColumnSignature> Columns, IList<TableModel> Tables) input, GenerationContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(input.InterfaceName);
         ArgumentNullException.ThrowIfNull(input.Tables);
-        return GenerateInternal(input, context);
+        return GenerateInternalAsync(input, context);
     }
 
-    private static IEnumerable<GeneratedFile> GenerateInternal((string InterfaceName, IEnumerable<ColumnSignature> Columns, IList<TableModel> Tables) input, GenerationContext context)
+    private static async IAsyncEnumerable<GeneratedFile> GenerateInternalAsync((string InterfaceName, IEnumerable<ColumnSignature> Columns, IList<TableModel> Tables) input, GenerationContext context)
     {
         ValidateContext(context);
 
@@ -27,10 +27,10 @@ public class IntersectionInterfaceGenerator : BaseFileGenerator, IFileGenerator<
             version = context.Version,
         };
 
-        var template = context.Templates.GetTemplate("IntersectionInterface.scriban-cs");
+        var template = await context.Templates.GetTemplateAsync("IntersectionInterface.scriban-cs");
 
         var templateContext = CreateTemplateContext(templateModel, context.Templates);
-        var interfaceResult = template.Render(templateContext);
+        var interfaceResult = await template.RenderAsync(templateContext);
 
         var sanitizedInterfaceName = GenerationUtilities.SanitizeName(input.InterfaceName);
         yield return new GeneratedFile(FilePathHelper.GetIntersectionInterfaceFilePath(sanitizedInterfaceName), interfaceResult);

@@ -4,7 +4,7 @@ namespace DataverseProxyGenerator.Core.Output;
 
 public class FileSystemOutputWriter : IOutputWriter
 {
-    public void WriteFiles(IEnumerable<GeneratedFile> files, string outputDirectory)
+    public async Task WriteFilesAsync(IAsyncEnumerable<GeneratedFile> files, string outputDirectory)
     {
         ArgumentNullException.ThrowIfNull(files);
 
@@ -25,12 +25,12 @@ public class FileSystemOutputWriter : IOutputWriter
             Directory.CreateDirectory(outputDirectory);
         }
 
-        foreach (var file in files)
+        await foreach (var file in files)
         {
             var filePath = Path.Combine(outputDirectory, file.Filename);
             var directoryPath = Path.GetDirectoryName(filePath) ?? throw new InvalidOperationException("Unable to determine directory path for file creation.");
             Directory.CreateDirectory(directoryPath);
-            File.WriteAllText(filePath, file.Content);
+            await File.WriteAllTextAsync(filePath, file.Content);
         }
     }
 }

@@ -11,5 +11,5 @@ public interface ICodeGenerator
     /// <param name="customApis">The Dataverse Custom APIs to generate code for.</param>
     /// <param name="config">Configuration for code generation, including output directory, namespace, service context name, and intersection mappings.</param>
     /// <returns>A collection of generated files (filename and content).</returns>
-    IEnumerable<GeneratedFile> GenerateCode(IEnumerable<TableModel> tables, IEnumerable<CustomApiModel> customApis, XrmGenerationConfig config);
+    IAsyncEnumerable<GeneratedFile> GenerateCodeAsync(IEnumerable<TableModel> tables, IEnumerable<CustomApiModel> customApis, XrmGenerationConfig config);
 }
