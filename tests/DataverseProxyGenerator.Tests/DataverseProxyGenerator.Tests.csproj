@@ -15,7 +15,6 @@
   <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="6.0.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
-    <PackageReference Include="System.Linq.AsyncEnumerable" Version="10.0.9" />
     <PackageReference Include="Verify.Xunit" Version="26.6.0" />
   </ItemGroup>
 
